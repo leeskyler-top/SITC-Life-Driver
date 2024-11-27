@@ -50,6 +50,35 @@ def create_database_and_table():
     except MySQLError as e:
         print(f"数据库操作失败：{e}")
 
+def update_template(record_id: int, building=None, room=None, classname=None):
+    """
+    向 template 表中插入一条记录。
+    """
+    try:
+        with get_connection(database="SITC") as connection:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT * FROM template WHERE id = %s;", (record_id,))
+                record = cursor.fetchone()
+
+                if not record:
+                    return False, f"ID {record_id} 的记录不存在"
+                if not building:
+                    building = record["building"]
+                if not room:
+                    room = record["room"]
+                if not classname:
+                    classname = record["classname"]
+
+                cursor.execute("""
+                UPDATE template SET building = %s, room = %s, classname = %s WHERE id = %s;
+                """ , (building, room, classname, record_id))
+                connection.commit()
+        return True, f"成功插入数据：building={building}, room={room}, classname={classname}"
+
+    except IntegrityError as e:
+        return False, f"插入失败：违反唯一性约束 - {e}"
+    except MySQLError as e:
+        return False, f"数据库错误：{e}"
 
 def insert_template(building: str, room: str, classname: str):
     """

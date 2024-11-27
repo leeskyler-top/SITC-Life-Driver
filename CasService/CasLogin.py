@@ -45,18 +45,18 @@ def setCasCookie():
         # 定位用户名和密码输入框，并输入数据
         username_element = driver.find_element(By.ID, "un")
         password_element = driver.find_element(By.ID, "pd")
-        time.sleep(3)
+        time.sleep(2)
         username_element.send_keys(username)  # 替换为实际用户名
-        time.sleep(5)
+        time.sleep(2)
         password_element.send_keys(password)  # 替换为实际密码
         # 单击登录按钮
         login_button = driver.find_element(By.CLASS_NAME, "login_box_landing_btn")
         login_button.click()
         wait_for_network_idle(driver)  # 等待网络活动完成
-        time.sleep(3)
+        time.sleep(2)
         driver.get(cas_baseurl + pan_sso_service)
         # wait_for_network_idle(driver)  # 等待网络活动完成
-        time.sleep(3)
+        time.sleep(2.5)
         cookies = driver.get_cookies()
         # 查找并修改 tokenid Cookie，添加过期时间
         for cookie in cookies:
