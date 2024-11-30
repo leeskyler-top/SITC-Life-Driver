@@ -1,5 +1,7 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask
 from cerberus import Validator
+from flask_cors import CORS
+
 from CasService.CasLogin import *
 from Controller.UserController import user_controller
 from Controller.DriverController import driver_controller
@@ -9,9 +11,6 @@ from Controller.SemesterController import semester_controller
 from Handler.Handler import handle_global_exceptions
 from flask_jwt_extended import (
     JWTManager,
-    create_access_token,
-    jwt_required,
-    get_jwt_identity,
 )
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
@@ -26,6 +25,7 @@ create_database_and_table()
 
 # 初始化 Flask 应用
 app = Flask(__name__)
+CORS(app)
 
 # 注册 Controller
 app.register_blueprint(user_controller, url_prefix='/api/v1/user')

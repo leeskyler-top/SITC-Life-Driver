@@ -59,15 +59,13 @@ def position_required(positions=None, is_admin_required=False):
     if positions is None:
         positions = [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER,
                      PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER]
-        positions = [position.value for position in positions]
+    positions = [position.value for position in positions]
     def decorator(f):
         @wraps(f)
         @jwt_required()  # 确保是已认证的用户
         def wrapper(*args, **kwargs):
             current_user_id = get_jwt_identity()  # 获取当前用户的 ID
-            session = Session()
-            user = session.query(User).filter_by(id=current_user_id).first()
-            session.close()
+            user = User.get_user_by_id(current_user_id)
 
             if not user:
                 return jsonify({"status": "fail", "message": "用户不存在"}), 404

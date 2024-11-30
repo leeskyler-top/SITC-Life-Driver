@@ -1,6 +1,6 @@
 from flask_jwt_extended import get_jwt_identity
 from flask import request
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from .globals import engine, Session
 from sqlalchemy import Column, Integer, String, Enum, Text, Boolean
 from sqlalchemy.ext.declarative import declarative_base
@@ -43,7 +43,7 @@ class DepartmentEnum(enum.Enum):
 class PoliticalLandscapeEnum(enum.Enum):
     PUBLICPEOPLE="群众"
     CYLC = "中国共产主义青年团团员"
-    CPC = "中国共产党党员"
+    CPC = "中国共产党正式党员"
     PROBATIONARYCPC="中国共产党预备党员"
     OTHERS = "其它"
 
@@ -84,9 +84,8 @@ class User(Base):
             "note": self.note,
             "politicalLandscape": self.politicalLandscape.value,  # Enum 类型转换为字符串
             "resident": self.resident,
-            "join_at": self.join_at,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at
+            "join_at": self.join_at.strftime("%Y-%m-%d") if self.join_at else None,  # 格式化 join_at
+            "created_at": self.created_at.strftime("%Y-%m-%d") if self.created_at else None,  # 格式化 created_at
         }
 
     @classmethod
@@ -94,7 +93,10 @@ class User(Base):
         session = Session()
         user = session.query(cls).filter_by(id=user_id).first()
         session.close()
-        return user.to_dict()
+        if user:
+            return user.to_dict()
+        else:
+            return None
 
     @classmethod
     def delete_user_by_id(cls, user_id: int):
@@ -110,57 +112,65 @@ class User(Base):
                          qq: str = None, department: str = None, gender: str = None, is_admin: bool = None,
                          position: str = None, note: str = None, politicalLandscape: str = None, resident: bool = False,
                          join_at: str = None):
+        # 创建一个新的Session
         session = Session()
-        user = session.query(cls).filter_by(id=user_id).first()
+        try:
+            # 查询用户
+            user = session.query(cls).filter_by(id=user_id).first()
 
-        if user:
-            if name is not None:
-                user.name = name
-            if classname is not None:
-                user.classname = classname
-            if phone is not None:
-                user.phone = phone
-            if qq is not None:
-                user.qq = qq
-            if department is not None:
-                user.department = department
-            if gender is not None:
-                user.gender = gender
-            if is_admin is not None:
-                user.is_admin = is_admin
-            if position is not None:
-                user.position = position
-            if note is not None:
-                user.note = note
-            if politicalLandscape is not None:
-                user.politicalLandscape = politicalLandscape
-            if resident is not None:
-                user.resident = resident
-            if join_at is not None:
-                user.join_at = join_at
+            if user:
+                # 更新字段
+                if name is not None:
+                    user.name = name
+                if classname is not None:
+                    user.classname = classname
+                if phone is not None:
+                    user.phone = phone
+                if qq is not None:
+                    user.qq = qq
+                if department is not None:
+                    user.department = department
+                if gender is not None:
+                    user.gender = gender
+                if is_admin is not None:
+                    user.is_admin = is_admin
+                if position is not None:
+                    user.position = position
+                if note is not None:
+                    user.note = note
+                if politicalLandscape is not None:
+                    user.politicalLandscape = politicalLandscape
+                if resident is not None:
+                    user.resident = resident
+                if join_at is not None:
+                    user.join_at = join_at
 
-            # 验证字段有效性
-            if department not in DepartmentEnum._value2member_map_:
-                return False, "部门无效", 422
-            if gender not in GenderEnum._value2member_map_:
-                return False, "性别无效", 422
-            if position not in PositionEnum._value2member_map_:
-                return False, "职务无效", 422
-            if politicalLandscape not in PoliticalLandscapeEnum._value2member_map_:
-                return False, "政治面貌无效", 422
+                # 验证字段有效性
+                if department not in DepartmentEnum._value2member_map_:
+                    return False, "部门无效", 422
+                if gender not in GenderEnum._value2member_map_:
+                    return False, "性别无效", 422
+                if position not in PositionEnum._value2member_map_:
+                    return False, "职务无效", 422
+                if politicalLandscape not in PoliticalLandscapeEnum._value2member_map_:
+                    return False, "政治面貌无效", 422
 
-            user.position = PositionEnum(position)
-            user.department = DepartmentEnum(department)
-            user.gender = GenderEnum(gender)
-            try:
-                session.commit()  # 提交事务
-            except Exception as e:
-                session.rollback()
-                session.close()
-                return False, f"更新失败: {str(e)}", 500
+                # 转换字段值
+                user.position = PositionEnum(position)
+                user.department = DepartmentEnum(department)
+                user.gender = GenderEnum(gender)
+                user.politicalLandscape = PoliticalLandscapeEnum(politicalLandscape)
 
-        session.close()
-        return user.to_dict()  # 返回更新后的用户对象
+                # 提交事务
+                session.commit()
+                return True, "更新成功", 200
+            else:
+                return False, "用户不存在", 404
+        except SQLAlchemyError as e:
+            session.rollback()  # 回滚事务
+            return False, f"数据库操作失败: {str(e)}", 500
+        finally:
+            session.close()  # 确保会话被关闭
 
     @classmethod
     def create_user_in_db(cls, studentId: str, password: str, name: str, classname: str, department: str, gender: str,
@@ -277,5 +287,21 @@ class User(Base):
 
 try:
     Base.metadata.create_all(engine)
+    User.create_user_in_db(
+        studentId="22100484",
+        password="22100484",
+        name="李天成",
+        classname="214L01",
+        gender="男",
+        department="信息技术系",
+        phone="15216674952",
+        position="副部长",
+        is_admin=True,
+        qq="942702459",
+        note="技术支持，项目维护者。",
+        politicalLandscape="中国共产主义青年团团员",
+        resident=0,
+        join_at="2023-03-01"
+    )
 except:
     print("User Table already exists")
