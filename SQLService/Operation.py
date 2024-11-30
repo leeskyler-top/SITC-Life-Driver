@@ -92,7 +92,7 @@ def insert_template(building: str, room: str, classname: str):
                     VALUES (%s, %s, %s);
                 """, (building, room, classname))
                 connection.commit()
-        return True, f"成功插入数据：building={building}, room={room}, classname={classname}"
+        return True, f"成功插入数据"
 
     except IntegrityError as e:
         return False, f"插入失败：违反唯一性约束 - {e}"

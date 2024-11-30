@@ -13,8 +13,8 @@ from Controller.globals import json_response, Session
 auth_controller = Blueprint('auth_controller', __name__)
 
 # 配置 Token 的过期时间
-ACCESS_EXPIRES = timedelta(minutes=3)  # 设置为 1 年的有效期
-REFRESH_EXPIRES = timedelta(minutes=30)  # 设置为 1 年的有效期
+ACCESS_EXPIRES = timedelta(minutes=3)  # 设置为 3 分钟的有效期
+REFRESH_EXPIRES = timedelta(minutes=30)  # 设置为 30 分钟的有效期
 
 # 登录逻辑
 @auth_controller.route('/login', methods=['POST'])
@@ -43,7 +43,7 @@ def login():
     })
 
 # 登出逻辑
-@auth_controller.route('/logout', methods=['POST'])
+@auth_controller.route('/logout', methods=['DELETE'])
 @jwt_required()
 def logout():
     # 实际登出逻辑是在客户端删除 Token

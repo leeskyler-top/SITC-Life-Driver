@@ -15,8 +15,8 @@ import pandas as pd
 user_controller = Blueprint('user_controller', __name__)
 
 
-@user_controller.route('/', methods=['POST'])
-# @admin_required
+@user_controller.route('', methods=['POST'], endpoint='create_user')
+@admin_required
 def create_user():
     """
     创建用户，默认密码为账户名
@@ -110,8 +110,8 @@ def create_user():
         return json_response('fail', f"用户创建失败：{str(e)}", code=500)
 
 
-@user_controller.route('/upload', methods=['POST'])
-# @admin_required  # 需要管理员权限
+@user_controller.route('/upload', methods=['POST'], endpoint='batch_create_users')
+@admin_required  # 需要管理员权限
 def batch_create_users():
     """
     批量创建用户，默认密码为学号
@@ -143,8 +143,8 @@ def batch_create_users():
         df['gender'] = df['gender'].astype('str').str.strip()
         df['department'] = df['department'].astype('str').str.strip()
         df['is_admin'] = df['is_admin'].fillna(0).astype(bool)  # 默认值为 0
-        df['qq'] = df['qq'].astype('str').str.strip().fillna('')
-        df['note'] = df['note'].astype('str').str.strip().fillna('')
+        df['qq'] = df['qq'].astype('str').str.strip().fillna(' ')
+        df['note'] = df['note'].astype('str').str.strip().fillna(' ')
         df['politicalLandscape'] = df['politicalLandscape'].astype('str').str.strip().fillna('群众')
         df['resident'] = df['resident'].fillna(0).astype(bool)  # 默认值为 0
         df['join_at'] = df['join_at'].astype('str').apply(lambda x: x.strip() if x else None)
@@ -178,6 +178,7 @@ def batch_create_users():
 
         # 插入数据
         results = []
+        created_users = []  # This will store successfully created users
         for index, row in df.iterrows():
             if row['studentId'] in existing_ids:
                 results.append(f"第 {index + 1} 行: studentId {row['studentId']} 已存在于数据库中，跳过处理")
@@ -206,7 +207,8 @@ def batch_create_users():
                     join_at=row['join_at'] or None
                 )
                 if status:
-                    results.append(f"第 {index + 1} 行: 用户 '{new_user.studentId}' 创建成功")
+                    results.append(f"第 {index + 1} 行: 用户 '{new_user['studentId']}' 创建成功")
+                    created_users.append(new_user)  # Add to created users list
                 else:
                     results.append(f"第 {index + 1} 行: 用户创建失败，错误信息: {new_user}")
             except IntegrityError:
@@ -214,30 +216,31 @@ def batch_create_users():
             except Exception as e:
                 results.append(f"第 {index + 1} 行: 用户创建失败，错误信息: {str(e)}")
 
-        return json_response('success', '批量创建完成', data=results, code=200)
+        data = {
+            'results': results,
+            'users': created_users
+        }
+        return json_response('success', '批量创建完成', data=data, code=200)
 
     except Exception as e:
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
-
 # 管理员重置用户密码接口
-@user_controller.route('/reset_password/<int:user_id>', methods=['PATCH'])
+@user_controller.route('/pwd/reset/<int:user_id>', methods=['GET'], endpoint='reset_user_password')
 @admin_required  # 确保用户已登录
 def reset_user_password(user_id):
     current_user_id = get_jwt_identity()  # 获取当前用户的 ID
 
     # 确保管理员不能重置自己的密码
-    if current_user_id == user_id:
+    if int(current_user_id) == user_id:
         return json_response("fail", "不能重置自己的密码", code=403)
-
-    data = request.get_json()
 
     # 生成一个随机密码
     new_password = generate_random_password()
 
     # 获取数据库 session
     session = Session()
-    user = session.query(User).filter_by(id=user_id).first()
+    user = User.get_user_by_id(user_id)
 
     if not user:
         session.close()
@@ -267,8 +270,8 @@ def generate_random_password(length=8):
 
 # 其他用户管理功能类似
 # 用户更新密码接口
-@user_controller.route('/update_password', methods=['PATCH'])
-@jwt_required  # 确保用户已登录
+@user_controller.route('/pwd/update', methods=['PATCH'], endpoint='update_own_password')
+@jwt_required()  # 确保用户已登录
 def update_own_password():
     current_user_id = get_jwt_identity()  # 获取当前用户的 ID
 
@@ -319,7 +322,7 @@ def update_own_password():
         return json_response('fail', f"密码更新失败：{str(e)}", code=500)
 
 
-@user_controller.route('/<int:user_id>', methods=['PATCH'])
+@user_controller.route('/<int:user_id>', methods=['PATCH'], endpoint='patch_user')
 @admin_required
 def patch_user(user_id):
     """
@@ -332,6 +335,8 @@ def patch_user(user_id):
     position_enum_values = [item.value for item in PositionEnum]
     gender_enum_values = [item.value for item in GenderEnum]
     department_enum_values = [item.value for item in DepartmentEnum]
+    political_landscape_enum_values = [item.value for item in PoliticalLandscapeEnum]
+    print(political_landscape_enum_values)
 
     schema = {
         'name': {'type': 'string', 'required': True, 'minlength': 2, 'maxlength': 50},
@@ -341,7 +346,9 @@ def patch_user(user_id):
                      'allowed': position_enum_values},
         'gender': {'type': 'string', 'required': True, 'allowed': gender_enum_values},
         'department': {'type': 'string', 'required': True, 'allowed': department_enum_values},
+        'politicalLandscape': {'type': 'string', 'required': True, 'allowed': political_landscape_enum_values},
         'is_admin': {'type': 'integer', 'required': True, 'allowed': [0, 1]},  # 0 为普通用户，1 为管理员
+        'resident': {'type': 'integer', 'required': True, 'allowed': [0, 1]},
         'qq': {'type': 'string', 'maxlength': 50},
         'note': {'type': 'string', 'maxlength': 255},
         'join_at': {'type': 'string', 'regex': r'^\d{4}-\d{2}-\d{2}$'}  # YYYY-MM-DD 格式
@@ -351,25 +358,19 @@ def patch_user(user_id):
     if not is_valid:
         return json_response('fail', f"请求数据格式错误: {errors}", code=422)
 
-    session = Session()
     current_user_id = get_jwt_identity()
-    current_user = session.query(User).filter_by(id=current_user_id).first()
+    current_user = User.get_user_by_id(current_user_id)
 
     if not current_user:
-        return False, "当前用户不存在", 404
+        return json_response("fail", "用户不存在", code=404)
     # 防止用户修改自己的 is_admin 字段，确保只有管理员能够更改
-    if current_user_id == user_id:
+    if int(current_user_id) == user_id:
         # 如果修改的是当前用户的权限，禁止更改 is_admin
         data = request.get_json()
-        if 'is_admin' in data and data['is_admin'] != current_user.is_admin:
-            return False, "无法修改自己的管理员权限", 403
+        if 'is_admin' in data and data['is_admin'] != current_user['is_admin']:
+            return json_response("fail", "不可修改自己的管理员字段", code=403)
 
-    # 获取当前登录用户
-    current_user_id = get_jwt_identity()
-    if user_id == current_user_id:
-        return json_response("fail", "不能修改自己的信息"), 403
-
-    updated_user = User.patch_user_by_id(
+    status, updated_user, code = User.patch_user_by_id(
         user_id=user_id,
         name=data.get('name'),
         classname=data.get('classname'),
@@ -379,14 +380,17 @@ def patch_user(user_id):
         gender=data.get('gender'),
         is_admin=data.get('is_admin'),
         position=data.get('position'),
+        politicalLandscape=data.get('politicalLandscape'),
         note=data.get('note'),
         join_at=data.get('join_at')
     )
 
-    return json_response("success", "用户信息更新成功", data=updated_user, code=200)
+    if status:
+        return json_response("success", "用户信息已更新", updated_user, code=code)
+    else:
+        return json_response("fail", updated_user, code)
 
-
-@user_controller.route('/<int:user_id>', methods=['GET'])
+@user_controller.route('/<int:user_id>', methods=['GET'], endpoint='get_user')
 @admin_required
 def get_user(user_id):
     """
@@ -399,14 +403,14 @@ def get_user(user_id):
         return json_response("fail", "用户不存在", code=404)
 
 
-@user_controller.route('/<int:user_id>', methods=['DELETE'])
+@user_controller.route('/<int:user_id>', methods=['DELETE'], endpoint='delete_user')
 @admin_required
 def delete_user(user_id):
     """
     删除某一用户，但不能删除自己
     """
     current_user_id = get_jwt_identity()
-    if user_id == current_user_id:
+    if user_id == int(current_user_id):
         return json_response("fail", "不能删除自己", code=403)
 
     # 删除用户
@@ -414,7 +418,7 @@ def delete_user(user_id):
     return json_response("success", "用户删除成功", code=200)
 
 
-@user_controller.route('/', methods=['GET'])
+@user_controller.route('', methods=['GET'], endpoint='get_all_users')
 @admin_required
 def get_all_users():
     """
@@ -422,3 +426,17 @@ def get_all_users():
     """
     users = User.get_all_users()
     return json_response("success", "用户列表获取成功", data=users, code=200)
+
+@user_controller.route('/my', methods=['GET'], endpoint='get_my_info')
+@jwt_required()
+def get_my_info():
+    """
+    获取某一用户信息
+    """
+    current_user_id = get_jwt_identity()
+    user = User.get_user_by_id(current_user_id)
+    if user:
+        return json_response("success", "用户信息获取成功", data=user, code=200)
+    else:
+        return json_response("fail", "用户不存在", code=404)
+

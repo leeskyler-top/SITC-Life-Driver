@@ -1,17 +1,21 @@
 from flask import Blueprint, request, Response
+from flask_jwt_extended import jwt_required
 
 from Handler.Handler import position_required
-from .globals import json_response, validate_schema
+from Model.User import PositionEnum
+from .globals import json_response, validate_schema, non_empty_string
 from AnyshareService.AnyShareOperation import delete_template, update_current_semester_info, update_template
 from SQLService.Operation import truncate_template, insert_template, delete_template, update_current_semester_info, \
     update_template, read_template_from_sql
-
-template_controller = Blueprint('template_controller', __name__)
 import io
 import pandas as pd
 
-@template_controller.route('/<int:id>', methods=['PATCH'])
-@position_required
+template_controller = Blueprint('template_controller', __name__)
+
+
+@template_controller.route('/<int:id>', methods=['PATCH'], endpoint='update_template_by_id')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
 def update_template_by_id(id):
     try:
         data = request.get_json()
@@ -59,8 +63,8 @@ def update_template_by_id(id):
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
 
-@template_controller.route('/', methods=['DELETE'])
-@position_required
+@template_controller.route('', methods=['DELETE'], endpoint='empty_template')
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 def empty_template():
     """
     清空 template 表
@@ -72,8 +76,9 @@ def empty_template():
         return json_response('fail', reason, code=422)
 
 
-@template_controller.route('/<int:id>', methods=['DELETE'])
-@position_required
+@template_controller.route('/<int:id>', methods=['DELETE'], endpoint='delete_template_by_id')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
 def delete_template_by_id(id):
     """
     清空 template 表
@@ -86,8 +91,10 @@ def delete_template_by_id(id):
         return json_response('fail', reason, code=404)
 
 
-@template_controller.route('/', methods=['POST'])
-@position_required
+@template_controller.route('', methods=['POST'], endpoint='add_template')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER]
+)
 def add_template():
     try:
         data = request.get_json()
@@ -98,20 +105,23 @@ def add_template():
                 'building': {
                     'type': 'string',
                     'required': True,
+                    'check_with': non_empty_string
                 },
                 'room': {
                     'type': 'string',
                     'required': True,
+                    'check_with': non_empty_string
                 },
                 'classname': {
                     'type': 'string',
                     'required': True,
+                    'check_with': non_empty_string
                 },
             }
             , data
         )
         if not result:
-            return json_response('fail', reason, code=422)
+            return json_response('fail', f"请求数据格式错误: {reason}", code=422)
 
         status, result = insert_template(
             data['building'].strip(),
@@ -132,8 +142,8 @@ def add_template():
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
 
-@template_controller.route('/upload', methods=['POST'])
-@position_required
+@template_controller.route('/upload', methods=['POST'], endpoint='upload_template')
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 def upload_template():
     """
     上传并处理 CSV 文件，将数据插入 template 表
@@ -167,6 +177,7 @@ def upload_template():
 
         # 插入数据
         results = []
+        created_templates = []  # This will store successfully created templates
         for index, row in df.iterrows():
             status, result = insert_template(
                 row['building'].strip(),
@@ -174,15 +185,25 @@ def upload_template():
                 row['classname'].strip()
             )
             results.append(f"第 {index + 1} 行: {result}")
+            if status:
+                created_templates.append({
+                    "building": row['building'].strip(),
+                    "room": row['room'].strip(),
+                    "classname": row['classname'].strip()
+                })
 
-        return json_response('success', '文件处理完成', data=results)
+        data = {
+            "results": results,
+            "created_templates": created_templates
+        }
+        return json_response('success', message="模板导入完成", data=data, code=200)
 
     except Exception as e:
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
 
-@template_controller.route('/download', methods=['GET'])
-@position_required
+@template_controller.route('/download', methods=['GET'], endpoint="download_templates")
+@jwt_required()
 def download_templates():
     """
     下载 template 表中的所有数据为 CSV 文件
@@ -208,8 +229,8 @@ def download_templates():
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
 
 
-@template_controller.route('/', methods=['GET'])
-@position_required
+@template_controller.route('', methods=['GET'], endpoint="get_templates")
+@jwt_required()
 def get_templates():
     """
     查询 template 表的所有记录
@@ -222,4 +243,3 @@ def get_templates():
 
     except Exception as e:
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
-

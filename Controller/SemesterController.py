@@ -1,13 +1,14 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 
-from Handler.Handler import admin_required
+from Handler.Handler import admin_required, position_required
+from Model.User import PositionEnum
 from SQLService.Operation import read_semester_config_from_sql, update_current_semester_info
 from .globals import json_response, validate_schema
 
 semester_controller = Blueprint('semester_controller', __name__)
-@semester_controller.route('/', methods=['GET'])
-@jwt_required
+@semester_controller.route('', methods=['GET'])
+@jwt_required()
 def get_semester():
     try:
         result = read_semester_config_from_sql()
@@ -27,8 +28,8 @@ def get_semester():
     except Exception as e:
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
-@semester_controller.route('/', methods=['POST'])
-@admin_required
+@semester_controller.route('', methods=['POST'])
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 def update_semester():
     try:
         data = request.get_json()
@@ -54,7 +55,7 @@ def update_semester():
             , data
         )
         if not result:
-            return json_response('fail', reason, code=422)
+            return json_response('fail', message=f"请求数据格式错误: {reason}", code=422)
 
         status, result = update_current_semester_info(
             data['semester_name'].strip(),

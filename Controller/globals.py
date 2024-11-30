@@ -7,10 +7,19 @@ def json_response(status: str, message: str, data=None, code=200):
     """
     统一的 JSON 响应格式
     """
-    response = {'status': status, 'message': message}
+    response = {'status': status, 'msg': message}
     if data is not None:
         response['data'] = data
     return jsonify(response), code
+
+# Define the custom validator for non-empty strings
+def non_empty_string(field, value, error):
+    try:
+        if str(value).strip() == "" or not value:  # Check for empty or whitespace-only strings
+            error(field, f"{field} must not be empty!")
+        return True
+    except Exception:
+        return False
 
 
 def validate_schema(schema, data):
