@@ -1,7 +1,6 @@
 from flask import Flask
 from cerberus import Validator
 from flask_cors import CORS
-
 from CasService.CasLogin import *
 from Controller.UserController import user_controller
 from Controller.DriverController import driver_controller
@@ -14,8 +13,8 @@ from flask_jwt_extended import (
 )
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
-
 from SQLService.Operation import create_database_and_table
+from waitress import serve
 
 # 忽略 InsecureRequestWarning 警告
 warnings.simplefilter('ignore', InsecureRequestWarning)
@@ -41,4 +40,4 @@ app.config["JWT_SECRET_KEY"] = "your-secret-key"  # 更换为一个更强的密�
 jwt = JWTManager(app)
 
 if __name__ == '__main__':
-    app.run(port=8080)
+    serve(app, host='0.0.0.0', port=8080)
