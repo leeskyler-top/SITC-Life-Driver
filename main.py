@@ -40,4 +40,5 @@ app.config["JWT_SECRET_KEY"] = "your-secret-key"  # 更换为一个更强的密�
 jwt = JWTManager(app)
 
 if __name__ == '__main__':
-    serve(app, host='0.0.0.0', port=8080)
+    # serve(app, host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080)
