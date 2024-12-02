@@ -68,7 +68,7 @@ def position_required(positions=None, is_admin_required=False):
             user = User.get_user_by_id(current_user_id)
 
             if not user:
-                return jsonify({"status": "fail", "message": "用户不存在"}), 404
+                return jsonify({"status": "fail", "msg": "用户不存在"}), 404
 
             # 检查是否满足角色或管理员的要求
             if is_admin_required and user["is_admin"]:
@@ -77,7 +77,7 @@ def position_required(positions=None, is_admin_required=False):
             if (user["position"] in positions) or (user["is_admin"]):
                 return f(*args, **kwargs)
 
-            return jsonify({"status": "fail", "message": "权限不足"}), 403  # 权限不足的错误
+            return jsonify({"status": "fail", "msg": "权限不足"}), 403  # 权限不足的错误
 
         return wrapper
 

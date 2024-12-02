@@ -75,16 +75,11 @@ def openShareLink(docid: str):
     })
     return req, code
 
-
-def setShareLink(docid: str, end_time, limittimes:int = -1, perm: int = 7, use_password: bool = False):
+def getLinkDetail(docid: str):
     params = set_token_id()
     params['method'] = 'getdetail'
     req, code = reqApi("/link", method="POST", params=params, json={
-        "docid": docid,
-        "endtime": end_time,
-        "open": use_password,
-        "limittimes": limittimes,
-        "perm": perm
+        "docid": docid
     })
     return req, code
 
@@ -96,3 +91,15 @@ def closeShareLink(docid: str):
         "docid": docid,
     }, params=params, verify=False)
     return {}, req.status_code
+
+def setShareLink(docid: str, end_time, limittimes:int = -1, perm: int = 7, use_password: bool = False):
+    params = set_token_id()
+    params['method'] = 'set'
+    req, code = reqApi("/link", method="POST", params=params, json={
+        "docid": docid,
+        "endtime": end_time,
+        "open": use_password,
+        "limittimes": limittimes,
+        "perm": perm
+    })
+    return req, code
