@@ -7,7 +7,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from .globals import json_response, validate_schema, Session
 from Model.User import User, PositionEnum, GenderEnum, DepartmentEnum, PoliticalLandscapeEnum
-from Handler.Handler import admin_required
+from Handler.Handler import admin_required, position_required
 from sqlalchemy.exc import IntegrityError
 import io
 import pandas as pd
@@ -440,3 +440,51 @@ def get_my_info():
     else:
         return json_response("fail", "用户不存在", code=404)
 
+@user_controller.route('/count', methods=['GET'], endpoint='calculate_statistics')
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+def calculate_statistics():
+    session = Session()
+    try:
+        # 过滤掉 "其他人员"
+        query = session.query(User).filter(User.position != PositionEnum.OTHERS)
+
+        # 统计数据
+        CYLC_Count = query.filter(User.politicalLandscape == PoliticalLandscapeEnum.CYLC).count()
+        PublicPeople_Count = query.filter(User.politicalLandscape == PoliticalLandscapeEnum.PUBLICPEOPLE).count()   # 群众人数
+        Male_Count = query.filter(User.gender == GenderEnum.MALE).count()
+        Female_Count = query.filter(User.gender == GenderEnum.FEMALE).count()
+
+        # 部门人数统计
+        Information_Count = query.filter(User.department == DepartmentEnum.INFORMATION).count()
+        Manufacting_Count = query.filter(User.department == DepartmentEnum.MANUFACTURING).count()
+        Bussiness_Count = query.filter(User.department == DepartmentEnum.BUSSINESS).count()
+        Material_Count = query.filter(User.department == DepartmentEnum.MATERIALS).count()
+        Public_Count = query.filter(User.department == DepartmentEnum.PUBLIC).count()
+
+        # 部门总人数
+        Department_Count = query.count()
+
+        # 计算团青比
+        Youth_Ratio = CYLC_Count / Department_Count if Department_Count > 0 else 0
+
+        # 构造返回数据
+        result = {
+            "CYLC_Count": CYLC_Count,
+            "PublicPeople_Count": PublicPeople_Count,
+            "Department_Count": Department_Count,
+            "Male_Count": Male_Count,
+            "Female_Count": Female_Count,
+            "Youth_Ratio": Youth_Ratio,
+            "Information_Count": Information_Count,
+            "Manufacting_Count": Manufacting_Count,
+            "Bussiness_Count": Bussiness_Count,
+            "Material_Count": Material_Count,
+            "Public_Count": Public_Count
+        }
+
+        # 使用统一 JSON 格式返回
+        return json_response("success", "统计数据获取成功", data=result)
+    except Exception as e:
+        return json_response("error", f"统计数据获取失败: {str(e)}", code=500)
+    finally:
+        session.close()
