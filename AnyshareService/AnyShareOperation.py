@@ -262,6 +262,7 @@ def getLink(docid, end_time, perm, use_password):
                 return req, code
             return req, code
         elif code == 200:
+            req, code = setShareLink(docid, end_time, -1, perm, use_password)
             return req, code
         else:
             return req, code
