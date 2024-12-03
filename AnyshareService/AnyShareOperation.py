@@ -1,6 +1,7 @@
 import calendar
-from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir
+from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, setShareLink
 from SQLService.Operation import *
+from datetime import datetime
 
 def findCYLCGroup(name="团委"):
     req, code = entrydoc()
@@ -244,7 +245,26 @@ def listMonthDir(month: str):
     return req, code
 
 def listOtherDir(parent_docid):
-    req, code = listDir(parent_docid)
-    return req, code
+    print(str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())))
+    if str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())):
+        req, code = listDir(parent_docid)
+        return req, code
+    else:
+        return None, 403
 
+def getLink(docid, end_time, perm, use_password):
+    try:
+        req, code = getLinkDetail(docid)
+        if code == 200 and req['link'] == '':
+            req, code = openShareLink(docid)
+            if code == 200:
+                req, code = setShareLink(docid, end_time, -1, perm, use_password)
+                return req, code
+            return req, code
+        elif code == 200:
+            return req, code
+        else:
+            return req, code
+    except Exception as e:
+        return None, 500
 
