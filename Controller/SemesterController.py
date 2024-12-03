@@ -64,7 +64,7 @@ def update_semester():
         )
 
         if status:
-            return json_response('success', '模板已添加', data={
+            return json_response('success', '学期已变更', data={
                 'semester_name': data['semester_name'].strip(),
                 'start_month': data['start_month'].strip(),
                 'end_month': data['end_month'].strip()
