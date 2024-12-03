@@ -13,6 +13,8 @@ from flask_jwt_extended import (
 )
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
+
+from LoadEnviroment.LoadEnv import jwt_secret_key, server_env
 from SQLService.Operation import create_database_and_table
 from waitress import serve
 
@@ -36,9 +38,14 @@ app.register_blueprint(semester_controller, url_prefix='/api/v1/semester')
 handle_global_exceptions(app)
 
 # 配置 JWT 密钥
-app.config["JWT_SECRET_KEY"] = "your-secret-key"  # 更换为一个更强的密钥
+app.config["JWT_SECRET_KEY"] = jwt_secret_key  # 更换为一个更强的密钥
 jwt = JWTManager(app)
 
 if __name__ == '__main__':
-    # serve(app, host='0.0.0.0', port=8080)
-    app.run(host='0.0.0.0', port=8080)
+    if server_env == "production":
+        serve(app, host='0.0.0.0', port=8080)
+    elif server_env == "development":
+        app.run(host='0.0.0.0', port=8080)
+    else:
+        print("Server environment not supported")
+        exit(1)

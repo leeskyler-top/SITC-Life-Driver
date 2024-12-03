@@ -12,10 +12,11 @@ mysql_port = ""
 mysql_username = ""
 mysql_password = ""
 jwt_secret_key = ""
+server_env = "development"
 
 # 读取 .env.json 文件
 def load_env_json(filepath):
-    global cas_baseurl, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, mysql_host, mysql_port, mysql_username, mysql_password, jwt_secret_key
+    global cas_baseurl, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, mysql_host, mysql_port, mysql_username, mysql_password, jwt_secret_key, server_env
     with open(filepath, 'r') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -30,6 +31,7 @@ def load_env_json(filepath):
         mysql_username = data['mysql_username']
         mysql_password = data['mysql_password']
         jwt_secret_key = data['jwt_secret_key']
+        server_env = data['server_env']
 
 # 默认加载 .env.json 文件（可选）
 _default_env_path = os.path.join(os.getcwd(), '.env.json')
@@ -46,4 +48,9 @@ __all__ = [
     'password',
     "jwt_secret_key",
     'cas_cookie_path',
+    'server_env',
+    'mysql_host',
+    'mysql_port',
+    'mysql_username',
+    'mysql_password'
 ]
