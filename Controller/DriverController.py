@@ -60,7 +60,6 @@ def create_semester_all_dir():
         semester_name, start_month, end_month = read_semester_config_from_sql()
         if semester_name == "Not Set" or start_month is None or end_month is None:
             return json_response('fail', f'未设置学期配置，请先设置学期', code=500)
-        print(semester_name)
         doc_id = findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semester_name)
         df = read_template_from_sql()
         status, reason = genMonthDirBySemester(doc_id, df)
@@ -95,7 +94,6 @@ def create_semester_month_dir():
         semester_name, start_month, end_month = read_semester_config_from_sql()
         if semester_name == "Not Set" or start_month is None or end_month is None:
             return json_response('fail', f'未设置学期配置，请先设置学期', code=500)
-        print(semester_name)
         doc_id = findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semester_name)
         df = read_template_from_sql()
         status, reason = genDayDir(doc_id, df, month=data['month'])
@@ -134,7 +132,6 @@ def create_semester_other_daily_dir():
         semester_name, start_month, end_month = read_semester_config_from_sql()
         if semester_name == "Not Set" or start_month is None or end_month is None:
             return json_response('fail', f'未设置学期配置，请先设置学期', code=500)
-        print(semester_name)
         doc_id = findDir(findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semester_name), data['month'])
         if doc_id is None:
             return json_response("failed", "未找到月份文件夹")
