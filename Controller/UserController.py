@@ -9,6 +9,7 @@ from .globals import json_response, validate_schema, Session
 from Model.User import User, PositionEnum, GenderEnum, DepartmentEnum, PoliticalLandscapeEnum
 from Handler.Handler import admin_required, position_required
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 import io
 import pandas as pd
 
@@ -83,7 +84,6 @@ def create_user():
             resident=resident,
             join_at=join_at
         )
-        print(new_user)
         # 返回成功响应
         if status:
             return json_response("success", "用户创建成功", data={
@@ -336,7 +336,6 @@ def patch_user(user_id):
     gender_enum_values = [item.value for item in GenderEnum]
     department_enum_values = [item.value for item in DepartmentEnum]
     political_landscape_enum_values = [item.value for item in PoliticalLandscapeEnum]
-    print(political_landscape_enum_values)
 
     schema = {
         'name': {'type': 'string', 'required': True, 'minlength': 2, 'maxlength': 50},
@@ -467,6 +466,21 @@ def calculate_statistics():
         # 计算团青比
         Youth_Ratio = CYLC_Count / Department_Count if Department_Count > 0 else 0
 
+        # 查询班级名称的前两位，并分组统计年级人数
+        grade_counts = session.query(
+            func.substring(User.classname, 1, 2).label('grade'),
+            func.count(User.id).label('count')
+        ).filter(User.position != PositionEnum.OTHERS)  # 过滤掉非团员
+
+        # 进行分组统计
+        grade_counts = grade_counts.group_by(func.substring(User.classname, 1, 2))
+
+        # 获取结果
+        grade_counts_result = grade_counts.all()
+
+        # 将统计结果组织成字典形式
+        Grade_Count = [{"name": f"{grade}级", "value": count} for grade, count in grade_counts_result]
+
         # 构造返回数据
         result = {
             "CYLC_Count": CYLC_Count,
@@ -479,7 +493,8 @@ def calculate_statistics():
             "Manufacting_Count": Manufacting_Count,
             "Bussiness_Count": Bussiness_Count,
             "Material_Count": Material_Count,
-            "Public_Count": Public_Count
+            "Public_Count": Public_Count,
+            "Grade_Count": Grade_Count
         }
 
         # 使用统一 JSON 格式返回
