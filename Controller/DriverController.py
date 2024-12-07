@@ -314,8 +314,8 @@ def download_a_zip():
             return json_response('fail', reason, code=422)
         req, code = downloadZip(data["name"], data["docid"])
         if code == 200:
-            return json_response("success", "链接获取成功", data=req, code=200)
+            return json_response("success", "已尝试发送", data=req, code=200)
         else:
-            return json_response("fail", "获取失败", code=code)
+            return json_response("fail", "发送失败", code=code)
     except Exception as e:
         print(e)
