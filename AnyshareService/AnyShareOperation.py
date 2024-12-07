@@ -325,7 +325,7 @@ def downloadZip(name, docid):
                     status, response, code = msgV1(wechat_send_group, True, part_filename)  # 假设目标为 "target_id" 和群聊模式
                     if not status or code != 200:
                         print(f"上传分卷 {part_num} 失败，状态码: {code}")
-                        return False, None, 500
+                        return False, f"上传分卷 {part_num} 失败，状态码: {code}", 500
                     else:
                         print(f"上传分卷 {part_num} 成功")
 
@@ -336,11 +336,11 @@ def downloadZip(name, docid):
 
             except Exception as e:
                 print(f"下载或嵌入过程中发生错误: {e}")
-                return False, None, 500
+                return False, f"下载或嵌入过程中发生错误: {e}", 500
         else:
             print(f"获取下载链接失败，状态码: {code}")
-            return False, 500
+            return False, f"获取下载链接失败，状态码: {code}", 500
 
     print("条件不满足，无法继续操作")
-    return False, 500
+    return False, "条件不满足，无法继续操作", 500
 

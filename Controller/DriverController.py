@@ -7,7 +7,8 @@ from Model.User import PositionEnum
 from .globals import json_response, validate_schema
 from SQLService.Operation import read_template_from_sql, read_semester_config_from_sql
 from AnyshareService.AnyShareOperation import findCYLCGroup, findLifeDepDir, findCurrentSemseter, genMonthDirBySemester, \
-    genDayDir, findDir, genOtherDayDir, listLifeDepDir, listSemesterDir, listMonthDir, listOtherDir, getLink
+    genDayDir, findDir, genOtherDayDir, listLifeDepDir, listSemesterDir, listMonthDir, listOtherDir, getLink, \
+    downloadZip
 
 driver_controller = Blueprint('driver_controller', __name__)
 
@@ -288,3 +289,33 @@ def get_link():
             return json_response("fail", "获取失败", code=code)
     except Exception as e:
         return json_response("fail", f"获取失败：{str(e)}", code=500)
+
+@driver_controller.route('/dir/download', methods=['POST'])
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER])
+def download_a_zip():
+    try:
+        data = request.get_json()
+        if not data:
+            return json_response('fail', "未传递任何参数", code=422)
+        result, reason = validate_schema(
+            {
+                "docid": {
+                    'type': 'string',
+                    'required': True
+                },
+                "name": {
+                    'type': 'string',
+                    'required': True
+                },
+            }
+            , data
+        )
+        if not result:
+            return json_response('fail', reason, code=422)
+        req, code = downloadZip(data["name"], data["docid"])
+        if code == 200:
+            return json_response("success", "链接获取成功", data=req, code=200)
+        else:
+            return json_response("fail", "获取失败", code=code)
+    except Exception as e:
+        print(e)
