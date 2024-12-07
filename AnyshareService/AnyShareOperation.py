@@ -1,7 +1,14 @@
 import calendar
-from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, setShareLink
+import random
+import os
+from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, \
+    setShareLink, getBatchDownloadLink
+from LoadEnviroment.LoadEnv import pan_host, wechat_send_group
 from SQLService.Operation import *
 from datetime import datetime
+
+from WeChatBotService.WeChatBaseService import msgV1
+from utils.utils import download_file, rm_results, rar_file_in_parts
 
 def findCYLCGroup(name="团委"):
     req, code = entrydoc()
@@ -11,6 +18,7 @@ def findCYLCGroup(name="团委"):
                 return group['docid']
         return None
     return None
+
 
 def findDir(parent_docid, name):
     try:
@@ -25,6 +33,7 @@ def findDir(parent_docid, name):
     except Exception as e:
         return None
 
+
 def tryCreateDir(parent_docid, name):
     try:
         req, code = createDir(parent_docid, name)
@@ -34,14 +43,17 @@ def tryCreateDir(parent_docid, name):
     except Exception as e:
         return None
 
+
 def findLifeDepDir(group_docid, name="生活部相关"):
     return findDir(group_docid, name)
+
 
 def findCurrentSemseter(life_dep_dir_docid, name):
     result = findDir(life_dep_dir_docid, name)
     if not result:
         return tryCreateDir(life_dep_dir_docid, name)
     return result
+
 
 def genMonthDir(parent_docid, month):
     result = findDir(parent_docid, month)
@@ -79,11 +91,13 @@ def genMonthDirBySemester(parent_docid, df_template):
     except Exception as e:
         return False, f"生成学期目录失败：{e}"
 
+
 def genBuildingDir(parent_docid, building):
     result = findDir(parent_docid, building)
     if not result:
         return True, tryCreateDir(parent_docid, building)
     return False, result
+
 
 def genDayDir(parent_docid, df, month):
     """
@@ -101,7 +115,7 @@ def genDayDir(parent_docid, df, month):
 
         # 将 start_month 和 end_month 转换为日期
         start_date = pd.to_datetime(start_month, format='%Y-%m')  # 假设 start_month 是 'YYYY-MM' 格式
-        end_date = pd.to_datetime(end_month, format='%Y-%m')      # 同样假设 end_month 是 'YYYY-MM' 格式
+        end_date = pd.to_datetime(end_month, format='%Y-%m')  # 同样假设 end_month 是 'YYYY-MM' 格式
 
         # 获取年份和月份
         start_year = start_date.year
@@ -114,7 +128,6 @@ def genDayDir(parent_docid, df, month):
             raise ValueError("DataFrame 必须包含 'building' 和 'room' 和 'classname' 列")
 
         # 获取当前月份的天数
-
 
         if month < start_month_num:
             # 这是 start_year 中的月份
@@ -169,6 +182,7 @@ def genDayDir(parent_docid, df, month):
     except Exception as e:
         print(f"日期目录生成失败: {e}")
         return "ERROR"
+
 
 def genOtherDayDir(parent_docid, df, other_name):
     """
@@ -230,19 +244,23 @@ def genOtherDayDir(parent_docid, df, other_name):
         print(f"日期目录生成失败: {e}")
         return "ERROR"
 
+
 def listLifeDepDir():
     req, code = listDir(findLifeDepDir(findCYLCGroup()))
     return req, code
+
 
 def listSemesterDir():
     semseter_name, start_month, end_month = read_semester_config_from_sql()
     req, code = listDir(findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semseter_name))
     return req, code
 
+
 def listMonthDir(month: str):
     semseter_name, start_month, end_month = read_semester_config_from_sql()
     req, code = listDir(findDir(findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semseter_name), month))
     return req, code
+
 
 def listOtherDir(parent_docid):
     print(str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())))
@@ -251,6 +269,7 @@ def listOtherDir(parent_docid):
         return req, code
     else:
         return None, 403
+
 
 def getLink(docid, end_time, perm, use_password):
     try:
@@ -268,4 +287,60 @@ def getLink(docid, end_time, perm, use_password):
             return req, code
     except Exception as e:
         return None, 500
+
+
+def downloadZip(name, docid):
+    if str(docid).startswith(findLifeDepDir(findCYLCGroup())):
+        docid_lst = [docid]
+        url, code = getBatchDownloadLink(name, dirs=docid_lst)
+
+        # 如果下载成功
+        if code == 200 and url:
+            try:
+                print(f"下载链接: {url}")
+                # 假设 url 返回的是压缩包文件路径
+                zip_data = download_file(url)  # 从 URL 下载压缩包内容
+
+                # 清理结果
+                rm_results()
+
+                # 设置输出目录
+                output_dir = os.path.join(os.getcwd(), 'results', 'zip_file')
+
+                # 使用 WinRAR 对压缩包进行分卷
+                result = rar_file_in_parts(zip_data, 15, output_dir, name)
+
+                # 如果分卷处理失败，返回 500 错误
+                if not result:
+                    return False, None, 500
+
+                # 开始发送分卷文件
+                part_num = 1
+                while True:
+                    part_filename = os.path.join(output_dir, f"{name}.part{part_num}.rar")
+                    if not os.path.exists(part_filename):
+                        break  # 如果没有更多的分卷文件，退出循环
+
+                    # 发送分卷文件
+                    status, response, code = msgV1(wechat_send_group, True, part_filename)  # 假设目标为 "target_id" 和群聊模式
+                    if not status or code != 200:
+                        print(f"上传分卷 {part_num} 失败，状态码: {code}")
+                        return False, None, 500
+                    else:
+                        print(f"上传分卷 {part_num} 成功")
+
+                    part_num += 1
+
+                print("所有分卷文件上传完成")
+                return True, "上传成功", 200
+
+            except Exception as e:
+                print(f"下载或嵌入过程中发生错误: {e}")
+                return False, None, 500
+        else:
+            print(f"获取下载链接失败，状态码: {code}")
+            return False, 500
+
+    print("条件不满足，无法继续操作")
+    return False, 500
 

@@ -12,11 +12,18 @@ mysql_port = ""
 mysql_username = ""
 mysql_password = ""
 jwt_secret_key = ""
-server_env = "development"
+server_env = "development",
+pan_host = "",
+wechat_webhook_service = "",
+wechat_webhook_service_token = "",
+wechat_send_group = "",
 
 # 读取 .env.json 文件
 def load_env_json(filepath):
-    global cas_baseurl, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, mysql_host, mysql_port, mysql_username, mysql_password, jwt_secret_key, server_env
+    global cas_baseurl, pan_host, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, \
+        mysql_host, mysql_port, mysql_username, mysql_password, \
+        jwt_secret_key, server_env, \
+        wechat_webhook_service, wechat_webhook_service_token, wechat_send_group
     with open(filepath, 'r') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -32,6 +39,10 @@ def load_env_json(filepath):
         mysql_password = data['mysql_password']
         jwt_secret_key = data['jwt_secret_key']
         server_env = data['server_env']
+        pan_host = data['pan_host']
+        wechat_webhook_service = data['wechat_webhook_service']
+        wechat_webhook_service_token = data['wechat_webhook_service_token'],
+        wechat_send_group = data['wechat_send_group']
 
 # 默认加载 .env.json 文件（可选）
 _default_env_path = os.path.join(os.getcwd(), '.env.json')
@@ -52,5 +63,8 @@ __all__ = [
     'mysql_host',
     'mysql_port',
     'mysql_username',
-    'mysql_password'
+    'mysql_password',
+    'pan_host',
+    'wechat_webhook_service',
+    'wechat_webhook_service_token',
 ]
