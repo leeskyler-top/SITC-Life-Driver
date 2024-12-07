@@ -312,7 +312,7 @@ def downloadZip(name, docid):
 
                 # 如果分卷处理失败，返回 500 错误
                 if not result:
-                    return False, None, 500
+                    return False, "分卷处理失败", 500
 
                 # 开始发送分卷文件
                 part_num = 1
@@ -322,7 +322,7 @@ def downloadZip(name, docid):
                         break  # 如果没有更多的分卷文件，退出循环
 
                     # 发送分卷文件
-                    status, response, code = msgV1(wechat_send_group, True, part_filename)  # 假设目标为 "target_id" 和群聊模式
+                    status, response, code = msgV1(wechat_send_group, 1, part_filename)  # 假设目标为 "target_id" 和群聊模式
                     if not status or code != 200:
                         print(f"上传分卷 {part_num} 失败，状态码: {code}")
                         return False, f"上传分卷 {part_num} 失败，状态码: {code}", 500
