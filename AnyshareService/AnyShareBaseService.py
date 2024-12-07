@@ -1,5 +1,5 @@
 from .globals import headers
-from LoadEnviroment.LoadEnv import pan_baseurl
+from LoadEnviroment.LoadEnv import pan_baseurl, pan_host
 from CasService.CasLogin import get_tokenid, cookie_dict
 import requests
 
@@ -103,3 +103,21 @@ def setShareLink(docid: str, end_time, limittimes:int = -1, perm: int = 7, use_p
         "perm": perm
     })
     return req, code
+
+def getBatchDownloadLink(name, dirs: list, files: list = []):
+    params = set_token_id()
+    params['method'] = 'batchdownload'
+    try:
+        req, code = reqApi("/file", method="POST", params=params, json={
+            "dirs": dirs,
+            "files": files,
+            "name": name,
+            "reqhost": pan_host,
+            "usehttps": True
+        })
+        if code == 200:
+            return req['url'], code
+        else:
+            return None, code
+    except Exception as e:
+        return None, 500
