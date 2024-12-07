@@ -65,7 +65,7 @@ def msgV1(to, isRoom, content):
         }
 
         # 发送请求
-        response = reqApi("/webhook/msg", method="POST", headers=headers, data=data, files=files)
+        response, code = reqApi("/webhook/msg", method="POST", headers=headers, data=data, files=files)
 
         content_file.close()  # 关闭文件流
         return True, response, 200  # 成功，返回响应和状态码

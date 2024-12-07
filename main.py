@@ -43,9 +43,9 @@ jwt = JWTManager(app)
 
 if __name__ == '__main__':
     if server_env == "production":
-        serve(app, host='0.0.0.0', port=8080)
+        serve(app, host='0.0.0.0', port=8081)
     elif server_env == "development":
-        app.run(host='0.0.0.0', port=8080)
+        app.run(host='0.0.0.0', port=8081)
     else:
         print("Server environment not supported")
         exit(1)
