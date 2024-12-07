@@ -2,6 +2,7 @@
 /.vscode/
 /venv/
 **/__pycache__/
+/results/*
 .env.json
 SITC-Cas.json
 test.py
