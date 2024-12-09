@@ -24,7 +24,7 @@ def load_env_json(filepath):
         mysql_host, mysql_port, mysql_username, mysql_password, \
         jwt_secret_key, server_env, \
         wechat_webhook_service, wechat_webhook_service_token, wechat_send_group
-    with open(filepath, 'r') as f:
+    with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
         cas_baseurl = data['cas_baseurl']
