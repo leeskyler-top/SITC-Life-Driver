@@ -292,7 +292,7 @@ def getLink(docid, end_time, perm, use_password):
 def downloadZip(name, docid):
     if str(docid).startswith(findLifeDepDir(findCYLCGroup())):
         docid_lst = [docid]
-        url, code = getBatchDownloadLink(name, dirs=docid_lst)
+        url, code = getBatchDownloadLink(name + ".zip", dirs=docid_lst)
 
         # 如果下载成功
         if code == 200 and url:
