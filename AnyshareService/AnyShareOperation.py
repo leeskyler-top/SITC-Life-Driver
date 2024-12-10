@@ -1,6 +1,7 @@
 import calendar
 import random
 import os
+import re
 from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, \
     setShareLink, getBatchDownloadLink
 from LoadEnviroment.LoadEnv import pan_host, wechat_send_group
@@ -288,11 +289,11 @@ def getLink(docid, end_time, perm, use_password):
     except Exception as e:
         return None, 500
 
-
 def downloadZip(name, docid):
     if str(docid).startswith(findLifeDepDir(findCYLCGroup())):
         docid_lst = [docid]
-        url, code = getBatchDownloadLink(name + ".zip", dirs=docid_lst)
+        name = name + ".zip"
+        url, code = getBatchDownloadLink(name, dirs=docid_lst)
 
         # 如果下载成功
         if code == 200 and url:
@@ -301,8 +302,20 @@ def downloadZip(name, docid):
                 # 假设 url 返回的是压缩包文件路径
                 zip_data = download_file(url)  # 从 URL 下载压缩包内容
 
-                # 清理结果
-                rm_results()
+                # 如果文件大小小于分卷大小（15 MB），直接发送
+                if len(zip_data) <= 15 * 1024 * 1024:
+                    print("文件小于分卷大小限制，直接发送")
+                    status, response, code = msgV1(wechat_send_group, 1, zip_data, name)
+                    if not status or code != 200:
+                        print(f"直接发送失败，状态码: {code}")
+                        return False, f"直接发送失败，状态码: {code}", 500
+                    else:
+                        print(f"文件直接发送成功")
+                        return True, f"发送成功,\n\n {str(response)}", 200
+
+                # 如果文件大小超出分卷大小，进行分卷处理
+                print("文件超出分卷大小限制，开始分卷")
+                rm_results()  # 清理结果
 
                 # 设置输出目录
                 output_dir = os.path.join(os.getcwd(), 'results', 'zip_file')
@@ -314,25 +327,41 @@ def downloadZip(name, docid):
                 if not result:
                     return False, "分卷处理失败", 500
 
-                # 开始发送分卷文件
-                part_num = 1
-                while True:
-                    part_filename = os.path.join(output_dir, f"{name}.part{part_num}.rar")
-                    if not os.path.exists(part_filename):
-                        break  # 如果没有更多的分卷文件，退出循环
+                # 获取所有分卷文件
+                part_files = [
+                    f for f in os.listdir(output_dir)
+                    if re.match(rf"{re.escape(name)}\.part\d+\.rar$", f)
+                ]
 
-                    # 发送分卷文件
-                    status, response, code = msgV1(wechat_send_group, 1, part_filename)  # 假设目标为 "target_id" 和群聊模式
-                    if not status or code != 200:
-                        print(f"上传分卷 {part_num} 失败，状态码: {code}")
-                        return False, f"上传分卷 {part_num} 失败，状态码: {code}", 500
+                # 如果没有找到任何分卷文件，返回失败
+                if not part_files:
+                    print("未找到任何分卷文件")
+                    return False, "未找到任何分卷文件", 500
+
+                # 按文件名排序以保证顺序发送
+                part_files.sort()
+
+                # 逐一发送分卷文件
+                for part_file in part_files:
+                    part_path = os.path.join(output_dir, part_file)
+
+                    # 提取分卷编号
+                    match = re.search(r"\.part(\d+)\.rar$", part_file)
+                    if match:
+                        part_num = match.group(1)  # 获取分卷编号（带前导零）
+                        # 发送分卷文件，并将编号填入文件名
+                        status, response, code = msgV1(wechat_send_group, 1, part_path, f"{name}.part{part_num}.rar")
+                        if not status or code != 200:
+                            print(f"上传分卷 {part_num} 失败，状态码: {code}")
+                            return False, f"上传分卷 {part_num} 失败，状态码: {code}", 500
+                        else:
+                            print(f"上传分卷 {part_num} 成功")
                     else:
-                        print(f"上传分卷 {part_num} 成功")
+                        print(f"无法解析分卷编号: {part_file}")
+                        return False, f"无法解析分卷编号: {part_file}", 500
 
-                    part_num += 1
-
-                print("所有分卷文件上传完成")
-                return True, "上传成功", 200
+                print(f"所有分卷文件上传完成,\n {response}")
+                return True, f"上传成功,\n\n {str(response)}", 200
 
             except Exception as e:
                 print(f"下载或嵌入过程中发生错误: {e}")
@@ -343,4 +372,3 @@ def downloadZip(name, docid):
 
     print("条件不满足，无法继续操作")
     return False, "条件不满足，无法继续操作", 500
-
