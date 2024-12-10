@@ -28,12 +28,13 @@ def check_health():
 
 import requests
 
-def msgV1(to, isRoom, content):
+def msgV1(to, isRoom, content, name="file.zip"):
     """
     发送 POST 请求，通过 Webhook 上传文件。
     :param to: 目标
     :param isRoom: 是否是群聊
     :param content: 文件路径或文件数据
+    :param name: 文件名
     """
     # 健康检查
     status, code = check_health()
@@ -41,22 +42,26 @@ def msgV1(to, isRoom, content):
         return False, "微信登录失效", code
 
     try:
-        # 如果 content 是文件路径，打开文件
-        if isinstance(content, str):
+        # 检查 content 是文件路径还是二进制数据
+        content_file = None
+        if isinstance(content, str):  # 文件路径
             content_file = open(content, 'rb')
-        else:
-            # 如果 content 已经是文件数据（例如 io.BytesIO），直接使用
-            content_file = content
+            file_data = content_file
+        else:  # 已经是二进制数据
+            file_data = content
 
         # 设置 headers 和文件上传的参数
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         }
 
-        # 文件上传部分
+        # 文件上传部分，指定文件名
         files = {
-            'content': content_file,  # 'content' 是目标服务器接收文件的字段名
+            'content': (name, file_data, 'application/octet-stream'),  # 指定文件名和 MIME 类型
         }
+
+        if isinstance(content, str):
+            files['content'] = file_data
 
         # 请求体参数
         data = {
@@ -67,9 +72,12 @@ def msgV1(to, isRoom, content):
         # 发送请求
         response, code = reqApi("/webhook/msg", method="POST", headers=headers, data=data, files=files)
 
-        content_file.close()  # 关闭文件流
+        # 如果打开了文件流，则关闭它
+        if content_file:
+            content_file.close()
+
         return True, response, 200  # 成功，返回响应和状态码
+
     except Exception as e:
         print(f"发送请求时发生错误: {e}")
         return None, "微信发送失败", 500
-
