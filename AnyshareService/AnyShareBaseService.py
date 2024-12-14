@@ -1,22 +1,22 @@
 from .globals import headers
 from LoadEnviroment.LoadEnv import pan_baseurl, pan_host
-from CasService.CasLogin import get_tokenid, cookie_dict
+from CasService.CasLogin import get_tokenid, cookies_dict
 import requests
 
 
 def reqApi(name, method="GET", json={}, params=None):
     if method == "GET" and not params:
-        req = requests.get(pan_baseurl + name, headers=headers, cookies=cookie_dict, verify=False)
+        req = requests.get(pan_baseurl + name, headers=headers, cookies=cookies_dict, verify=False)
         return req.json(), req.status_code
     elif method == "GET" and params:
-        req = requests.get(pan_baseurl + name, headers=headers, cookies=cookie_dict, params=params, verify=False)
+        req = requests.get(pan_baseurl + name, headers=headers, cookies=cookies_dict, params=params, verify=False)
         return req.json(), req.status_code
     elif method == "POST":
-        req = requests.post(pan_baseurl + name, headers=headers, cookies=cookie_dict, json=json, params=params,
+        req = requests.post(pan_baseurl + name, headers=headers, cookies=cookies_dict, json=json, params=params,
                             verify=False)
         return req.json(), req.status_code
     elif method == "PATCH":
-        req = requests.patch(pan_baseurl + name, headers=headers, cookies=cookie_dict, json=json, verify=False)
+        req = requests.patch(pan_baseurl + name, headers=headers, cookies=cookies_dict, json=json, verify=False)
         return req.json(), req.status_code
 
 
@@ -87,7 +87,7 @@ def getLinkDetail(docid: str):
 def closeShareLink(docid: str):
     params = set_token_id()
     params['method'] = 'open'
-    req = requests.post(pan_baseurl + "/link", headers=headers, cookies=cookie_dict, json={
+    req = requests.post(pan_baseurl + "/link", headers=headers, cookies=cookies_dict, json={
         "docid": docid,
     }, params=params, verify=False)
     return {}, req.status_code
