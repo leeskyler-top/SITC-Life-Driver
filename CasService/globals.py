@@ -1,13 +1,34 @@
-from LoadEnviroment.LoadEnv import cas_baseurl, pan_sso_service, cas_cookie_path, username, password
+from selenium.webdriver.chrome.service import Service
+from LoadEnviroment.LoadEnv import cas_baseurl, pan_sso_service, cas_cookie_path, username, password, chromedriver_path
 from selenium import webdriver
 from selenium_stealth import stealth
 
 
-options = webdriver.ChromeOptions()
-options.add_argument("start-maximized")
-options.add_argument("--window-size=1920x1080")
-options.add_experimental_option("excludeSwitches", ["enable-automation"])
-options.add_experimental_option('useAutomationExtension', False)
+def get_new_driver():
+    """创建并返回一个新的 WebDriver 实例"""
+    try:
+        # 创建WebDriver实例
+        service = Service(executable_path=chromedriver_path)
+        options = webdriver.ChromeOptions()
+        options.add_argument("start-maximized")
+        options.add_argument("--window-size=1920x1080")
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        driver = webdriver.Chrome(options=options, service=service)
+
+        stealth(driver,
+                languages=["zh-CN", "cn"],
+                vendor="Google Inc.",
+                platform="Win32",
+                webgl_vendor="Intel Inc.",
+                renderer="Intel Iris OpenGL Engine",
+                fix_hairline=True)
+        return driver
+
+    except Exception as e:
+        print(f"无法启动 WebDriver: {e}")
+        return None
+
 
 headers = {
     # "Accept": "*/*",
@@ -24,15 +45,13 @@ headers = {
     "Content-Type": "application/json;charset=UTF-8",
 }
 
-
-
 # 向外暴露的内容
 __all__ = [
     'cas_baseurl',
     'pan_sso_service',
     'cas_cookie_path',
     'headers',
-    'options',
+    'get_new_driver',
     "username",
     "password"
 ]

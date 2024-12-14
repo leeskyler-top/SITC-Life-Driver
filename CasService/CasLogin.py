@@ -1,13 +1,12 @@
-from .globals import options, cas_baseurl, pan_sso_service, username, password, headers
+from .globals import cas_baseurl, pan_sso_service, username, password, headers, get_new_driver
 from datetime import datetime, timedelta
 import time
 import json
-from selenium import webdriver
-from selenium_stealth import stealth
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
-cookie_dict = {}
+cookies_dict = {}
+
 
 def wait_for_network_idle(driver, timeout=10, check_interval=0.5):
     WebDriverWait(driver, timeout, poll_frequency=check_interval).until(
@@ -16,30 +15,12 @@ def wait_for_network_idle(driver, timeout=10, check_interval=0.5):
         )
     )
 
-def get_new_driver():
-    """创建并返回一个新的 WebDriver 实例"""
-    try:
-        # 创建WebDriver实例
-        driver = webdriver.Chrome(options=options)
-
-        stealth(driver,
-                languages=["zh-CN", "cn"],
-                vendor="Google Inc.",
-                platform="Win32",
-                webgl_vendor="Intel Inc.",
-                renderer="Intel Iris OpenGL Engine",
-                fix_hairline=True)
-        return driver
-    except Exception as e:
-        print(f"无法启动 WebDriver: {e}")
-        return None
-
 
 def setCasCookie():
     global cookies_dict
+    driver = get_new_driver()
     try:
         # 打开目标网站
-        driver = get_new_driver()
         driver.get(cas_baseurl + pan_sso_service)
 
         # 定位用户名和密码输入框，并输入数据
@@ -70,7 +51,6 @@ def setCasCookie():
         with open("./SITC-Cas.json", 'w') as file:
             json.dump(cookies, file, ensure_ascii=False)
 
-
         return headers, cookies_dict
 
     except Exception as e:
@@ -80,7 +60,8 @@ def setCasCookie():
         # 关闭浏览器
         driver.quit()
 
-def checkCookieExpired(cookies=None, white_list: list=[]):
+
+def checkCookieExpired(cookies=None, white_list: list = []):
     if not cookies:
         return True
 
@@ -96,6 +77,7 @@ def checkCookieExpired(cookies=None, white_list: list=[]):
 
     return False
 
+
 def loadLocalCasCookie(check_expired=True):
     global cookies_dict, headers
     try:
@@ -107,6 +89,7 @@ def loadLocalCasCookie(check_expired=True):
         return headers, cookies_dict
     except (FileNotFoundError, json.JSONDecodeError):
         return setCasCookie()
+
 
 def get_tokenid():
     global cookies_dict
