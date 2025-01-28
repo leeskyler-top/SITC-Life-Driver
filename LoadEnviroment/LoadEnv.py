@@ -3,13 +3,14 @@ import os
 
 cas_baseurl = ""
 pan_sso_service = ""
+des_trans_mode = "js2py"
 username = ""
 password = ""
 cas_cookie_path = ""
 pan_baseurl = ""
-mysql_host = ""
-mysql_port = ""
-mysql_username = ""
+mysql_host = "127.0.0.1"
+mysql_port = "3306"
+mysql_username = "root"
 mysql_password = ""
 jwt_secret_key = ""
 server_env = "development",
@@ -27,12 +28,13 @@ def load_env_json(filepath):
         mysql_host, mysql_port, mysql_username, mysql_password, \
         jwt_secret_key, server_env, \
         wechat_webhook_service, wechat_webhook_service_token, wechat_send_group, \
-        chromedriver_path, cas_login_method
+        chromedriver_path, cas_login_method, des_trans_mode
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
         cas_baseurl = data['cas_baseurl']
         cas_login_method = data['cas_login_method']
+        des_trans_mode = data['des_trans_mode']
         pan_sso_service = data['pan_sso_service']
         username = data['username']
         password = data['password']
@@ -62,6 +64,7 @@ if os.path.exists(_default_env_path):
 __all__ = [
     "cas_baseurl",
     "pan_sso_service",
+    'des_trans_mode',
     'username',
     'password',
     "jwt_secret_key",
