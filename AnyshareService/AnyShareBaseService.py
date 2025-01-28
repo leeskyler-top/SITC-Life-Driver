@@ -1,6 +1,6 @@
 from .globals import headers
 from LoadEnviroment.LoadEnv import pan_baseurl, pan_host
-from CasService.CasLogin import get_tokenid, cookies_dict
+from CasService.CasLogin import cookies_dict, get_tokenid
 import requests
 
 
@@ -121,3 +121,4 @@ def getBatchDownloadLink(name, dirs: list, files: list = []):
             return None, code
     except Exception as e:
         return None, 500
+

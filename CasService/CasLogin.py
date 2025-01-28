@@ -1,5 +1,7 @@
-from .globals import cas_baseurl, pan_sso_service, username, password, headers, get_new_driver
+from LoadEnviroment.LoadEnv import cas_login_method
+from .globals import headers, cas_baseurl, pan_sso_service, username, password, get_new_driver
 from datetime import datetime, timedelta
+from .CasLoginByRequests import loginAndSetCookie
 import time
 import json
 from selenium.webdriver.common.by import By
@@ -83,12 +85,17 @@ def loadLocalCasCookie(check_expired=True):
     try:
         with open('./SITC-Cas.json', 'r') as file:
             cookies = json.load(file)
-            if check_expired and checkCookieExpired(cookies):
+            if check_expired and checkCookieExpired(cookies) and cas_login_method == "selenium":
                 return setCasCookie()
+            elif check_expired and checkCookieExpired(cookies) and cas_login_method == "requests":
+                return loginAndSetCookie()
             cookies_dict = {cookie['name']: cookie['value'] for cookie in cookies}
         return headers, cookies_dict
     except (FileNotFoundError, json.JSONDecodeError):
-        return setCasCookie()
+        if cas_login_method == "requests":
+            return loginAndSetCookie()
+        else:
+            return setCasCookie()
 
 
 def get_tokenid():
