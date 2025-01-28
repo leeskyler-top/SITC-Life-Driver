@@ -18,6 +18,7 @@ wechat_webhook_service = "",
 wechat_webhook_service_token = "",
 wechat_send_group = "",
 chromedriver_path = None
+cas_login_method = "requests"
 
 
 # 读取 .env.json 文件
@@ -26,11 +27,12 @@ def load_env_json(filepath):
         mysql_host, mysql_port, mysql_username, mysql_password, \
         jwt_secret_key, server_env, \
         wechat_webhook_service, wechat_webhook_service_token, wechat_send_group, \
-        chromedriver_path
+        chromedriver_path, cas_login_method
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
         cas_baseurl = data['cas_baseurl']
+        cas_login_method = data['cas_login_method']
         pan_sso_service = data['pan_sso_service']
         username = data['username']
         password = data['password']
@@ -46,7 +48,7 @@ def load_env_json(filepath):
         wechat_webhook_service = data['wechat_webhook_service']
         wechat_webhook_service_token = data['wechat_webhook_service_token'],
         wechat_send_group = data['wechat_send_group']
-        chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True else None
+        chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True and data['cas_login_method'] == "selenium" else None
 
 
 # 默认加载 .env.json 文件（可选）

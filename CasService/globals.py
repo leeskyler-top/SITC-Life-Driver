@@ -1,5 +1,5 @@
 from selenium.webdriver.chrome.service import Service
-from LoadEnviroment.LoadEnv import cas_baseurl, pan_sso_service, cas_cookie_path, username, password, chromedriver_path
+from LoadEnviroment.LoadEnv import cas_baseurl, pan_sso_service, cas_cookie_path, username, password, chromedriver_path, pan_baseurl
 from selenium import webdriver
 from selenium_stealth import stealth
 
@@ -48,6 +48,7 @@ headers = {
 # 向外暴露的内容
 __all__ = [
     'cas_baseurl',
+    'pan_baseurl',
     'pan_sso_service',
     'cas_cookie_path',
     'headers',
