@@ -1,3 +1,4 @@
+import os
 import ssl
 import urllib.parse
 import urllib3
@@ -5,7 +6,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-from .globals import username, password, pan_sso_service, cas_baseurl, pan_baseurl
+from .globals import username, password, pan_sso_service, cas_baseurl, pan_baseurl, des_trans_mode
 from CasService import headers
 from CasService.DES import get_des_key
 from requests.adapters import HTTPAdapter
@@ -129,7 +130,12 @@ def get_token_id(ticket_id: str):
 
 def cas_login(username: str, password: str, service: str = "https://pan.shitac.net/sso"):
     csrf_token, execution, session = get_csrf_token_and_execution(service)
-    rsa = get_des_key(username.strip(), password.strip(), csrf_token)
+    if des_trans_mode == "nodejs":
+        path = os.path.join(os.getcwd(), "CasService", "des.js").replace("\\", "/")
+        rsa = os.popen(
+        f"node -e \"require('{path}').strEnc('{username.strip()}{password.strip()}{csrf_token}', '1', '2', '3')\"").read().strip()
+    else:
+        rsa = get_des_key(username.strip(), password.strip(), csrf_token)
     # 使用 session 进行后续的请求
     data = {
         'rsa': rsa,

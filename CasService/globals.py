@@ -1,5 +1,8 @@
 from selenium.webdriver.chrome.service import Service
-from LoadEnviroment.LoadEnv import cas_baseurl, pan_sso_service, cas_cookie_path, username, password, chromedriver_path, pan_baseurl
+from LoadEnviroment.LoadEnv import (
+    cas_baseurl, pan_sso_service, cas_cookie_path,
+    username, password, chromedriver_path,
+    pan_baseurl, des_trans_mode)
 from selenium import webdriver
 from selenium_stealth import stealth
 
@@ -49,6 +52,7 @@ headers = {
 __all__ = [
     'cas_baseurl',
     'pan_baseurl',
+    'des_trans_mode',
     'pan_sso_service',
     'cas_cookie_path',
     'headers',
