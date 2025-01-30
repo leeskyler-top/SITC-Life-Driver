@@ -1,3 +1,4 @@
+from .globals import access_token_exp_sec, refresh_token_exp_sec
 from flask import Blueprint, request
 from flask_jwt_extended import (
     jwt_required,
@@ -13,8 +14,8 @@ from Controller.globals import json_response, Session
 auth_controller = Blueprint('auth_controller', __name__)
 
 # 配置 Token 的过期时间
-ACCESS_EXPIRES = timedelta(minutes=3)  # 设置为 3 分钟的有效期
-REFRESH_EXPIRES = timedelta(minutes=30)  # 设置为 30 分钟的有效期
+ACCESS_EXPIRES = timedelta(seconds=access_token_exp_sec)  # 设置为 3 分钟的有效期
+REFRESH_EXPIRES = timedelta(seconds=refresh_token_exp_sec)  # 设置为 30 分钟的有效期
 
 # 登录逻辑
 @auth_controller.route('/login', methods=['POST'])
