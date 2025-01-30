@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-
+from datetime import date
 from AnyshareService.AnyShareBaseService import delDir
 from Handler.Handler import admin_required, position_required
 from Model.User import PositionEnum
@@ -73,6 +73,7 @@ def create_semester_all_dir():
 
 
 @driver_controller.route('/dir/month/create_by_semseter', methods=['POST'])
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER])
 def create_semester_month_dir():
     try:
         data = request.get_json()
@@ -106,7 +107,27 @@ def create_semester_month_dir():
         return json_response('fail', f'获取学期配置失败：{str(e)}', code=500)
 
 
+@driver_controller.route('/dir/month/create_current_month', methods=['GET'])
+@jwt_required()
+def create_current_month_dir():
+    try:
+        semester_name, start_month, end_month = read_semester_config_from_sql()
+        if semester_name == "Not Set" or start_month is None or end_month is None:
+            return json_response('fail', f'未设置学期配置，请先设置学期', code=500)
+        doc_id = findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semester_name)
+        df = read_template_from_sql()
+        current_month = date.today().month
+        status, reason = genDayDir(doc_id, df, month=current_month)
+        if status:
+            return json_response('success', '月份与日期文件夹创建成功')
+        else:
+            return json_response('success', f'月份与日期文件夹创建失败：{reason}')
+    except Exception as e:
+        return json_response('fail', f'获取学期配置失败：{str(e)}', code=500)
+
+
 @driver_controller.route('/dir/daily/create_by_semseter', methods=['POST'])
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 def create_semester_other_daily_dir():
     try:
         data = request.get_json()
