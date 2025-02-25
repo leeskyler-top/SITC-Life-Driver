@@ -335,7 +335,7 @@ def delete_file():
         last_slash_index = data['docid'].rfind('/')
         result = data['docid'][:last_slash_index]
         req, code = listDir(result)
-        if not is_docid_in_files(result, req):
+        if not is_docid_in_files(data['docid'], req):
             return json_response("fail", f"普通用户只允许删除单个文件", code=403)
         req, code = safeDelDir(data['docid'])
         if code == 200:
