@@ -264,7 +264,7 @@ def list_other_dir():
             return json_response('fail', reason, code=422)
         current_user_id = get_jwt_identity()
         user = User.get_user_by_id(current_user_id)
-        if check_valid_access(user, data['docid']):
+        if not check_valid_access(user, data['docid']):
             return json_response("fail", "获取失败,试图越界", code=403)
         req, code = listOtherDir(data['docid'])
         if code == 200:
@@ -295,7 +295,7 @@ def delete_dir():
             return json_response('fail', reason, code=422)
         current_user_id = get_jwt_identity()
         user = User.get_user_by_id(current_user_id)
-        if check_valid_access(user, data['docid']):
+        if not check_valid_access(user, data['docid']):
             return json_response("fail", "获取失败,试图越界", code=403)
         req, code = safeDelDir(data['docid'])
         if code == 200:
@@ -326,7 +326,7 @@ def delete_file():
             return json_response('fail', reason, code=422)
         current_user_id = get_jwt_identity()
         user = User.get_user_by_id(current_user_id)
-        if check_valid_access(user, data['docid']):
+        if not check_valid_access(user, data['docid']):
             return json_response("fail", "越界访问不被允许", code=403)
 
         def is_docid_in_files(docid, result):
@@ -380,7 +380,7 @@ def get_link():
             return json_response('fail', reason, code=422)
         current_user_id = get_jwt_identity()
         user = User.get_user_by_id(current_user_id)
-        if check_valid_access(user, data['docid']):
+        if not check_valid_access(user, data['docid']):
             return json_response("fail", "获取失败,试图越界", code=403)
 
         req, code = getLink(docid=data['docid'], end_time=data['endtime'], perm=data['perm'],
