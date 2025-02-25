@@ -4,7 +4,6 @@ from flask_jwt_extended import jwt_required
 from Handler.Handler import position_required
 from Model.User import PositionEnum
 from .globals import json_response, validate_schema, non_empty_string
-from AnyshareService.AnyShareOperation import delete_template, update_current_semester_info, update_template
 from SQLService.Operation import truncate_template, insert_template, delete_template, update_current_semester_info, \
     update_template, read_template_from_sql
 import io

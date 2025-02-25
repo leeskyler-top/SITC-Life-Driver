@@ -1,16 +1,18 @@
 from flask import Blueprint, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from datetime import date
-from AnyshareService.AnyShareBaseService import delDir
+
+from AnyshareService.AnyShareBaseService import listDir
 from Handler.Handler import admin_required, position_required
-from Model.User import PositionEnum
+from Model.User import PositionEnum, User
 from .globals import json_response, validate_schema
 from SQLService.Operation import read_template_from_sql, read_semester_config_from_sql
 from AnyshareService.AnyShareOperation import findCYLCGroup, findLifeDepDir, findCurrentSemseter, genMonthDirBySemester, \
     genDayDir, findDir, genOtherDayDir, listLifeDepDir, listSemesterDir, listMonthDir, listOtherDir, getLink, \
-    downloadZip
+    downloadZip, safeDelDir
 
 driver_controller = Blueprint('driver_controller', __name__)
+
 
 @driver_controller.route('/docid/groupid', methods=['GET'])
 @admin_required
@@ -73,7 +75,9 @@ def create_semester_all_dir():
 
 
 @driver_controller.route('/dir/month/create_by_semseter', methods=['POST'])
-@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER])
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
+     PositionEnum.INTERN_SUMMARY_LEADER])
 def create_semester_month_dir():
     try:
         data = request.get_json()
@@ -166,6 +170,7 @@ def create_semester_other_daily_dir():
     except Exception as e:
         return json_response('fail', f'获取学期配置失败：{str(e)}', code=500)
 
+
 @driver_controller.route('/dir/list/life_dep', methods=['GET'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 def list_life_dep_dir():
@@ -178,8 +183,11 @@ def list_life_dep_dir():
     except Exception as e:
         return json_response("fail", f"获取失败：{str(e)}", code=500)
 
+
 @driver_controller.route('/dir/list/semester', methods=['GET'])
-@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER])
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
+     PositionEnum.INTERN_SUMMARY_LEADER])
 def list_semester_dir():
     req, code = listSemesterDir()
     try:
@@ -189,6 +197,7 @@ def list_semester_dir():
             return json_response("fail", "获取失败", code=code)
     except Exception as e:
         return json_response("fail", f"获取失败：{str(e)}", code=500)
+
 
 @driver_controller.route('/dir/list/month', methods=['POST'])
 @jwt_required()
@@ -218,6 +227,22 @@ def list_month_dir():
     except Exception as e:
         return json_response("fail", f"获取失败：{str(e)}", code=500)
 
+
+def check_valid_access(user, docid):
+    minister_positions = [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+    minister_positions = [position.value for position in minister_positions]
+    if (user["position"] not in minister_positions) or (user["is_admin"]):
+        if docid.startswith(str(findLifeDepDir(findCYLCGroup()))):
+            return True
+    else:
+        semester_name, start_month, end_month = read_semester_config_from_sql()
+        if semester_name == "Not Set" or start_month is None or end_month is None:
+            return False
+        if docid.startswith(str(findCurrentSemseter(findLifeDepDir(findCYLCGroup()), semester_name))):
+            return True
+    return False
+
+
 @driver_controller.route('/dir/list/other', methods=['POST'])
 @jwt_required()
 def list_other_dir():
@@ -237,6 +262,10 @@ def list_other_dir():
 
         if not result:
             return json_response('fail', reason, code=422)
+        current_user_id = get_jwt_identity()
+        user = User.get_user_by_id(current_user_id)
+        if check_valid_access(user, data['docid']):
+            return json_response("fail", "获取失败,试图越界", code=403)
         req, code = listOtherDir(data['docid'])
         if code == 200:
             return json_response("success", "获取成功", data=req, code=code)
@@ -244,6 +273,7 @@ def list_other_dir():
             return json_response("fail", "获取失败", code=code)
     except Exception as e:
         return json_response("fail", f"获取失败：{str(e)}", code=500)
+
 
 @driver_controller.route('/dir/del', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
@@ -263,13 +293,58 @@ def delete_dir():
         )
         if not result:
             return json_response('fail', reason, code=422)
-        req, code = delDir(data['docid'])
+        current_user_id = get_jwt_identity()
+        user = User.get_user_by_id(current_user_id)
+        if check_valid_access(user, data['docid']):
+            return json_response("fail", "获取失败,试图越界", code=403)
+        req, code = safeDelDir(data['docid'])
         if code == 200:
             return json_response("success", "删除成功", data=req, code=code)
         else:
             return json_response("fail", "删除失败", code=code)
     except Exception as e:
         return json_response("fail", f"删除失败：{str(e)}", code=500)
+
+
+@driver_controller.route('/file/del', methods=['POST'])
+@jwt_required()
+def delete_file():
+    try:
+        data = request.get_json()
+        if not data:
+            return json_response('fail', "未传递任何参数", code=422)
+        result, reason = validate_schema(
+            {
+                "docid": {
+                    'type': 'string',
+                    'required': True
+                }
+            }
+            , data
+        )
+        if not result:
+            return json_response('fail', reason, code=422)
+        current_user_id = get_jwt_identity()
+        user = User.get_user_by_id(current_user_id)
+        if check_valid_access(user, data['docid']):
+            return json_response("fail", "越界访问不被允许", code=403)
+
+        def is_docid_in_files(docid, result):
+            return any(file["docid"] == docid for file in result.get("files", []))
+
+        last_slash_index = data['docid'].rfind('/')
+        result = data['docid'][:last_slash_index]
+        req, code = listDir(result)
+        if not is_docid_in_files(result, req):
+            return json_response("fail", f"普通用户只允许删除单个文件", code=403)
+        req, code = safeDelDir(data['docid'])
+        if code == 200:
+            return json_response("success", "删除成功", data=req, code=code)
+        else:
+            return json_response("fail", "删除失败", code=code)
+    except Exception as e:
+        return json_response("fail", f"删除失败：{str(e)}", code=500)
+
 
 @driver_controller.route('/dir/link', methods=['POST'])
 @jwt_required()
@@ -303,7 +378,13 @@ def get_link():
         )
         if not result:
             return json_response('fail', reason, code=422)
-        req, code = getLink(docid=data['docid'], end_time=data['endtime'], perm=data['perm'], use_password=data['usePassword'])
+        current_user_id = get_jwt_identity()
+        user = User.get_user_by_id(current_user_id)
+        if check_valid_access(user, data['docid']):
+            return json_response("fail", "获取失败,试图越界", code=403)
+
+        req, code = getLink(docid=data['docid'], end_time=data['endtime'], perm=data['perm'],
+                            use_password=data['usePassword'])
         if code == 200:
             return json_response("success", "链接获取成功", data=req, code=200)
         else:
@@ -311,8 +392,11 @@ def get_link():
     except Exception as e:
         return json_response("fail", f"获取失败：{str(e)}", code=500)
 
+
 @driver_controller.route('/dir/download', methods=['POST'])
-@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER])
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
+     PositionEnum.INTERN_SUMMARY_LEADER])
 def download_a_zip():
     try:
         data = request.get_json()
