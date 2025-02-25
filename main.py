@@ -1,7 +1,5 @@
 from flask import Flask
-from cerberus import Validator
 from flask_cors import CORS
-from CasService.CasLogin import *
 from Controller.UserController import user_controller
 from Controller.DriverController import driver_controller
 from Controller.AuthController import auth_controller

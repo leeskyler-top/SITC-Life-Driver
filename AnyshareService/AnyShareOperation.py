@@ -3,13 +3,21 @@ import random
 import os
 import re
 from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, \
-    setShareLink, getBatchDownloadLink
+    setShareLink, getBatchDownloadLink, delDir
 from LoadEnviroment.LoadEnv import pan_host, wechat_send_group
 from SQLService.Operation import *
 from datetime import datetime
 
 from WeChatBotService.WeChatBaseService import msgV1
 from utils.utils import download_file, rm_results, rar_file_in_parts
+
+
+def check_parent_docid(parent_docid):
+    if not str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())):
+        print("请不要试图越界")
+        return False
+    return True
+
 
 def findCYLCGroup(name="团委"):
     req, code = entrydoc()
@@ -50,6 +58,8 @@ def findLifeDepDir(group_docid, name="生活部相关"):
 
 
 def findCurrentSemseter(life_dep_dir_docid, name):
+    if not check_parent_docid(life_dep_dir_docid):
+        return False, "文件夹越界"
     result = findDir(life_dep_dir_docid, name)
     if not result:
         return tryCreateDir(life_dep_dir_docid, name)
@@ -57,6 +67,8 @@ def findCurrentSemseter(life_dep_dir_docid, name):
 
 
 def genMonthDir(parent_docid, month):
+    if not check_parent_docid(parent_docid):
+        return False, "越界创建文件夹非法"
     result = findDir(parent_docid, month)
     if not result:
         return True, tryCreateDir(parent_docid, month)
@@ -65,12 +77,14 @@ def genMonthDir(parent_docid, month):
 
 def genMonthDirBySemester(parent_docid, df_template):
     try:
+        if not check_parent_docid(parent_docid):
+            return False, "越界创建文件夹非法"
         # 获取学期信息（例如 '2024 Spring'）
         semseter_name, start_month, end_month = read_semester_config_from_sql()
 
         if semseter_name == "Not Set":
             print("未找到指定学期")
-            return
+            return False, "未找到指定学期"
 
         # 提取学期的开始和结束日期
         start_date = pd.to_datetime(start_month)
@@ -94,6 +108,8 @@ def genMonthDirBySemester(parent_docid, df_template):
 
 
 def genBuildingDir(parent_docid, building):
+    if not check_parent_docid(parent_docid):
+        return False, None
     result = findDir(parent_docid, building)
     if not result:
         return True, tryCreateDir(parent_docid, building)
@@ -108,6 +124,10 @@ def genDayDir(parent_docid, df, month):
     - month: 当前生成日期目录的月份
     """
     try:
+        if not check_parent_docid(parent_docid):
+            print("请不要试图越界创建文件夹")
+            return "ERROR"
+
         # 获取学期的开始和结束日期
         semester_name, start_month, end_month = read_semester_config_from_sql()
 
@@ -193,6 +213,10 @@ def genOtherDayDir(parent_docid, df, other_name):
     - month: 当前生成日期目录的月份
     """
     try:
+        if not str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())):
+            print("请不要试图越界创建文件夹")
+            return "ERROR"
+
         # 获取学期的开始和结束日期
         semester_name, start_month, end_month = read_semester_config_from_sql()
 
@@ -264,16 +288,23 @@ def listMonthDir(month: str):
 
 
 def listOtherDir(parent_docid):
-    print(str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())))
-    if str(parent_docid).startswith(findLifeDepDir(findCYLCGroup())):
-        req, code = listDir(parent_docid)
-        return req, code
-    else:
+    if not check_parent_docid(parent_docid):
         return None, 403
+    req, code = listDir(parent_docid)
+    return req, code
+
+
+def safeDelDir(docid):
+    if not check_parent_docid(docid):
+        return None, 403
+    req, code = delDir(docid)
+    return req, code
 
 
 def getLink(docid, end_time, perm, use_password):
     try:
+        if not str(docid).startswith(findLifeDepDir(findCYLCGroup())):
+            return None, 403
         req, code = getLinkDetail(docid)
         if code == 200 and req['link'] == '':
             req, code = openShareLink(docid)
@@ -288,6 +319,7 @@ def getLink(docid, end_time, perm, use_password):
             return req, code
     except Exception as e:
         return None, 500
+
 
 def downloadZip(name, docid):
     if str(docid).startswith(findLifeDepDir(findCYLCGroup())):
