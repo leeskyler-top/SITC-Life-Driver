@@ -1,7 +1,7 @@
 from ..base import *
 import inspect
 try:
-    from js2py.translators.translator import translate_js
+    from utils.js2py.translators.translator import translate_js
 except:
     pass
 

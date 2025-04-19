@@ -19,7 +19,7 @@ except:  # except all problems...
             return 1
 
 
-from js2py.base import MakeError
+from utils.js2py.base import MakeError
 CUM = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
 msPerDay = 86400000
 msPerYear = int(86400000 * 365.242)

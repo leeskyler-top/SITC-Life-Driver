@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from js2py.internals.conversions import *
-from js2py.internals.func_utils import *
+from utils.js2py.internals.conversions import *
+from utils.js2py.internals.func_utils import *
 
 
 class ConsoleMethods:

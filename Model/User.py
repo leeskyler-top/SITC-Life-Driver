@@ -1,16 +1,12 @@
-from flask_jwt_extended import get_jwt_identity
-from flask import request
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from .globals import engine, Session
+from sqlalchemy.orm import relationship
+
+from .globals import engine, Session, Base, SoftDeleteMixin
 from sqlalchemy import Column, Integer, String, Enum, Text, Boolean
-from sqlalchemy.ext.declarative import declarative_base
 import enum
 import bcrypt
 from sqlalchemy.sql import func
 from sqlalchemy import DateTime
-from datetime import datetime
-
-Base = declarative_base()
 
 
 # 定义枚举类型
@@ -31,6 +27,7 @@ class GenderEnum(enum.Enum):
     OTHERS = "不方便透露"
 
 
+
 class DepartmentEnum(enum.Enum):
     INFORMATION = "信息技术系"
     BUSSINESS = "商务管理系"
@@ -40,15 +37,16 @@ class DepartmentEnum(enum.Enum):
     CYLC = "校团委"
     OTHERS = "其它"
 
+
 class PoliticalLandscapeEnum(enum.Enum):
-    PUBLICPEOPLE="群众"
+    PUBLICPEOPLE = "群众"
     CYLC = "中国共产主义青年团团员"
     CPC = "中国共产党正式党员"
-    PROBATIONARYCPC="中国共产党预备党员"
+    PROBATIONARYCPC = "中国共产党预备党员"
     OTHERS = "其它"
 
 
-class User(Base):
+class User(SoftDeleteMixin, Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True, autoincrement=True)
     studentId = Column(String(50), nullable=False, unique=True)
@@ -67,6 +65,9 @@ class User(Base):
     resident = Column(Boolean, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
+
+    # check_in_records = relationship("CheckInUser", back_populates="user")
+
 
     # 将 User 对象转换为 JSON 格式的字典
     def to_dict(self):
@@ -97,15 +98,30 @@ class User(Base):
             return user.to_dict()
         else:
             return None
+  
 
     @classmethod
     def delete_user_by_id(cls, user_id: int):
         session = Session()
-        user = session.query(cls).filter_by(id=user_id).first()
-        if user:
-            session.delete(user)  # 删除用户
-            session.commit()  # 提交事务
-        session.close()
+        try:
+            # 只查询未删除的用户
+            user = cls.query_active(session).filter_by(id=user_id).first()
+
+            if not user:
+                return False, "用户不存在或已被删除", 404
+
+            # 执行软删除
+            user.is_deleted = True
+            user.updated_at = func.now()  # 可选：更新修改时间
+
+            session.commit()
+            return True, "用户已标记为删除", 200
+
+        except SQLAlchemyError as e:
+            session.rollback()
+            return False, f"删除失败: {str(e)}", 500
+        finally:
+            session.close()
 
     @classmethod
     def patch_user_by_id(cls, user_id: int, name: str = None, classname: str = None, phone: str = None,
@@ -182,7 +198,7 @@ class User(Base):
         session = Session()
         hashed_password = cls.hash_password(password)  # 散列密码
         # 验证字段有效性
-        if department not in DepartmentEnum._value2member_map_ :
+        if department not in DepartmentEnum._value2member_map_:
             return False, "部门无效", 422
         if gender not in GenderEnum._value2member_map_:
             return False, "性别无效", 422
