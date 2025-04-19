@@ -1,5 +1,6 @@
 import os
 import ssl
+import subprocess
 import urllib.parse
 import urllib3
 import json
@@ -134,8 +135,12 @@ def cas_login(username: str, password: str, service: str):
     csrf_token, execution, session = get_csrf_token_and_execution(service)
     if des_trans_mode == "nodejs":
         path = os.path.join(os.getcwd(), "CasService", "des.js").replace("\\", "/")
-        rsa = os.popen(
-            f"node -e \"require('{path}').strEnc('{username.strip()}{password.strip()}{csrf_token}', '1', '2', '3')\"").read().strip()
+        cmd = [
+            'node',
+            '-e',
+            f"require('{path}').strEnc('{username.strip()}{password.strip()}{csrf_token}', '1', '2', '3')"
+        ]
+        rsa = subprocess.run(cmd, capture_output=True, text=True, shell=False).stdout.strip()
     else:
         rsa = get_des_key(username.strip(), password.strip(), csrf_token)
     # 使用 session 进行后续的请求
