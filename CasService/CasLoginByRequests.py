@@ -65,6 +65,8 @@ def get_csrf_token_and_execution(service):
 def try_redirect(session, location):
     if location is None:
         return session, None
+    if location and location.startswith('/#/sso'):
+        location = "https://cas.shitac.net" + location
     res = session.get(location, verify=False, allow_redirects=False)
     location = res.headers.get('Location')
     print(f"Redirect Location: {location}")
