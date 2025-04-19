@@ -128,12 +128,12 @@ def get_token_id(ticket_id: str):
     return req.json(), req.status_code
 
 
-def cas_login(username: str, password: str, service: str = "https://pan.shitac.net/sso"):
+def cas_login(username: str, password: str, service: str):
     csrf_token, execution, session = get_csrf_token_and_execution(service)
     if des_trans_mode == "nodejs":
         path = os.path.join(os.getcwd(), "CasService", "des.js").replace("\\", "/")
         rsa = os.popen(
-        f"node -e \"require('{path}').strEnc('{username.strip()}{password.strip()}{csrf_token}', '1', '2', '3')\"").read().strip()
+            f"node -e \"require('{path}').strEnc('{username.strip()}{password.strip()}{csrf_token}', '1', '2', '3')\"").read().strip()
     else:
         rsa = get_des_key(username.strip(), password.strip(), csrf_token)
     # 使用 session 进行后续的请求
@@ -146,14 +146,13 @@ def cas_login(username: str, password: str, service: str = "https://pan.shitac.n
         "_eventId": "submit"
     }
     # 发送 POST 请求，cookies 会自动包含在请求头中
-    local_headers['Referer'] = cas_baseurl + "?service=" + urllib.parse.quote("service")
+    local_headers['Referer'] = cas_baseurl + "?service=" + urllib.parse.quote(service, safe='')
     local_headers['Content-Type'] = "application/x-www-form-urlencoded"
     res = session.post("https://cas.shitac.net/tpass/login", params={"service": service},
                        data=data, verify=False, headers=local_headers, allow_redirects=False)
     # 获取 Location 头（如果存在）
     location = res.headers.get('Location')
-    print(f"Redirect Location: {location}")
-    if location.endswith("h5?act=tpass/guide"):
+    if location is not None and location.endswith("h5?act=tpass/guide"):
         # (Try to go to CAS Guide, but no ticket.)
         session, location = try_redirect(session, location)
         # (CAS Guide Login)
@@ -162,6 +161,20 @@ def cas_login(username: str, password: str, service: str = "https://pan.shitac.n
         session, location = try_redirect(session, location)
         # https://cas.shitac.net/tp_tpass/h5?act=tpass/guide
         session, location = try_redirect(session, location)
+        res = session.get("https://cas.shitac.net/tpass/login", params={"service": service},
+                          verify=False, headers=local_headers, allow_redirects=False)
+        location = res.headers.get('Location')
+        session, location = try_redirect(session, location)
+        session, location = try_redirect(session, location)
+    elif res.status_code == 200:
+        res = session.get("https://cas.shitac.net/tpass/login", params={"service": service},
+                          verify=False, headers=local_headers, allow_redirects=False)
+        location = res.headers.get('Location')
+        session, location = try_redirect(session, location)
+        session, location = try_redirect(session, location)
+
+    session, location = try_redirect(session, location)
+    session, location = try_redirect(session, location)
     return session
 
 
