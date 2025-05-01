@@ -1,0 +1,30 @@
+[Unit]
+Description=SITC Life Driver Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+# main.py所在工作目录
+WorkingDirectory=/export/server/work
+# /bin/bash -c python3所在位置/python3 main.py所在工作目录/main.py
+ExecStart=/bin/bash -c '/usr/bin/python3.12 /export/server/work/main.py'
+# 参见/etc/enviroment首行，并在后面追加nodejs的bin路径
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/nvm/versions/node/v20.x.x/bin"
+# 如果有安装nvm nodejs包管理，可以添加此环境变量，但不是必须的
+Environment="NVM_DIR=/usr/local/nvm"
+
+# 确保使用 bash 环境
+Environment="SHELL=/bin/bash"
+
+# 日志配置
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sitc-driver
+
+# 自动重启配置
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

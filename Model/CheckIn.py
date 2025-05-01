@@ -1,10 +1,6 @@
 from datetime import datetime
-
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import relationship, validates
-
-from .CheckInUser import CheckInUser
-from .User import User
 from .globals import Session, Base, format_datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, func, UniqueConstraint
 from sqlalchemy import DateTime, exists
@@ -39,7 +35,7 @@ class CheckIn(Base):
 
     # 添加关系
     schedule = relationship("Schedule", back_populates="check_ins")
-    check_in_users = relationship("CheckInUser", back_populates="check_in")
+    check_in_users = relationship("CheckInUser", back_populates="check_in", cascade="all, delete-orphan")
 
     def to_dict(self):
 
@@ -87,6 +83,7 @@ class CheckIn(Base):
             # 1. 验证所有用户存在
             nonexistent_users = []
             for user_id in check_in_users:
+                from Model.User import User
                 if not session.query(
                         exists().where(User.id == user_id)
                 ).scalar():
@@ -105,7 +102,6 @@ class CheckIn(Base):
                         raise ValueError("签到结束时间必须晚于开始时间")
                 return value
 
-
             check_in = cls(
                 id=check_in_id,
                 name=name,
@@ -118,6 +114,7 @@ class CheckIn(Base):
             session.flush()
 
             if len(check_in_users) > 0:  # 只有在有用户时才创建关联
+                from Model.CheckInUser import CheckInUser
                 session.bulk_insert_mappings(
                     CheckInUser,
                     [{
@@ -174,7 +171,6 @@ class CheckIn(Base):
                     check_in.schedule_start_time = check_in_end_time
                 if need_check_schedule_time is not None:
                     check_in.schedule_start_time = need_check_schedule_time
-
 
                 # 提交事务
                 session.commit()
@@ -273,6 +269,7 @@ class CheckIn(Base):
                 return False, "签到记录不存在", 404
 
             # 获取现有关联
+            from Model.CheckInUser import CheckInUser
             existing_records = session.query(CheckInUser).filter_by(check_in_id=check_in_id).all()
             existing_user_ids = {r.user_id for r in existing_records}
 

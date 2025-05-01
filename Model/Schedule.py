@@ -1,10 +1,7 @@
+from .globals import Session, format_datetime, Base
 from datetime import timedelta, datetime
-
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import relationship, joinedload
-
-from .CheckIn import CheckIn
-from .globals import Session, Base, format_datetime
 from sqlalchemy import Column, Integer, String, Enum
 import enum
 from sqlalchemy.sql import func
@@ -166,6 +163,7 @@ class Schedule(Base):
             session.flush()
 
             # 2. 创建主CheckIn
+            from Model import CheckIn
             main_check_in = CheckIn(
                 schedule_id=schedule.id,
                 name=f"{schedule_name}-{schedule_start_time.strftime('%Y%m%d%H%M')}-主签到",

@@ -1,6 +1,4 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-from sqlalchemy.orm import relationship
-
 from .globals import engine, Session, Base, SoftDeleteMixin
 from sqlalchemy import Column, Integer, String, Enum, Text, Boolean
 import enum
@@ -25,7 +23,6 @@ class GenderEnum(enum.Enum):
     MALE = "男"
     FEMALE = "女"
     OTHERS = "不方便透露"
-
 
 
 class DepartmentEnum(enum.Enum):
@@ -68,7 +65,6 @@ class User(SoftDeleteMixin, Base):
 
     # check_in_records = relationship("CheckInUser", back_populates="user")
 
-
     # 将 User 对象转换为 JSON 格式的字典
     def to_dict(self):
         return {
@@ -98,7 +94,6 @@ class User(SoftDeleteMixin, Base):
             return user.to_dict()
         else:
             return None
-  
 
     @classmethod
     def delete_user_by_id(cls, user_id: int):

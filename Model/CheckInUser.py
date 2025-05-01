@@ -1,26 +1,24 @@
-from datetime import datetime
-
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import relationship
-
-from .globals import Session, Base, format_datetime
 import enum
-from sqlalchemy import Column, Integer, Enum, ForeignKey, Boolean, func
+from datetime import datetime
+from sqlalchemy.orm import relationship, joinedload
+from .globals import Session, Base, format_datetime
+from sqlalchemy import Column, Integer, ForeignKey, Boolean, func
 from sqlalchemy import DateTime
 
 
 class CheckInStatusEnum(enum.Enum):
+    NOT_STARTED = "未开始"
     NORMAL = "正常"
     LATE = "迟到"
     ABSENTEEISM = "缺勤"
     ASK_FOR_LEAVE = "请假"
 
 
-class AskForLeaveEnum(enum.Enum):
-    SICK = "病假"
-    COMPETITION = "符合要求的赛事或集训"
-    ASL = "事假"
-    OFFICIAL = "公务假"
+class StatusEnum(enum.Enum):
+    PENDING = "待审核"
+    ACCEPTED = "已批准"
+    REJECTED = "已拒绝"
+    CANCELLED = "已取消"
 
 
 class CheckInUser(Base):
@@ -29,7 +27,6 @@ class CheckInUser(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     check_in_id = Column(Integer, ForeignKey('check_ins.id', ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
-    ask_for_leave = Column(Enum(AskForLeaveEnum), nullable=True)
     need_check_schedule_time = Column(Boolean, nullable=False, default=False)
     is_necessary = Column(Boolean, nullable=False, default=True)
     check_in_time = Column(DateTime, nullable=True)
@@ -37,17 +34,28 @@ class CheckInUser(Base):
     updated_at = Column(DateTime, onupdate=func.now())
 
     # 添加关系
+    ask_for_leaves = relationship(
+        "AskForLeaveApplication",
+        back_populates="check_in_user",
+        cascade="all, delete-orphan"
+    )
     check_in = relationship("CheckIn", back_populates="check_in_users")
     user = relationship("User")
 
     def get_status(self, schedule_start_time=None):
-        if self.ask_for_leave:
-            return CheckInStatusEnum.ASK_FOR_LEAVE.value
+        # 通过 ORM 关系直接访问请假申请
+        approved_asl = next((
+            asl for asl in self.ask_for_leaves
+            if asl.status == StatusEnum.ACCEPTED
+        ), None)
+
+        if approved_asl:
+            return approved_asl.asl_type.value
 
         if not self.check_in_time:
             if datetime.now() > self.check_in.check_in_end_time:
                 return CheckInStatusEnum.ABSENTEEISM.value
-            return None
+            return CheckInStatusEnum.NOT_STARTED.value
 
         if self.need_check_schedule_time and schedule_start_time:
             if self.check_in_time > schedule_start_time:
@@ -61,7 +69,6 @@ class CheckInUser(Base):
             "check_in_id": self.check_in_id,
             "user_id": self.user_id,
             "user_name": self.user.name if self.user else None,
-            "ask_for_leave": self.ask_for_leave.value if self.ask_for_leave else None,
             "need_check_schedule_time": self.need_check_schedule_time,
             "is_necessary": self.is_necessary,
             "check_in_time": format_datetime(self.check_in_time),
@@ -71,64 +78,62 @@ class CheckInUser(Base):
         }
 
     @classmethod
-    def get_check_in_by_id(cls, check_in_id: int):
+    def get_by_id(cls, check_in_user_id: int):
         session = Session()
         try:
-            # 使用 joinedload 优化查询
-            from sqlalchemy.orm import joinedload
-            check_in = session.query(cls) \
-                .options(
-                joinedload(cls.check_in_users)
-                .joinedload(CheckInUser.user)  # 加载关联的用户信息
-            ) \
-                .filter_by(id=check_in_id) \
-                .first()
+            from Model.CheckIn import CheckIn
+            return session.query(cls).options(
+                joinedload(cls.user),
+                joinedload(cls.check_in).joinedload(CheckIn.schedule),  # 假设 CheckIn 有 schedule 属性
+                joinedload(cls.ask_for_leaves)
+            ).filter(cls.id == check_in_user_id).first()
+        finally:
+            session.close()
 
-            if not check_in:
+    @classmethod
+    def get_all_by_user_and_date_range(cls, user_id: int, start: datetime, end: datetime):
+        session = Session()
+        try:
+            from Model.CheckIn import CheckIn
+            return session.query(cls).join(CheckIn).filter(
+                cls.user_id == user_id,
+                CheckIn.check_in_start_time >= start,
+                CheckIn.check_in_end_time <= end
+            ).options(
+                joinedload(cls.check_in).joinedload(CheckIn.schedule),
+                joinedload(cls.user),
+                joinedload(cls.ask_for_leaves)
+            ).all()
+        finally:
+            session.close()
+
+    @classmethod
+    def get_all_by_date_range(cls, start: datetime, end: datetime):
+        session = Session()
+        try:
+            from Model.CheckIn import CheckIn
+            return session.query(cls).join(CheckIn).filter(
+                CheckIn.check_in_start_time >= start,
+                CheckIn.check_in_end_time <= end
+            ).options(
+                joinedload(cls.user),
+                joinedload(cls.check_in).joinedload(CheckIn.schedule),
+                joinedload(cls.ask_for_leaves)
+            ).all()
+        finally:
+            session.close()
+
+    @classmethod
+    def update(cls, check_in_user_id: int, **kwargs):
+        session = Session()
+        try:
+            target = session.query(cls).filter_by(id=check_in_user_id).first()
+            if not target:
                 return None
-
-            result = check_in.to_dict()
-            # 使用 CheckInUser 的 to_dict 方法
-            result['check_in_users'] = [
-                ciu.to_dict(schedule_start_time=check_in.check_in_start_time)
-                for ciu in check_in.check_in_users
-            ]
-            return result
+            for key, value in kwargs.items():
+                if hasattr(target, key):
+                    setattr(target, key, value)
+            session.commit()
+            return target
         finally:
             session.close()
-
-    @classmethod
-    def delete_check_in_by_id(cls, check_in_user_id: int):
-        session = Session()
-        check_in = session.query(cls).filter_by(id=check_in_user_id).first()
-        if check_in:
-            session.delete(check_in)  # 删除用户
-            session.commit()  # 提交事务
-        session.close()
-
-    @classmethod
-    def get_all_check_ins(cls):
-        session = Session()
-        try:
-            from sqlalchemy.orm import joinedload
-            check_ins = session.query(cls) \
-                .options(
-                joinedload(cls.check_in_users)
-                .joinedload(CheckInUser.user)
-            ) \
-                .all()
-
-            return [
-                {
-                    **check_in.to_dict(),
-                    # 使用 CheckInUser.to_dict() 并传入需要的时间参数
-                    'check_in_users': [
-                        ciu.to_dict(check_in.check_in_start_time)
-                        for ciu in check_in.check_in_users
-                    ]
-                }
-                for check_in in check_ins
-            ]
-        finally:
-            session.close()
-
