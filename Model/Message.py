@@ -32,6 +32,17 @@ class Message(Base):
             "updated_at": format_datetime(self.updated_at)
         }
 
+    @classmethod
+    def get_message_by_id(cls, message_id):
+        session = Session()
+        try:
+            message = session.query(Message).filter_by(id=message_id).first()
+            if message:
+                return message.to_dict()
+            return None
+        finally:
+            session.close()
+
     # 添加消息
     @classmethod
     def add_message(cls, user_id, msg_text, msg_type: MsgTypeEnum):
@@ -90,17 +101,6 @@ class Message(Base):
             updated_count = session.query(Message).filter_by(user_id=user_id, msg_type=MsgTypeEnum.PRIVATE,
                                                              status=False) \
                 .update({Message.status: True})
-            session.commit()
-            return updated_count
-        finally:
-            session.close()
-
-    # 设置所有消息为已读（慎用，一般仅限管理员）
-    @classmethod
-    def mark_all_messages_read(cls):
-        session = Session()
-        try:
-            updated_count = session.query(Message).filter_by(status=False).update({Message.status: True})
             session.commit()
             return updated_count
         finally:

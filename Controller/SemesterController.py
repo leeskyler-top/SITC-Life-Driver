@@ -1,6 +1,5 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-
 from Handler.Handler import position_required
 from Model.User import PositionEnum
 from SQLService.Operation import read_semester_config_from_sql, update_current_semester_info
