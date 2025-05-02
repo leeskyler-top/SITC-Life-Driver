@@ -45,10 +45,10 @@ class Message(Base):
 
     # 添加消息
     @classmethod
-    def add_message(cls, user_id, msg_text, msg_type: MsgTypeEnum):
+    def add_message(cls, user_id, msg_text, msg_type):
         session = Session()
         try:
-            message = Message(user_id=user_id, msg_text=msg_text, msg_type=msg_type)
+            message = Message(user_id=user_id, msg_text=msg_text, msg_type=MsgTypeEnum(msg_type))
             session.add(message)
             session.commit()
             return message.to_dict()

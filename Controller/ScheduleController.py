@@ -3,49 +3,13 @@ import re
 import pandas as pd
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-
 from Handler.Handler import position_required
-from Model import CheckIn
 from Model.Schedule import TypeEnum, Schedule
 from Model.User import PositionEnum
 from .globals import json_response, Session, validate_schema
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime, timedelta
 
 schedule_controller = Blueprint('schedule_controller', __name__)
-
-
-def create_default_check_in(schedule_data):
-    schedule_dt = datetime.strptime(schedule_data['schedule_start_time'], '%Y-%m-%d %H:%M:%S')
-    check_in_start_time = schedule_dt - timedelta(minutes=20)
-    check_in_end_time = schedule_dt + timedelta(minutes=15)
-
-    main_check_in = CheckIn(
-        name=f"{schedule_data['schedule_name']}-{schedule_data['schedule_type']}-{schedule_data['schedule_start_time']}-主签到",
-        schedule_id=schedule_data['id'],  # 假设 new_schedule 是一个 dict，含 id
-        check_in_start_time=check_in_start_time,
-        check_in_end_time=check_in_end_time,
-        need_check_schedule_time=True,
-        is_main_check_in=True
-    )
-    session = Session()
-    session.add(main_check_in)
-    session.commit()
-    session.close()
-    return main_check_in
-
-
-@schedule_controller.route('/<int:schedule_id>', methods=['DELETE'], endpoint='delete_schedule')
-@position_required(
-    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
-)
-def delete_schedule(schedule_id):
-    schedule = Schedule.get_schedule_by_id(schedule_id)
-    if not schedule:
-        return json_response("fail", "值班计划未找到", code=404)
-    Schedule.delete_schedule_by_id(schedule_id)
-    return json_response("success", "值班计划删除成功", code=200)
-
 
 
 @schedule_controller.route('', methods=['POST'], endpoint='create_schedule')
@@ -90,10 +54,6 @@ def create_schedule():
             schedule_start_time=data["schedule_start_time"]
         )
 
-        # 创建主签到 CheckIn
-        # 创建主签到 CheckIn
-        main_check_in = create_default_check_in(new_schedule)
-        new_schedule['main_check_in_id'] = main_check_in.id
         # 返回成功响应
         if status:
             return json_response("success", "用户创建成功", data=new_schedule, code=code)
@@ -174,9 +134,6 @@ def batch_create_schedules():
                     results.append(
                         f"第 {index + 1} 行: 值班安排 '{row['schedule_name']}-{row['schedule_type']}-{row['schedule_start_time']}' 创建成功")
 
-                    # 创建主签到 CheckIn
-                    create_default_check_in(new_schedule)
-
                     results.append(f"第 {index + 1} 行: 主签到创建成功")
 
                 else:
@@ -195,3 +152,35 @@ def batch_create_schedules():
 
     except Exception as e:
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
+
+
+@schedule_controller.route('/<int:schedule_id>', methods=['GET'], endpoint='delete_schedule')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+def get_schedule(schedule_id):
+    schedule = Schedule.get_schedule_by_id(schedule_id)
+    if not schedule:
+        return json_response("fail", "值班计划未找到", code=404)
+    return json_response("success", "值班计划已列出", data=schedule, code=200)
+
+
+@schedule_controller.route('/<int:schedule_id>', methods=['DELETE'], endpoint='delete_schedule')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+def delete_schedule(schedule_id):
+    schedule = Schedule.get_schedule_by_id(schedule_id)
+    if not schedule:
+        return json_response("fail", "值班计划未找到", code=404)
+    Schedule.delete_schedule_by_id(schedule_id)
+    return json_response("success", "值班计划删除成功", code=200)
+
+
+@schedule_controller.route('/', methods=['GET'], endpoint='get_all_schedules')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+def get_all_schedules():
+    schedules = Schedule.get_all_schedules()
+    return json_response("success", "所有值班计划已列出", data=schedules, code=200)

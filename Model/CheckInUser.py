@@ -27,7 +27,6 @@ class CheckInUser(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     check_in_id = Column(Integer, ForeignKey('check_ins.id', ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
-    need_check_schedule_time = Column(Boolean, nullable=False, default=False)
     is_necessary = Column(Boolean, nullable=False, default=True)
     check_in_time = Column(DateTime, nullable=True)
     created_at = Column(DateTime, server_default=func.now())
@@ -57,7 +56,7 @@ class CheckInUser(Base):
                 return CheckInStatusEnum.ABSENTEEISM.value
             return CheckInStatusEnum.NOT_STARTED.value
 
-        if self.need_check_schedule_time and schedule_start_time:
+        if self.check_in.need_check_schedule_time and schedule_start_time:
             if self.check_in_time > schedule_start_time:
                 return CheckInStatusEnum.LATE.value
 
@@ -69,7 +68,6 @@ class CheckInUser(Base):
             "check_in_id": self.check_in_id,
             "user_id": self.user_id,
             "user_name": self.user.name if self.user else None,
-            "need_check_schedule_time": self.need_check_schedule_time,
             "is_necessary": self.is_necessary,
             "check_in_time": format_datetime(self.check_in_time),
             "status": self.get_status(schedule_start_time),

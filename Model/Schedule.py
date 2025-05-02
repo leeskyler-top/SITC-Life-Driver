@@ -166,7 +166,7 @@ class Schedule(Base):
             from Model import CheckIn
             main_check_in = CheckIn(
                 schedule_id=schedule.id,
-                name=f"{schedule_name}-{schedule_start_time.strftime('%Y%m%d%H%M')}-主签到",
+                name=f"{schedule_name}-{schedule_start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule_type}-主签到",
                 check_in_start_time=schedule_start_time - timedelta(minutes=25),
                 check_in_end_time=schedule_start_time + timedelta(minutes=10),
                 is_main_check_in=True
