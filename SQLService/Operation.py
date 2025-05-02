@@ -50,6 +50,7 @@ def create_database_and_table():
     except MySQLError as e:
         print(f"数据库操作失败：{e}")
 
+
 def update_template(record_id: int, building=None, room=None, classname=None):
     """
     向 template 表中插入一条记录。
@@ -71,7 +72,7 @@ def update_template(record_id: int, building=None, room=None, classname=None):
 
                 cursor.execute("""
                 UPDATE template SET building = %s, room = %s, classname = %s WHERE id = %s;
-                """ , (building, room, classname, record_id))
+                """, (building, room, classname, record_id))
                 connection.commit()
         return True, f"成功插入数据：building={building}, room={room}, classname={classname}"
 
@@ -79,6 +80,7 @@ def update_template(record_id: int, building=None, room=None, classname=None):
         return False, f"插入失败：违反唯一性约束 - {e}"
     except MySQLError as e:
         return False, f"数据库错误：{e}"
+
 
 def insert_template(building: str, room: str, classname: str):
     """
