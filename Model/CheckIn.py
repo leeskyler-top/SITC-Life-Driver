@@ -17,6 +17,7 @@ class CheckIn(Base):
     name = Column(String(50), nullable=False)
     check_in_start_time = Column(DateTime, nullable=False)
     check_in_end_time = Column(DateTime, nullable=False)
+    need_check_schedule_time = Column(Boolean, nullable=False, default=False)
     is_main_check_in = Column(Boolean, nullable=False, default=False)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
@@ -45,6 +46,7 @@ class CheckIn(Base):
             "name": self.name,
             "check_in_start_time": format_datetime(self.check_in_start_time),
             "check_in_end_time": format_datetime(self.check_in_end_time),
+            "need_check_schedule_time": self.need_check_schedule_time,
             "is_main_check_in": self.is_main_check_in,
             "created_at": format_datetime(self.created_at),
             "updated_at": format_datetime(self.updated_at)
@@ -75,7 +77,7 @@ class CheckIn(Base):
             session.close()
 
     @classmethod
-    def create_check_in_in_db(cls, check_in_id: int, name: str, check_in_start_time: str, check_in_end_time: str,
+    def create_check_in_in_db(cls, schedule_id: int, name: str, check_in_start_time: str, check_in_end_time: str,
                               is_main_check_in: bool, need_check_schedule_time: bool = True, check_in_users: list = []):
         session = Session()
 
@@ -94,6 +96,13 @@ class CheckIn(Base):
                     f"以下用户ID不存在: {', '.join(nonexistent_users)}"
                 )
 
+            from Model.Schedule import Schedule
+            schedule = Schedule.get_schedule_by_id(schedule_id)
+            if not schedule:
+                raise ValueError(
+                    f"值班安排不存在"
+                )
+
             # 转换时间格式（如果输入是字符串）
             @validates('check_in_start_time', 'check_in_end_time')
             def validate_check_in_times(self, key, value):
@@ -103,8 +112,8 @@ class CheckIn(Base):
                 return value
 
             check_in = cls(
-                id=check_in_id,
                 name=name,
+                schedule_id=schedule_id,
                 check_in_start_time=check_in_start_time,
                 check_in_end_time=check_in_end_time,
                 need_check_schedule_time=need_check_schedule_time,

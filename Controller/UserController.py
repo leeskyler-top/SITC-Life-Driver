@@ -1,7 +1,6 @@
 import string
 import random
 import re
-from datetime import datetime
 
 from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -411,6 +410,10 @@ def delete_user(user_id):
     current_user_id = get_jwt_identity()
     if user_id == int(current_user_id):
         return json_response("fail", "不能删除自己", code=403)
+
+    user = User.get_user_by_id(user_id)
+    if not user:
+        return json_response("fail", "值班计划未找到", code=404)
 
     # 删除用户
     User.delete_user_by_id(user_id)

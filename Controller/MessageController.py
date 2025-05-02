@@ -31,7 +31,7 @@ def read_all():
     return json_response("success", "全部已读完成", code=200)
 
 
-@message_controller.route('/read/:message_id', methods=['GET'], endpoint='read')
+@message_controller.route('/read/<int:message_id>', methods=['GET'], endpoint='read')
 @jwt_required()
 def read(message_id):
     current_user_id = get_jwt_identity()
