@@ -72,7 +72,8 @@ builtins = (
     'decodeURIComponent',
 )
 
-#Array, Function, JSON,   Error is done later :)
+
+# Array, Function, JSON,   Error is done later :)
 # also some built in functions like eval...
 
 
@@ -94,7 +95,7 @@ scope = dict(zip(builtins, [globals()[e] for e in builtins]))
 # Now add errors:
 for name, error in ERRORS.items():
     scope[name] = error
-#add eval
+# add eval
 scope['eval'] = Eval
 scope['JSON'] = JSON
 JS_BUILTINS = dict((k, v) for k, v in scope.items())

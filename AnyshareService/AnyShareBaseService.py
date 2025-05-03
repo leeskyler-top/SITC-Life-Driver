@@ -75,6 +75,7 @@ def openShareLink(docid: str):
     })
     return req, code
 
+
 def getLinkDetail(docid: str):
     params = set_token_id()
     params['method'] = 'getdetail'
@@ -92,7 +93,8 @@ def closeShareLink(docid: str):
     }, params=params, verify=False)
     return {}, req.status_code
 
-def setShareLink(docid: str, end_time, limittimes:int = -1, perm: int = 7, use_password: bool = False):
+
+def setShareLink(docid: str, end_time, limittimes: int = -1, perm: int = 7, use_password: bool = False):
     params = set_token_id()
     params['method'] = 'set'
     req, code = reqApi("/link", method="POST", params=params, json={
@@ -103,6 +105,7 @@ def setShareLink(docid: str, end_time, limittimes:int = -1, perm: int = 7, use_p
         "perm": perm
     })
     return req, code
+
 
 def getBatchDownloadLink(name, dirs: list, files: list = []):
     params = set_token_id()
@@ -121,4 +124,3 @@ def getBatchDownloadLink(name, dirs: list, files: list = []):
             return None, code
     except Exception as e:
         return None, 500
-

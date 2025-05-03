@@ -18,7 +18,6 @@ class ArrayPrototype:
         # this function is wrong but I will leave it here fore debugging purposes.
         func = this.get('join')
         if not func.is_callable():
-
             @this.Js
             def func():
                 return '[object %s]' % this.Class
@@ -86,7 +85,7 @@ class ArrayPrototype:
         ARR_STACK.remove(this)
         return res
 
-    def pop():  #todo check
+    def pop():  # todo check
         array = this.to_object()
         arr_len = array.get('length').to_uint32()
         if not arr_len:
@@ -123,7 +122,7 @@ class ArrayPrototype:
                 array.delete(str(i))
         return array
 
-    def shift():  #todo check
+    def shift():  # todo check
         array = this.to_object()
         arr_len = array.get('length').to_uint32()
         if not arr_len:
@@ -188,7 +187,7 @@ class ArrayPrototype:
         relative_start = start.to_int()
         actual_start = max(
             (arr_len + relative_start), 0) if relative_start < 0 else min(
-                relative_start, arr_len)
+            relative_start, arr_len)
         actual_delete_count = min(
             max(deleteCount.to_int(), 0), arr_len - actual_start)
         k = 0

@@ -7,6 +7,7 @@ import json
 indent = ''
 # python 3 support
 import six
+
 if six.PY3:
     basestring = str
     long = int
@@ -78,7 +79,7 @@ def Str(key, holder, replacer_function, property_list, gap, stack, space):
     if is_object(value):
         to_json = value.get('toJSON')
         if is_callable(to_json):
-            value = to_json.call(value, (key, ))
+            value = to_json.call(value, (key,))
     if not is_undefined(replacer_function):
         value = replacer_function.call(holder, (key, value))
 
@@ -195,7 +196,7 @@ def walk(holder, name, reviver):
                 new_element.put(i, new_element)
     elif is_object(val):
         for key in [
-                unicode(e) for e, d in val.own.items() if d.get('enumerable')
+            unicode(e) for e, d in val.own.items() if d.get('enumerable')
         ]:
             new_element = walk(val, key, reviver)
             if is_undefined(new_element):

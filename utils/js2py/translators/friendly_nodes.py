@@ -2,6 +2,7 @@ import binascii
 
 from pyjsparser import PyJsParser
 import six
+
 if six.PY3:
     basestring = str
     long = int
@@ -15,8 +16,9 @@ def to_hex(s):
     return binascii.hexlify(s.encode('utf8')).decode(
         'utf8')  # fucking python 3, I hate it so much
 
-
     # wtf was wrong with s.encode('hex') ???
+
+
 def indent(lines, ind=4):
     return ind * ' ' + lines.replace('\n', '\n' + ind * ' ').rstrip(' ')
 
@@ -62,7 +64,7 @@ def indent(lines, ind=4):
 
 def compose_regex(val):
     reg, flags = val
-    #reg = REGEXP_CONVERTER._unescape_string(reg)
+    # reg = REGEXP_CONVERTER._unescape_string(reg)
     return u'/%s/%s' % (reg, flags)
 
 
@@ -152,13 +154,13 @@ def js_strict_neq(a, b):
     return 'PyJsStrictNeq(' + a + ',' + b + ')'
 
 
-#Not handled by python in the same way like JS. For example 2==2==True returns false.
+# Not handled by python in the same way like JS. For example 2==2==True returns false.
 # In JS above would return true so we need brackets.
 def js_abstract_eq(a, b):
     return '(' + a + '==' + b + ')'
 
 
-#just like ==
+# just like ==
 def js_abstract_neq(a, b):
     return '(' + a + '!=' + b + ')'
 
@@ -222,7 +224,7 @@ def js_mod(a, b):
 
 
 def js_typeof(a):
-    cand = list(bracket_split(a, ('()', )))
+    cand = list(bracket_split(a, ('()',)))
     if len(cand) == 2 and cand[0] == 'var.get':
         return cand[0] + cand[1][:-1] + ',throw=False).typeof()'
     return a + '.typeof()'
@@ -234,7 +236,7 @@ def js_void(a):
 
 
 def js_new(a):
-    cands = list(bracket_split(a, ('()', )))
+    cands = list(bracket_split(a, ('()',)))
     lim = len(cands)
     if lim < 2:
         return a + '.create()'
@@ -260,10 +262,10 @@ def js_new(a):
 
 
 def js_delete(a):
-    #replace last get with delete.
+    # replace last get with delete.
     c = list(bracket_split(a, ['()']))
     beg, arglist = ''.join(c[:-1]).strip(), c[-1].strip(
-    )  #strips just to make sure... I will remove it later
+    )  # strips just to make sure... I will remove it later
     if beg[-4:] != '.get':
         print(a)
         raise SyntaxError('Invalid delete operation')
@@ -287,7 +289,7 @@ def js_not(a):
 
 
 def js_postfix(a, inc, post):
-    bra = list(bracket_split(a, ('()', )))
+    bra = list(bracket_split(a, ('()',)))
     meth = bra[-2]
     if not meth.endswith('get'):
         raise SyntaxError('Invalid ++ or -- operation.')
@@ -333,13 +335,13 @@ EQS = {
     '!=': js_abstract_neq
 }
 
-#Since JS does not have chained comparisons we need to implement all cmp methods.
+# Since JS does not have chained comparisons we need to implement all cmp methods.
 COMPS = {
     '<': js_lt,
     '<=': js_le,
     '>=': js_ge,
     '>': js_gt,
-    'instanceof': js_instanceof,  #todo change to validitate
+    'instanceof': js_instanceof,  # todo change to validitate
     'in': js_in
 }
 
@@ -359,7 +361,7 @@ BINARY.update(BXOR)
 BINARY.update(BOR)
 BINARY.update(AND)
 BINARY.update(OR)
-#Note they dont contain ++ and -- methods because they both have 2 different methods
+# Note they dont contain ++ and -- methods because they both have 2 different methods
 # correct method will be found automatically in translate function
 UNARY = {
     'typeof': js_typeof,

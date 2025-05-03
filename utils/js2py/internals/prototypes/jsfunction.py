@@ -5,11 +5,13 @@ from ..func_utils import *
 
 # python 3 support
 import six
+
 if six.PY3:
     basestring = str
     long = int
     xrange = range
     unicode = str
+
 
 # todo fix apply and bind
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .jsregexp import Exec
 import re
+
 DIGS = set('0123456789')
 WHITE = u"\u0009\u000A\u000B\u000C\u000D\u0020\u00A0\u1680\u180E\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u2028\u2029\u202F\u205F\u3000\uFEFF"
 
@@ -107,7 +108,7 @@ class StringPrototype:
         s = this.to_string().value
         search = searchString.to_string().value
         pos = position.to_number()
-        pos = 10**15 if pos.is_nan() else pos.to_int()
+        pos = 10 ** 15 if pos.is_nan() else pos.to_int()
         return s.rfind(search, 0, min(max(pos, 0) + 1, len(s)))
 
     def localeCompare(that):
@@ -165,7 +166,7 @@ class StringPrototype:
                 res += s[last:e.span()[0]]
                 if func:
                     # prepare arguments for custom func (replaceValue)
-                    args = (e.group(), ) + e.groups() + (e.span()[1], string)
+                    args = (e.group(),) + e.groups() + (e.span()[1], string)
                     # convert all types to JS
                     args = map(this.Js, args)
                     res += replaceValue(*args).to_string().value
@@ -191,7 +192,7 @@ class StringPrototype:
             pars = ()
         res = s[:span[0]]
         if func:
-            args = (match, ) + pars + (span[1], string)
+            args = (match,) + pars + (span[1], string)
             # convert all types to JS
             this_ = this
             args = tuple([this_.Js(x) for x in args])
@@ -219,8 +220,8 @@ class StringPrototype:
         start = start.to_int()
         length = len(s.value)
         end = length if end.is_undefined() else end.to_int()
-        #From = max(length+start, 0) if start<0 else min(length, start)
-        #To = max(length+end, 0) if end<0 else min(length, end)
+        # From = max(length+start, 0) if start<0 else min(length, start)
+        # To = max(length+end, 0) if end<0 else min(length, end)
         return s.value[start:end]
 
     def split(separator, limit):
@@ -228,7 +229,7 @@ class StringPrototype:
         this.cok()
         S = this.to_string()
         s = S.value
-        lim = 2**32 - 1 if limit.is_undefined() else limit.to_uint32()
+        lim = 2 ** 32 - 1 if limit.is_undefined() else limit.to_uint32()
         if not lim:
             return []
         if separator.is_undefined():
@@ -268,10 +269,10 @@ class StringPrototype:
         return this.Js(s[min(fstart, fend):max(fstart, fend)])
 
     def substr(start, length):
-        #I hate this function and its description in specification
+        # I hate this function and its description in specification
         r1 = this.to_string().value
         r2 = start.to_int()
-        r3 = 10**20 if length.is_undefined() else length.to_int()
+        r3 = 10 ** 20 if length.is_undefined() else length.to_int()
         r4 = len(r1)
         r5 = r2 if r2 >= 0 else max(0, r2 + r4)
         r6 = min(max(r3, 0), r4 - r5)

@@ -22,7 +22,7 @@ CP_NUMERIC_PLACEHOLDER_REVERSE_RE = re.compile(
 # this re only services simple cases, it can not be used when
 # there are escaped quotes in the expression
 
-#CP_STRING_1 = re.compile(r'(["\'])(.*?)\1') # this is how we'll recognise string constants
+# CP_STRING_1 = re.compile(r'(["\'])(.*?)\1') # this is how we'll recognise string constants
 
 CP_STRING = '"([^\\\\"]+|\\\\([bfnrtv\'"\\\\]|[0-3]?[0-7]{1,2}|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}))*"|\'([^\\\\\']+|\\\\([bfnrtv\'"\\\\]|[0-3]?[0-7]{1,2}|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}))*\''
 CP_STRING_RE = re.compile(
@@ -55,11 +55,13 @@ def dbg(x):
     """does nothing, legacy dummy function"""
     return ''
 
+
 # Another way of doing that would be with my auto esprima translation but its much slower:
 # parsed = esprima.parse(js).to_dict()
 def pyjsparser_parse_fn(code):
     parser = pyjsparser.PyJsParser()
     return parser.parse(code)
+
 
 def translate_js(js, HEADER=DEFAULT_HEADER, use_compilation_plan=False, parse_fn=pyjsparser_parse_fn):
     """js has to be a javascript source code.
@@ -176,6 +178,7 @@ if __name__ == '__main__':
     import js2py
     import codecs
 
+
     def main():
         with codecs.open("esprima.js", "r", "utf-8") as f:
             d = f.read()
@@ -183,10 +186,12 @@ if __name__ == '__main__':
 
             with open('res.py', 'wb') as f2:
                 f2.write(r)
-            exec (r, {})
+            exec(r, {})
+
 
     if PROFILE:
         import cProfile
+
         cProfile.run('main()', sort='tottime')
     else:
         main()

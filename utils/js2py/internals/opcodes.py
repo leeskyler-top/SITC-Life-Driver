@@ -217,7 +217,7 @@ class LOAD_NONE(OP_CODE):  # be careful with this :)
 
 
 class LOAD_N_TUPLE(
-        OP_CODE
+    OP_CODE
 ):  # loads the tuple composed of n last elements on stack. elements are popped.
     _params = ['n']
 
@@ -656,7 +656,7 @@ class TRY_CATCH_FINALLY(OP_CODE):
             # generate catch block context...
             catch_context = Scope({
                 self.catch_variable:
-                try_status[2].get_thrown_value(ctx.space)
+                    try_status[2].get_thrown_value(ctx.space)
             }, ctx.space, ctx)
             catch_context.THIS_BINDING = ctx.THIS_BINDING
             catch_status = ctx.space.exe.execute_fragment_under_context(

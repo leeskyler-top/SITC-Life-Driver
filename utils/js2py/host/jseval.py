@@ -1,5 +1,6 @@
 from ..base import *
 import inspect
+
 try:
     from utils.js2py.translators.translator import translate_js
 except:
@@ -41,11 +42,11 @@ def Eval(code):
                 lines[len(lines) - n - 1] = cand
                 py_code = '\n'.join(lines)
                 break
-    #print py_code
+    # print py_code
     executor(py_code)
     if has_return:
         return globals()['EVAL_RESULT']
 
 
 def executor(code):
-    exec (code, globals())
+    exec(code, globals())

@@ -7,14 +7,17 @@ from .utils.injector import fix_js_args
 from types import FunctionType, ModuleType, GeneratorType, BuiltinFunctionType, MethodType, BuiltinMethodType
 from math import floor, log10
 import traceback
+
 try:
     import numpy
+
     NUMPY_AVAILABLE = True
 except:
     NUMPY_AVAILABLE = False
 
 # python 3 support
 import six
+
 if six.PY3:
     basestring = str
     long = int
@@ -76,9 +79,9 @@ def to_dict(js_obj,
                 output = to_dict(output._obj, known)
                 known[input] = output
             elif output._obj.Class in [
-                    'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
-                    'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
-                    'Float32Array', 'Float64Array'
+                'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
+                'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
+                'Float32Array', 'Float64Array'
             ]:
                 output = to_list(output._obj)
                 known[input] = output
@@ -102,9 +105,9 @@ def to_list(js_obj, known=None):
         output = to_python(input)
         if isinstance(output, JsObjectWrapper):
             if output._obj.Class in [
-                    'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
-                    'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
-                    'Float32Array', 'Float64Array', 'Arguments'
+                'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
+                'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
+                'Float32Array', 'Float64Array', 'Arguments'
             ]:
                 output = to_list(output._obj, known)
                 known[input] = output
@@ -154,16 +157,16 @@ def Js(val, Clamped=False):
         return true if val else false
     elif isinstance(val, float) or isinstance(val, int) or isinstance(
             val, long) or (NUMPY_AVAILABLE and isinstance(
-                val,
-                (numpy.int8, numpy.uint8, numpy.int16, numpy.uint16,
-                 numpy.int32, numpy.uint32, numpy.float32, numpy.float64))):
+        val,
+        (numpy.int8, numpy.uint8, numpy.int16, numpy.uint16,
+         numpy.int32, numpy.uint32, numpy.float32, numpy.float64))):
         # This is supposed to speed things up. may not be the case
         if val in NUM_BANK:
             return NUM_BANK[val]
         return PyJsNumber(float(val), NumberPrototype)
     elif isinstance(val, FunctionType):
         return PyJsFunction(val, FunctionPrototype)
-    #elif isinstance(val, ModuleType):
+    # elif isinstance(val, ModuleType):
     #    mod = {}
     #    for name in dir(val):
     #        value = getattr(val, name)
@@ -176,14 +179,14 @@ def Js(val, Clamped=False):
     #            continue
     #        mod[name] = jsval
     #    return Js(mod)
-    #elif isintance(val, ClassType):
+    # elif isintance(val, ClassType):
 
     elif isinstance(val, dict):  # convert to object
         temp = PyJsObject({}, ObjectPrototype)
         for k, v in six.iteritems(val):
             temp.put(Js(k), Js(v))
         return temp
-    elif isinstance(val, (list, tuple)):  #Convert to array
+    elif isinstance(val, (list, tuple)):  # Convert to array
         return PyJsArray(val, ArrayPrototype)
     # convert to typedarray
     elif isinstance(val, JsObjectWrapper):
@@ -211,8 +214,8 @@ def Js(val, Clamped=False):
             return PyJsFloat64Array(val, Float64ArrayPrototype)
     else:  # try to convert to js object
         return py_wrap(val)
-        #raise RuntimeError('Cant convert python type to js (%s)' % repr(val))
-        #try:
+        # raise RuntimeError('Cant convert python type to js (%s)' % repr(val))
+        # try:
         #    obj = {}
         #    for name in dir(val):
         #        if name.startswith('_'):  #dont wrap attrs that start with _
@@ -224,7 +227,7 @@ def Js(val, Clamped=False):
         #            continue
         #        obj[name] = HJs(value)
         #    return Js(obj)
-        #except:
+        # except:
         #    raise RuntimeError('Cant convert python type to js (%s)' % repr(val))
 
 
@@ -315,8 +318,8 @@ class PyJs(object):
         for i in range(self.get('length').to_uint32()):
             self.put(str(i), Js(self.buff[i]))
 
-    def get(self, prop):  #external use!
-        #prop = prop.value
+    def get(self, prop):  # external use!
+        # prop = prop.value
         if self.Class == 'Undefined' or self.Class == 'Null':
             raise MakeError('TypeError',
                             'Undefined and null dont have properties (tried getting property %s)' % repr(prop))
@@ -335,13 +338,13 @@ class PyJs(object):
             return cand['get']
         return cand['get'].call(self)
 
-    def can_put(self, prop):  #to check
+    def can_put(self, prop):  # to check
         desc = self.get_own_property(prop)
-        if desc:  #if we have this property
+        if desc:  # if we have this property
             if is_accessor_descriptor(desc):
                 return desc['set'].is_callable(
                 )  # Check if setter method is defined
-            else:  #data desc
+            else:  # data desc
                 return desc['writable']
         if self.prototype is not None:
             return self.extensible
@@ -354,7 +357,7 @@ class PyJs(object):
             return inherited['writable']
         return False
 
-    def put(self, prop, val, op=None):  #external use!
+    def put(self, prop, val, op=None):  # external use!
         '''Just like in js: self.prop op= val
            for example when op is '+' it will be self.prop+=val
            op can be either None for simple assignment or one of:
@@ -390,7 +393,7 @@ class PyJs(object):
                 val = Js(numpy.float64(val.to_number().value))
             if isinstance(self.buff, numpy.ndarray):
                 self.buff[int(prop)] = int(val.to_number().value)
-        #we need to set the value to the incremented one
+        # we need to set the value to the incremented one
         if op is not None:
             val = getattr(self.get(prop), OP_METHODS[op])(val)
         if not self.can_put(prop):
@@ -398,9 +401,9 @@ class PyJs(object):
         own_desc = self.get_own_property(prop)
         if is_data_descriptor(own_desc):
             if self.Class in [
-                    'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
-                    'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
-                    'Float32Array', 'Float64Array'
+                'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
+                'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
+                'Float32Array', 'Float64Array'
             ]:
                 self.define_own_property(prop, {'value': val})
             else:
@@ -408,7 +411,7 @@ class PyJs(object):
             return val
         desc = self.get_property(prop)
         if is_accessor_descriptor(desc):
-            desc['set'].call(self, (val, ))
+            desc['set'].call(self, (val,))
         else:
             new = {
                 'value': val,
@@ -417,9 +420,9 @@ class PyJs(object):
                 'enumerable': True
             }
             if self.Class in [
-                    'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
-                    'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
-                    'Float32Array', 'Float64Array'
+                'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
+                'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
+                'Float32Array', 'Float64Array'
             ]:
                 self.define_own_property(prop, new)
             else:
@@ -456,18 +459,18 @@ class PyJs(object):
                         'Cannot convert object to primitive value')
 
     def define_own_property(self, prop,
-                            desc):  #Internal use only. External through Object
+                            desc):  # Internal use only. External through Object
         # prop must be a Py string. Desc is either a descriptor or accessor.
-        #Messy method -  raw translation from Ecma spec to prevent any bugs. # todo check this
+        # Messy method -  raw translation from Ecma spec to prevent any bugs. # todo check this
         current = self.get_own_property(prop)
 
         extensible = self.extensible
-        if not current:  #We are creating a new property
+        if not current:  # We are creating a new property
             if not extensible:
                 return False
             if is_data_descriptor(desc) or is_generic_descriptor(desc):
                 DEFAULT_DATA_DESC = {
-                    'value': undefined,  #undefined
+                    'value': undefined,  # undefined
                     'writable': False,
                     'enumerable': False,
                     'configurable': False
@@ -476,22 +479,22 @@ class PyJs(object):
                 self.own[prop] = DEFAULT_DATA_DESC
             else:
                 DEFAULT_ACCESSOR_DESC = {
-                    'get': undefined,  #undefined
-                    'set': undefined,  #undefined
+                    'get': undefined,  # undefined
+                    'set': undefined,  # undefined
                     'enumerable': False,
                     'configurable': False
                 }
                 DEFAULT_ACCESSOR_DESC.update(desc)
                 self.own[prop] = DEFAULT_ACCESSOR_DESC
             return True
-        if not desc or desc == current:  #We dont need to change anything.
+        if not desc or desc == current:  # We dont need to change anything.
             return True
         configurable = current['configurable']
-        if not configurable:  #Prevent changing configurable or enumerable
+        if not configurable:  # Prevent changing configurable or enumerable
             if desc.get('configurable'):
                 return False
             if 'enumerable' in desc and desc['enumerable'] != current[
-                    'enumerable']:
+                'enumerable']:
                 return False
         if is_generic_descriptor(desc):
             pass
@@ -501,19 +504,19 @@ class PyJs(object):
             if is_data_descriptor(current):
                 del current['value']
                 del current['writable']
-                current['set'] = undefined  #undefined
-                current['get'] = undefined  #undefined
+                current['set'] = undefined  # undefined
+                current['get'] = undefined  # undefined
             else:
                 del current['set']
                 del current['get']
-                current['value'] = undefined  #undefined
+                current['value'] = undefined  # undefined
                 current['writable'] = False
         elif is_data_descriptor(current) and is_data_descriptor(desc):
             if not configurable:
                 if not current['writable'] and desc.get('writable'):
                     return False
             if not current['writable'] and 'value' in desc and current[
-                    'value'] != desc['value']:
+                'value'] != desc['value']:
                 return False
         elif is_accessor_descriptor(current) and is_accessor_descriptor(desc):
             if not configurable:
@@ -524,19 +527,19 @@ class PyJs(object):
         current.update(desc)
         return True
 
-    #these methods will work only for Number class
+    # these methods will work only for Number class
     def is_infinity(self):
         assert self.Class == 'Number'
         return self.value == float('inf') or self.value == -float('inf')
 
     def is_nan(self):
         assert self.Class == 'Number'
-        return self.value != self.value  #nan!=nan evaluates to true
+        return self.value != self.value  # nan!=nan evaluates to true
 
     def is_finite(self):
         return not (self.is_nan() or self.is_infinity())
 
-    #Type Conversions. to_type. All must return pyjs subclass instance
+    # Type Conversions. to_type. All must return pyjs subclass instance
 
     def to_primitive(self, hint=None):
         if self.is_primitive():
@@ -549,20 +552,20 @@ class PyJs(object):
 
     def to_boolean(self):
         typ = Type(self)
-        if typ == 'Boolean':  #no need to convert
+        if typ == 'Boolean':  # no need to convert
             return self
-        elif typ == 'Null' or typ == 'Undefined':  #they are both always false
+        elif typ == 'Null' or typ == 'Undefined':  # they are both always false
             return false
-        elif typ == 'Number' or typ == 'String':  #false only for 0, '' and NaN
+        elif typ == 'Number' or typ == 'String':  # false only for 0, '' and NaN
             return Js(bool(
                 self.value
                 and self.value == self.value))  # test for nan (nan -> flase)
-        else:  #object -  always true
+        else:  # object -  always true
             return true
 
     def to_number(self):
         typ = Type(self)
-        if typ == 'Null':  #null is 0
+        if typ == 'Null':  # null is 0
             return Js(0)
         elif typ == 'Undefined':  # undefined is NaN
             return NaN
@@ -571,28 +574,28 @@ class PyJs(object):
         elif typ == 'Number':  # or self.Class=='Number':   # no need to convert
             return self
         elif typ == 'String':
-            s = self.value.strip()  #Strip white space
+            s = self.value.strip()  # Strip white space
             if not s:  # '' is simply 0
                 return Js(0)
-            if 'x' in s or 'X' in s[:3]:  #hex (positive only)
+            if 'x' in s or 'X' in s[:3]:  # hex (positive only)
                 try:  # try to convert
                     num = int(s, 16)
                 except ValueError:  # could not convert > NaN
                     return NaN
                 return Js(num)
-            sign = 1  #get sign
+            sign = 1  # get sign
             if s[0] in '+-':
                 if s[0] == '-':
                     sign = -1
                 s = s[1:]
-            if s == 'Infinity':  #Check for infinity keyword. 'NaN' will be NaN anyway.
+            if s == 'Infinity':  # Check for infinity keyword. 'NaN' will be NaN anyway.
                 return Js(sign * float('inf'))
-            try:  #decimal try
+            try:  # decimal try
                 num = sign * float(s)  # Converted
             except ValueError:
                 return NaN  # could not convert to decimal  > return NaN
             return Js(num)
-        else:  #object -  most likely it will be NaN.
+        else:  # object -  most likely it will be NaN.
             return self.to_primitive('Number').to_number()
 
     def to_string(self):
@@ -603,11 +606,11 @@ class PyJs(object):
             return Js('undefined')
         elif typ == 'Boolean':
             return Js('true') if self.value else Js('false')
-        elif typ == 'Number':  #or self.Class=='Number':
+        elif typ == 'Number':  # or self.Class=='Number':
             return Js(unicode(js_dtoa(self.value)))
         elif typ == 'String':
             return self
-        else:  #object
+        else:  # object
             return self.to_primitive('String').to_string()
 
     def to_object(self):
@@ -617,19 +620,19 @@ class PyJs(object):
                             'undefined or null can\'t be converted to object')
         elif typ == 'Boolean':  # Unsure here... todo repair here
             return Boolean.create(self)
-        elif typ == 'Number':  #?
+        elif typ == 'Number':  # ?
             return Number.create(self)
-        elif typ == 'String':  #?
+        elif typ == 'String':  # ?
             return String.create(self)
-        else:  #object
+        else:  # object
             return self
 
     def to_int32(self):
         num = self.to_number()
         if num.is_nan() or num.is_infinity():
             return 0
-        int32 = int(num.value) % 2**32
-        return int(int32 - 2**32 if int32 >= 2**31 else int32)
+        int32 = int(num.value) % 2 ** 32
+        return int(int32 - 2 ** 32 if int32 >= 2 ** 31 else int32)
 
     def strict_equality_comparison(self, other):
         return PyJsStrictEq(self, other)
@@ -645,27 +648,27 @@ class PyJs(object):
         if num.is_nan():
             return 0
         elif num.is_infinity():
-            return 10**20 if num.value > 0 else -10**20
+            return 10 ** 20 if num.value > 0 else -10 ** 20
         return int(num.value)
 
     def to_uint32(self):
         num = self.to_number()
         if num.is_nan() or num.is_infinity():
             return 0
-        return int(num.value) % 2**32
+        return int(num.value) % 2 ** 32
 
     def to_uint16(self):
         num = self.to_number()
         if num.is_nan() or num.is_infinity():
             return 0
-        return int(num.value) % 2**16
+        return int(num.value) % 2 ** 16
 
     def to_int16(self):
         num = self.to_number()
         if num.is_nan() or num.is_infinity():
             return 0
-        int16 = int(num.value) % 2**16
-        return int(int16 - 2**16 if int16 >= 2**15 else int16)
+        int16 = int(num.value) % 2 ** 16
+        return int(int16 - 2 ** 16 if int16 >= 2 ** 15 else int16)
 
     def same_as(self, other):
         typ = Type(self)
@@ -675,10 +678,10 @@ class PyJs(object):
             return True
         if typ == 'Boolean' or typ == 'Number' or typ == 'String':
             return self.value == other.value
-        else:  #object
-            return self is other  #Id compare.
+        else:  # object
+            return self is other  # Id compare.
 
-    #Not to be used by translation (only internal use)
+    # Not to be used by translation (only internal use)
     def __getitem__(self, item):
         return self.get(
             str(item) if not isinstance(item, PyJs) else item.to_string().
@@ -696,16 +699,16 @@ class PyJs(object):
             raise TypeError(
                 'This object (%s) does not have length property' % self.Class)
 
-    #Oprators-------------
-    #Unary, other will be implemented as functions. Increments and decrements
+    # Oprators-------------
+    # Unary, other will be implemented as functions. Increments and decrements
     # will be methods of Number class
-    def __neg__(self):  #-u
+    def __neg__(self):  # -u
         return Js(-self.to_number().value)
 
-    def __pos__(self):  #+u
+    def __pos__(self):  # +u
         return self.to_number()
 
-    def __invert__(self):  #~u
+    def __invert__(self):  # ~u
         return Js(Js(~self.to_int32()).to_int32())
 
     def neg(self):  # !u  cant do 'not u' :(
@@ -725,7 +728,7 @@ class PyJs(object):
             typ = 'object'
         return Js(typ)
 
-    #Bitwise operators
+    # Bitwise operators
     #  <<, >>,  &, ^, |
 
     # <<
@@ -784,7 +787,7 @@ class PyJs(object):
     def __sub__(self, other):
         return Js(self.to_number().value - other.to_number().value)
 
-    #Multiplicative operators
+    # Multiplicative operators
     # *, / and % are implemented here
 
     # *
@@ -809,16 +812,16 @@ class PyJs(object):
             return NaN
         if abs(b) == float('inf'):
             return Js(a)
-        pyres = Js(a % b)  #different signs in python and javascript
-        #python has the same sign as b and js has the same
-        #sign as a.
+        pyres = Js(a % b)  # different signs in python and javascript
+        # python has the same sign as b and js has the same
+        # sign as a.
         if a < 0 and pyres.value > 0:
             pyres.value -= abs(b)
         elif a > 0 and pyres.value < 0:
             pyres.value += abs(b)
         return Js(pyres)
 
-    #Comparisons (I dont implement === and !== here, these
+    # Comparisons (I dont implement === and !== here, these
     # will be implemented as external functions later)
     # <, <=, !=, ==, >=, > are implemented here.
 
@@ -830,7 +833,7 @@ class PyJs(object):
            result is PyJs type: bool or undefined'''
         px = self.to_primitive('Number')
         py = other.to_primitive('Number')
-        if not self_first:  #reverse order
+        if not self_first:  # reverse order
             px, py = py, px
         if not (px.Class == 'String' and py.Class == 'String'):
             px, py = px.to_number(), py.to_number()
@@ -842,28 +845,28 @@ class PyJs(object):
             # string cmp algorithm but I have to confirm it
             return Js(px.value < py.value)
 
-    #<
+    # <
     def __lt__(self, other):
         res = self.abstract_relational_comparison(other, True)
         if res.is_undefined():
             return false
         return res
 
-    #<=
+    # <=
     def __le__(self, other):
         res = self.abstract_relational_comparison(other, False)
         if res.is_undefined():
             return false
         return res.neg()
 
-    #>=
+    # >=
     def __ge__(self, other):
         res = self.abstract_relational_comparison(other, True)
         if res.is_undefined():
             return false
         return res.neg()
 
-    #>
+    # >
     def __gt__(self, other):
         res = self.abstract_relational_comparison(other, False)
         if res.is_undefined():
@@ -898,15 +901,15 @@ class PyJs(object):
         else:
             return false
 
-    #==
+    # ==
     def __eq__(self, other):
         return self.abstract_equality_comparison(other)
 
-    #!=
+    # !=
     def __ne__(self, other):
         return self.abstract_equality_comparison(other).neg()
 
-    #Other methods (instanceof)
+    # Other methods (instanceof)
 
     def instanceof(self, other):
         '''checks if self is instance of other'''
@@ -914,9 +917,9 @@ class PyJs(object):
             return false
         return other.has_instance(self)
 
-    #iteration
+    # iteration
     def __iter__(self):
-        #Returns a generator of all own enumerable properties
+        # Returns a generator of all own enumerable properties
         # since the size od self.own can change we need to use different method of iteration.
         # SLOW! New items will NOT show up.
         returned = {}
@@ -937,7 +940,7 @@ class PyJs(object):
                 "You can\'t use 'in' operator to search in non-objects")
         return Js(self.has_property(other.to_string().value))
 
-    #Other Special methods
+    # Other Special methods
     def __call__(self, *args):
         '''Call a property prop as a function (this will be global object).
 
@@ -964,9 +967,9 @@ class PyJs(object):
         elif self.Class == 'String':
             return str_repr(self.value)
         elif self.Class in [
-                'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
-                'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
-                'Float32Array', 'Float64Array'
+            'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
+            'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
+            'Float32Array', 'Float64Array'
         ]:
             res = []
             for e in self:
@@ -992,7 +995,7 @@ class PyJs(object):
         if not cand.is_callable():
             raise MakeError('TypeError',
                             '%s is not a function (tried calling property %s of %s)' % (
-                            cand.typeof(), repr(prop), repr(self.Class)))
+                                cand.typeof(), repr(prop), repr(self.Class)))
         return cand.call(self, args)
 
     def to_python(self):
@@ -1009,7 +1012,9 @@ class PyJs(object):
 if six.PY3:
     PyJs.__hash__ = PyJs._fuck_python3
     PyJs.__truediv__ = PyJs.__div__
-#Define some more classes representing operators:
+
+
+# Define some more classes representing operators:
 
 
 def PyJsStrictEq(a, b):
@@ -1019,7 +1024,7 @@ def PyJsStrictEq(a, b):
         return false
     if tx == 'Undefined' or tx == 'Null':
         return true
-    if a.is_primitive():  #string bool and number case
+    if a.is_primitive():  # string bool and number case
         return Js(a.value == b.value)
     if a.Class == b.Class == 'PyObjectWrapper':
         return Js(a.obj == b.obj)
@@ -1042,6 +1047,7 @@ def PyJsComma(a, b):
 
 from .internals.simplex import JsException as PyJsException, js_dtoa
 import pyjsparser
+
 pyjsparser.parser.ENABLE_JS2PY_ERRORS = lambda msg: MakeError('SyntaxError', msg)
 
 
@@ -1062,7 +1068,7 @@ def PyExceptionToJs(py):
     return py.mes
 
 
-#Scope class it will hold all the variables accessible to user
+# Scope class it will hold all the variables accessible to user
 class Scope(PyJs):
     Class = 'global'
     extensible = True
@@ -1128,7 +1134,7 @@ class Scope(PyJs):
                 self.own[lval] = val
                 return val
             else:
-                #try to put in the lower scope since we cant put in this one (var wasn't registered)
+                # try to put in the lower scope since we cant put in this one (var wasn't registered)
                 return self.prototype.put(lval, val, op)
 
     def force_own_put(self, prop, val, configurable=False):
@@ -1143,7 +1149,7 @@ class Scope(PyJs):
             self.own[prop] = val
 
     def get(self, prop, throw=True):
-        #note prop is always a Py String
+        # note prop is always a Py String
         if not isinstance(prop, basestring):
             prop = prop.to_string().value
         if self.prototype is not None:
@@ -1231,9 +1237,9 @@ class JsObjectWrapper(object):
 
     def __iter__(self):
         if self._obj.Class in [
-                'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
-                'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
-                'Float32Array', 'Float64Array'
+            'Array', 'Int8Array', 'Uint8Array', 'Uint8ClampedArray',
+            'Int16Array', 'Uint16Array', 'Int32Array', 'Uint32Array',
+            'Float32Array', 'Float64Array'
         ]:
             return iter(self.to_list())
         elif self._obj.Class == 'Object':
@@ -1348,10 +1354,10 @@ def py_wrap(py):
 
 
 ##############################################################################
-#Define types
+# Define types
 
 
-#Object
+# Object
 class PyJsObject(PyJs):
     Class = 'Object'
 
@@ -1369,7 +1375,7 @@ class PyJsObject(PyJs):
 ObjectPrototype = PyJsObject()
 
 
-#Function
+# Function
 class PyJsFunction(PyJs):
     Class = 'Function'
 
@@ -1385,7 +1391,7 @@ class PyJsFunction(PyJs):
         self.extensible = extensible
         self.prototype = prototype
         self.own = {}
-        #set own property length to the number of arguments
+        # set own property length to the number of arguments
         self.define_own_property(
             'length', {
                 'value': Js(self.argcount),
@@ -1448,18 +1454,18 @@ class PyJsFunction(PyJs):
         And if you supply too much then excess will not be passed
         (but they will be present in arguments object).
         '''
-        if not hasattr(args, '__iter__'):  #get rid of it later
-            args = (args, )
+        if not hasattr(args, '__iter__'):  # get rid of it later
+            args = (args,)
         args = tuple(Js(e) for e in args)  # this wont be needed later
 
         arguments = PyJsArguments(
             args, self)  # tuple will be converted to arguments object.
-        arglen = self.argcount  #function expects this number of args.
+        arglen = self.argcount  # function expects this number of args.
         if len(args) > arglen:
             args = args[0:arglen]
         elif len(args) < arglen:
-            args += (undefined, ) * (arglen - len(args))
-        args += this, arguments  #append extra params to the arg list
+            args += (undefined,) * (arglen - len(args))
+        args += this, arguments  # append extra params to the arg list
         try:
             return Js(self.code(*args))
         except NotImplementedError:
@@ -1573,8 +1579,8 @@ def Empty():
     return Js(None)
 
 
-#Number
-class PyJsNumber(PyJs):  #Note i dont implement +0 and -0. Just 0.
+# Number
+class PyJsNumber(PyJs):  # Note i dont implement +0 and -0. Just 0.
     TYPE = 'Number'
     Class = 'Number'
 
@@ -1594,9 +1600,9 @@ NUM_BANK = {}
 PyJs.CHAR_BANK = CHAR_BANK
 
 
-#String
+# String
 # Different than implementation design in order to improve performance
-#for example I dont create separate property for each character in string, it would take ages.
+# for example I dont create separate property for each character in string, it would take ages.
 class PyJsString(PyJs):
     TYPE = 'String'
     Class = 'String'
@@ -1618,7 +1624,7 @@ class PyJsString(PyJs):
             'configurable': False
         }
         if len(value) == 1:
-            CHAR_BANK[value] = self  #, 'writable': False,
+            CHAR_BANK[value] = self  # , 'writable': False,
             # 'enumerable': True, 'configurable': False}
 
     def get(self, prop):
@@ -1651,7 +1657,7 @@ StringPrototype.value = ''
 CHAR_BANK[''] = Js('')
 
 
-#Boolean
+# Boolean
 class PyJsBoolean(PyJs):
     TYPE = 'Boolean'
     Class = 'Boolean'
@@ -1665,7 +1671,7 @@ true = PyJsBoolean(True, BooleanPrototype)
 false = PyJsBoolean(False, BooleanPrototype)
 
 
-#Undefined
+# Undefined
 class PyJsUndefined(PyJs):
     TYPE = 'Undefined'
     Class = 'Undefined'
@@ -1677,7 +1683,7 @@ class PyJsUndefined(PyJs):
 undefined = PyJsUndefined()
 
 
-#Null
+# Null
 class PyJsNull(PyJs):
     TYPE = 'Null'
     Class = 'Null'
@@ -1716,7 +1722,7 @@ class PyJsArray(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -1765,7 +1771,7 @@ class PyJsArray(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -1811,7 +1817,7 @@ class PyJsArrayBuffer(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -1860,7 +1866,7 @@ class PyJsArrayBuffer(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -1907,7 +1913,7 @@ class PyJsInt8Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -1956,7 +1962,7 @@ class PyJsInt8Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2003,7 +2009,7 @@ class PyJsUint8Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2052,7 +2058,7 @@ class PyJsUint8Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2099,7 +2105,7 @@ class PyJsUint8ClampedArray(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2148,7 +2154,7 @@ class PyJsUint8ClampedArray(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2195,7 +2201,7 @@ class PyJsInt16Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2244,7 +2250,7 @@ class PyJsInt16Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2291,7 +2297,7 @@ class PyJsUint16Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2340,7 +2346,7 @@ class PyJsUint16Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2387,7 +2393,7 @@ class PyJsInt32Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2436,7 +2442,7 @@ class PyJsInt32Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2483,7 +2489,7 @@ class PyJsUint32Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2532,7 +2538,7 @@ class PyJsUint32Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2579,7 +2585,7 @@ class PyJsFloat32Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2628,7 +2634,7 @@ class PyJsFloat32Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2675,7 +2681,7 @@ class PyJsFloat64Array(PyJs):
     def define_own_property(self, prop, desc):
         old_len_desc = self.get_own_property('length')
         old_len = old_len_desc[
-            'value'].value  #  value is js type so convert to py.
+            'value'].value  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc)
@@ -2724,7 +2730,7 @@ class PyJsFloat64Array(PyJs):
                 self.own['length']['writable'] = False
             return True
         elif prop.isdigit():
-            index = int(int(prop) % 2**32)
+            index = int(int(prop) % 2 ** 32)
             if index >= old_len and not old_len_desc['writable']:
                 return False
             if not PyJs.define_own_property(self, prop, desc):
@@ -2797,7 +2803,7 @@ class PyJsArguments(PyJs):
         ]
 
 
-#We can define function proto after number proto because func uses number in its init
+# We can define function proto after number proto because func uses number in its init
 FunctionPrototype = PyJsFunction(Empty, ObjectPrototype)
 FunctionPrototype.own['name']['value'] = Js('')
 
@@ -2822,7 +2828,7 @@ class PyJsRegExp(PyJs):
         #                'matches': {}}
         flags = ''
         if not regexp[-1] == '/':
-            #contains some flags (allowed are i, g, m
+            # contains some flags (allowed are i, g, m
             spl = regexp.rfind('/')
             flags = set(regexp[spl + 1:])
             self.value = regexp[1:spl]
@@ -2849,11 +2855,11 @@ class PyJsRegExp(PyJs):
                 reg = self.value
                 for fix, rep in possible_fixes:
                     comp = REGEXP_CONVERTER._interpret_regexp(reg, flags)
-                    #print 'reg -> comp', reg, '->', comp
+                    # print 'reg -> comp', reg, '->', comp
                     try:
                         self.pat = re.compile(
                             comp, self.ignore_case | self.multiline)
-                        #print reg, '->', comp
+                        # print reg, '->', comp
                         break
                     except:
                         reg = reg.replace(fix, rep)
@@ -2862,7 +2868,7 @@ class PyJsRegExp(PyJs):
                     raise
                 REGEXP_DB[regexp] = self.pat
         except:
-            #print 'Invalid pattern but fuck it', self.value, comp
+            # print 'Invalid pattern but fuck it', self.value, comp
             raise MakeError(
                 'SyntaxError',
                 'Invalid RegExp pattern: %s -> %s' % (repr(self.value),
@@ -3006,11 +3012,12 @@ ERROR_NAMES = ['Eval', 'Type', 'Range', 'Reference', 'Syntax', 'URI']
 for e in ERROR_NAMES:
     define_error_type(e + 'Error')
 
+
 ##############################################################################
 # Import and fill prototypes here.
 
 
-#this works only for data properties
+# this works only for data properties
 def fill_prototype(prototype, Class, attrs, constructor=False):
     for i in dir(Class):
         e = getattr(Class, i)
@@ -3034,13 +3041,14 @@ def fill_prototype(prototype, Class, attrs, constructor=False):
 PyJs.undefined = undefined
 PyJs.Js = staticmethod(Js)
 
-from .prototypes import jsfunction, jsobject, jsnumber, jsstring, jsboolean, jsarray, jsregexp, jserror, jsarraybuffer, jstypedarray
+from .prototypes import jsfunction, jsobject, jsnumber, jsstring, jsboolean, jsarray, jsregexp, jserror, jsarraybuffer, \
+    jstypedarray
 
-#Object proto
+# Object proto
 fill_prototype(ObjectPrototype, jsobject.ObjectPrototype, default_attrs)
 
 
-#Define __proto__ accessor (this cant be done by fill_prototype since)
+# Define __proto__ accessor (this cant be done by fill_prototype since)
 @Js
 def __proto__():
     return this.prototype if this.prototype is not None else null
@@ -3063,15 +3071,15 @@ ObjectPrototype.define_own_property('__proto__', {
     'configurable': True
 })
 
-#Function proto
+# Function proto
 fill_prototype(FunctionPrototype, jsfunction.FunctionPrototype, default_attrs)
-#Number proto
+# Number proto
 fill_prototype(NumberPrototype, jsnumber.NumberPrototype, default_attrs)
-#String proto
+# String proto
 fill_prototype(StringPrototype, jsstring.StringPrototype, default_attrs)
-#Boolean proto
+# Boolean proto
 fill_prototype(BooleanPrototype, jsboolean.BooleanPrototype, default_attrs)
-#Array proto
+# Array proto
 fill_prototype(ArrayPrototype, jsarray.ArrayPrototype, default_attrs)
 # ArrayBuffer proto
 fill_prototype(ArrayBufferPrototype, jsarraybuffer.ArrayBufferPrototype,
@@ -3103,13 +3111,14 @@ fill_prototype(Float32ArrayPrototype, jstypedarray.TypedArrayPrototype,
 # Float64Array proto
 fill_prototype(Float64ArrayPrototype, jstypedarray.TypedArrayPrototype,
                default_attrs)
-#Error proto
+# Error proto
 fill_prototype(ErrorPrototype, jserror.ErrorPrototype, default_attrs)
-#RegExp proto
+# RegExp proto
 fill_prototype(RegExpPrototype, jsregexp.RegExpPrototype, default_attrs)
 # add exec to regexpfunction (cant add it automatically because of its name :(
 RegExpPrototype.own['exec'] = RegExpPrototype.own['exec2']
 del RegExpPrototype.own['exec2']
+
 
 #########################################################################
 # Constructors
@@ -3127,7 +3136,7 @@ def String(st):
 def string_constructor():
     temp = PyJsObject(prototype=StringPrototype)
     temp.Class = 'String'
-    #temp.TYPE = 'String'
+    # temp.TYPE = 'String'
     if not len(arguments):
         temp.value = ''
     else:
@@ -3164,7 +3173,7 @@ def RegExp(pattern, flags):
             )
         # return unchanged
         return pattern
-    #pattern is not a regexp
+    # pattern is not a regexp
     if pattern.is_undefined():
         pattern = ''
     else:
@@ -3190,6 +3199,7 @@ def RegExp(pattern, flags):
 RegExp.create = RegExp
 PyJs.RegExp = RegExp
 
+
 # Number
 
 
@@ -3205,7 +3215,7 @@ def Number():
 def number_constructor():
     temp = PyJsObject(prototype=NumberPrototype)
     temp.Class = 'Number'
-    #temp.TYPE = 'Number'
+    # temp.TYPE = 'Number'
     if len(arguments):
         temp.value = arguments[0].to_number().value
     else:
@@ -3214,6 +3224,7 @@ def number_constructor():
 
 
 Number.create = number_constructor
+
 
 # Boolean
 
@@ -3227,12 +3238,13 @@ def Boolean(value):
 def boolean_constructor(value):
     temp = PyJsObject(prototype=BooleanPrototype)
     temp.Class = 'Boolean'
-    #temp.TYPE = 'Boolean'
+    # temp.TYPE = 'Boolean'
     temp.value = value.to_boolean().value
     return temp
 
 
 Boolean.create = boolean_constructor
+
 
 ##############################################################################
 
@@ -3251,7 +3263,7 @@ scope = dict(zip(builtins, [eval(e) for e in builtins]))
 JS_BUILTINS = dict((k, v) for k, v in scope.items())
 
 # Fill in NUM_BANK
-for e in xrange(-2**10, 2**14):
+for e in xrange(-2 ** 10, 2 ** 14):
     NUM_BANK[e] = Js(e)
 
 if __name__ == '__main__':
@@ -3264,6 +3276,7 @@ if __name__ == '__main__':
     for e in FunctionPrototype:
         print('Obk', e.get('__proto__').get('__proto__').get('__proto__'), e)
     import code
+
     s = Js(4)
     b = Js(6)
 
@@ -3272,5 +3285,5 @@ if __name__ == '__main__':
     o.put('x', Js(100))
     var = Scope(scope)
     e = code.InteractiveConsole(globals())
-    #e.raw_input = interactor
+    # e.raw_input = interactor
     e.interact()

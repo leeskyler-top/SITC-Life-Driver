@@ -3,6 +3,7 @@
 # todo check everything :)
 
 from ..base import *
+
 try:
     import numpy
 except:

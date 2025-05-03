@@ -17,7 +17,7 @@ def RegExp(this, args):
             )
         # return unchanged
         return pattern
-    #pattern is not a regexp
+    # pattern is not a regexp
     if is_undefined(pattern):
         pattern = u''
     else:

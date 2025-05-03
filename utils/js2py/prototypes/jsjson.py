@@ -1,8 +1,10 @@
 import json
 from ..base import Js
+
 indent = ''
 # python 3 support
 import six
+
 if six.PY3:
     basestring = str
     long = int
@@ -71,7 +73,7 @@ def Str(key, holder, replacer_function, property_list, gap, stack, space):
     if value.is_object():
         to_json = value.get('toJSON')
         if to_json.is_callable():
-            value = to_json.call(value, (key, ))
+            value = to_json.call(value, (key,))
     if not replacer_function.is_undefined():
         value = replacer_function.call(holder, (key, value))
 

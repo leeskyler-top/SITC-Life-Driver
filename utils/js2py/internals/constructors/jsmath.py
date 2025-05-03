@@ -16,8 +16,11 @@ CONSTANTS = {
     'SQRT1_2': 0.7071067811865476,
     'SQRT2': 1.4142135623730951
 }
+
+
 def is_infinity(x):
     return x - 1e10 == x
+
 
 class MathFunctions:
     def abs(this, args):
@@ -130,7 +133,7 @@ class MathFunctions:
         if a != a or b != b:  # it must be a nan
             return NaN
         try:
-            return a**b
+            return a ** b
         except:
             return NaN
 
@@ -140,7 +143,7 @@ class MathFunctions:
         if a != a:  # it must be a nan
             return NaN
         try:
-            return a**0.5
+            return a ** 0.5
         except:
             return NaN
 

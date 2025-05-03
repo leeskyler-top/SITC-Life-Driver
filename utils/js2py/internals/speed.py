@@ -3,8 +3,9 @@ from __future__ import print_function
 from timeit import timeit
 from collections import namedtuple
 from array import array
+
 try:
-    #python 2 code
+    # python 2 code
     from itertools import izip as zip
 except ImportError:
     pass

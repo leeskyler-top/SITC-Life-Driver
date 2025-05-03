@@ -5,19 +5,21 @@ import warnings
 
 try:
     from tzlocal import get_localzone
+
     LOCAL_ZONE = get_localzone()
 except:  # except all problems...
     warnings.warn(
         'Please install or fix tzlocal library (pip install tzlocal) in order to make Date object work better. Otherwise I will assume DST is in effect all the time'
     )
 
+
     class LOCAL_ZONE:
         @staticmethod
         def dst(*args):
             return 1
 
-
 from utils.js2py.base import MakeError
+
 CUM = (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
 msPerDay = 86400000
 msPerYear = int(86400000 * 365.242)
@@ -43,7 +45,7 @@ def DaylightSavingTA(t):
             'Invalid datetime date, assumed DST time, may be inaccurate...',
             Warning)
         return 1
-        #raise MakeError('TypeError', 'date not supported by python.datetime. I will solve it in future versions')
+        # raise MakeError('TypeError', 'date not supported by python.datetime. I will solve it in future versions')
 
 
 def GetTimeZoneName(t):
@@ -79,7 +81,7 @@ def DaysInYear(y):
 
 def DayFromYear(y):
     return 365 * (y - 1970) + (y - 1969) // 4 - (y - 1901) // 100 + (
-        y - 1601) // 400
+            y - 1601) // 400
 
 
 def TimeFromYear(y):
@@ -191,7 +193,7 @@ def MakeDay(year, month, date):
     y += m // 12
     mn = m % 12
     d = DayFromYear(y) + CUM[mn] + dt - 1 + (1 if DaysInYear(y) == 366
-                                             and mn >= 2 else 0)
+                                                  and mn >= 2 else 0)
     return d  # ms per day
 
 
@@ -202,6 +204,6 @@ def MakeDate(day, time):
 def TimeClip(t):
     if t != t or abs(t) == float('inf'):
         return NaN
-    if abs(t) > 8.64 * 10**15:
+    if abs(t) > 8.64 * 10 ** 15:
         return NaN
     return int(t)

@@ -6,12 +6,14 @@ import six
 
 if six.PY3:
     from functools import reduce
+
     xrange = range
     unicode = str
+
 # number of characters above which expression will be split to multiple lines in order to avoid python parser stack overflow
 # still experimental so I suggest to set it to 400 in order to avoid common errors
 # set it to smaller value only if you have problems with parser stack overflow
-LINE_LEN_LIMIT = 400  #  200  # or any other value - the larger the smaller probability of errors :)
+LINE_LEN_LIMIT = 400  # 200  # or any other value - the larger the smaller probability of errors :)
 
 
 class LoopController:
@@ -41,9 +43,6 @@ class LoopController:
 
     def deregister_label(self, label):
         del self.label_to_update_idx[label]
-
-
-
 
 
 class InlineStack:
@@ -119,12 +118,12 @@ def to_key(literal_or_identifier):
         else:
             return unicode(k)
 
+
 def is_iteration_statement(cand):
     if not isinstance(cand, dict):
         # Multiple statements.
         return False
     return cand.get("type", "?") in {"ForStatement", "ForInStatement", "WhileStatement", "DoWhileStatement"}
-
 
 
 def trans(ele, standard=False):
@@ -138,7 +137,7 @@ def trans(ele, standard=False):
                 'standard'] if 'standard' in node.__dict__ else node
         return node(**ele)
     except:
-        #print ele
+        # print ele
         raise
 
 
@@ -501,7 +500,7 @@ def PyimportStatement(type, imp):
     lib = imp['name']
     jlib = 'PyImport_%s' % lib
     code = 'import %s as %s\n' % (lib, jlib)
-    #check whether valid lib name...
+    # check whether valid lib name...
     try:
         compile(code, '', 'exec')
     except:
@@ -513,7 +512,7 @@ def PyimportStatement(type, imp):
 
 
 def SwitchStatement(type, discriminant, cases):
-    #TODO there will be a problem with continue in a switch statement.... FIX IT
+    # TODO there will be a problem with continue in a switch statement.... FIX IT
     code = 'while 1:\n' + indent('SWITCHED = False\nCONDITION = (%s)\n')
     code = code % trans(discriminant)
     for case in cases:
@@ -550,7 +549,7 @@ def TryStatement(type, block, handler, handlers, guardedHandlers, finalizer):
         result += indent(
             TRY_CATCH.replace('HOLDER',
                               holder).replace('NAME', identifier).replace(
-                                  'BLOCK', indent(trans(handler['body']))))
+                'BLOCK', indent(trans(handler['body']))))
     # translate finally statement if present
     if finalizer:
         result += 'finally:\n%s' % indent(trans(finalizer))
@@ -718,7 +717,7 @@ if __name__ == '__main__':
     import time
     import pyjsparser
 
-    c = None  #'''`ijfdij`'''
+    c = None  # '''`ijfdij`'''
     if not c:
         with codecs.open("esp.js", "r", "utf-8") as f:
             c = f.read()

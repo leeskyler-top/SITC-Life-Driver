@@ -1,6 +1,7 @@
 # this is based on jsarray.py
 
 from ..base import *
+
 try:
     import numpy
 except:

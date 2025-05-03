@@ -18,7 +18,6 @@ from .prototypes import jsutils
 from .constructors import jsnumber, jsstring, jsarray, jsboolean, jsregexp, jsmath, jsobject, jsfunction, jsconsole
 
 
-
 def fill_proto(proto, proto_class, space):
     for i in dir(proto_class):
         e = getattr(proto_class, i)
@@ -259,7 +258,7 @@ def fill_space(space, byte_generator):
         'RegExp': regexp,
         'exports': convert_to_js_type({}, space),
         'Math': math,
-        #'Date',
+        # 'Date',
         'Object': _object,
         'Function': function,
         'JSON': json,

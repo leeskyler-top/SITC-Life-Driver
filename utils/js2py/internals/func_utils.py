@@ -2,6 +2,7 @@ from .simplex import *
 from .conversions import *
 
 import six
+
 if six.PY3:
     basestring = str
     long = int

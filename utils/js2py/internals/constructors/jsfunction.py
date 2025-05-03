@@ -54,7 +54,7 @@ def executable_code(code_str, space, global_context=True):
             ctx, start, skip)
         # todo Clean up the tape!
         # this is NOT a way to do that because the fragment may contain the executable code! We dont want to remove it
-        #del space.byte_generator.exe.tape[old_tape_len:]
+        # del space.byte_generator.exe.tape[old_tape_len:]
         if status == 0:
             return ret
         elif status == 3:

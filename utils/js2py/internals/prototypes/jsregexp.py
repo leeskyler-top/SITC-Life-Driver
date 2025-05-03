@@ -46,7 +46,7 @@ def RegExpExec(this, string, space):
             return null
         matched = this.match(string, i)
         i += 1
-    start, end = matched.span()  #[0]+i-1, matched.span()[1]+i-1
+    start, end = matched.span()  # [0]+i-1, matched.span()[1]+i-1
     if this.glob:
         this.put('lastIndex', float(end))
     arr = convert_to_js_type(

@@ -10,12 +10,11 @@ from .conversions import *
 from pyjsparser import PyJsParser
 
 import six
+
 if six.PY2:
     from itertools import izip
 else:
     izip = zip
-
-
 
 
 def Type(obj):
@@ -79,7 +78,7 @@ class PyJs(object):
         desc = self.get_property(prop)
         if is_accessor_descriptor(desc):
             desc['set'].call(
-                self, (val, ))  # calling setter on own or inherited element
+                self, (val,))  # calling setter on own or inherited element
         else:  # new property
             self.own[prop] = {
                 'value': val,
@@ -187,7 +186,7 @@ class PyJs(object):
                                     'Could not define own property')
                 return False
             if 'enumerable' in desc and desc['enumerable'] != current[
-                    'enumerable']:
+                'enumerable']:
                 if throw:
                     raise MakeError('TypeError',
                                     'Could not define own property')
@@ -219,7 +218,7 @@ class PyJs(object):
                                         'Could not define own property')
                     return False
             if not current['writable'] and 'value' in desc and current[
-                    'value'] != desc['value']:
+                'value'] != desc['value']:
                 if throw:
                     raise MakeError('TypeError',
                                     'Could not define own property')
@@ -333,8 +332,8 @@ class PyJsObject(PyJs):
                             % prop)
                 else:
                     if kind == 'i' or (kind == 'g' and 'get' in self.own[prop]
-                                       ) or (kind == 's'
-                                             and 'set' in self.own[prop]):
+                    ) or (kind == 's'
+                          and 'set' in self.own[prop]):
                         raise MakeError(
                             'SyntaxError',
                             'Invalid object initializer! Duplicate setter/getter of prop: "%s"'
@@ -415,7 +414,7 @@ class PyJsArray(PyJs):
         desc = self.get_property(prop)
         if is_accessor_descriptor(desc):
             desc['set'].call(
-                self, (val, ))  # calling setter on own or inherited element
+                self, (val,))  # calling setter on own or inherited element
         else:  # new property
             self.define_own_property(
                 prop, {
@@ -428,7 +427,7 @@ class PyJsArray(PyJs):
     def define_own_property(self, prop, desc, throw):
         assert type(desc.get('value')) != int
         old_len_desc = self.get_own_property('length')
-        old_len = old_len_desc['value']  #  value is js type so convert to py.
+        old_len = old_len_desc['value']  # value is js type so convert to py.
         if prop == 'length':
             if 'value' not in desc:
                 return PyJs.define_own_property(self, prop, desc, False)
@@ -522,11 +521,11 @@ class PyJsRegExp(PyJs):
                 reg = self.value
                 for fix, rep in possible_fixes:
                     comp = PyJsParser()._interpret_regexp(reg, flags)
-                    #print 'reg -> comp', reg, '->', comp
+                    # print 'reg -> comp', reg, '->', comp
                     try:
                         self.pat = re.compile(
                             comp, self.ignore_case | self.multiline)
-                        #print reg, '->', comp
+                        # print reg, '->', comp
                         break
                     except:
                         reg = reg.replace(fix, rep)
@@ -535,7 +534,7 @@ class PyJsRegExp(PyJs):
                     raise Exception()
                 REGEXP_DB[body, flags] = self.pat
             except:
-                #print 'Invalid pattern...', self.value, comp
+                # print 'Invalid pattern...', self.value, comp
                 raise MakeError(
                     'SyntaxError',
                     'Invalid RegExp pattern: %s -> %s' % (repr(self.value),
@@ -789,7 +788,7 @@ def get_new_arguments_obj(args, space):
     return obj
 
 
-#Function
+# Function
 class PyJsFunction(PyJs):
     Class = 'Function'
     source = '{ [native code] }'
@@ -829,7 +828,7 @@ class PyJsFunction(PyJs):
         self.space = space
         self.is_declaration = is_declaration
 
-        #set own property length to the number of arguments
+        # set own property length to the number of arguments
         self.own['length'] = {
             'value': float(len(params)),
             'writable': False,

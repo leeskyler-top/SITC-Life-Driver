@@ -58,10 +58,10 @@ class ObjectMethods:
         temp.prototype = None if is_null(obj) else obj
         if len(args) > 1 and not is_undefined(args[1]):
             if six.PY2:
-                args.tup = (args[1], )
+                args.tup = (args[1],)
                 ObjectMethods.defineProperties.__func__(temp, args)
             else:
-                args.tup = (args[1], )
+                args.tup = (args[1],)
                 ObjectMethods.defineProperties(temp, args)
         return temp
 

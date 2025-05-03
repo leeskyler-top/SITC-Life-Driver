@@ -78,7 +78,7 @@ class ArrayPrototype:
         ARR_STACK.remove(this)
         return res
 
-    def pop(this, args):  #todo check
+    def pop(this, args):  # todo check
         array = to_object(this, args.space)
         arr_len = js_arr_length(array)
         if not arr_len:
@@ -191,7 +191,7 @@ class ArrayPrototype:
         relative_start = to_int(start)
         actual_start = max(
             (arr_len + relative_start), 0) if relative_start < 0 else min(
-                relative_start, arr_len)
+            relative_start, arr_len)
         actual_delete_count = min(
             max(to_int(deleteCount), 0), arr_len - actual_start)
         k = 0

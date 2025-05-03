@@ -68,6 +68,7 @@ if os.path.exists(_default_env_path):
 # 向外暴露的内容
 __all__ = [
     "cas_baseurl",
+    "pan_baseurl",
     "pan_sso_service",
     'des_trans_mode',
     'username',

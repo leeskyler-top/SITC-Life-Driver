@@ -26,7 +26,6 @@ class Code:
         # dbg
         self.ctx_depth = 0
 
-
     def get_new_label(self):
         self._label_count += 1
         return self._label_count
@@ -96,7 +95,7 @@ class Code:
             # undo the things that were put on the stack (if any) to ensure a proper error recovery
             del ctx.stack[old_stack_len:]
             del self.return_locs[old_ret_len:]
-            del self.contexts[old_ctx_len :]
+            del self.contexts[old_ctx_len:]
             return undefined, 3, err
         finally:
             self.ctx_depth -= 1

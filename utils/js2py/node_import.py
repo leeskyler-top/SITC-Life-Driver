@@ -58,7 +58,7 @@ def _get_module_py_name(module_name):
 
 
 def _get_module_var_name(module_name):
-    cand =  _get_module_py_name(module_name).rpartition('/')[-1]
+    cand = _get_module_py_name(module_name).rpartition('/')[-1]
     if not is_valid_py_name(cand):
         raise ValueError(
             "Invalid Python module name %s (generated from %s). Unsupported/invalid npm module specification?" % (
@@ -150,7 +150,7 @@ def require(module_name, include_polyfill=True, update=False, context=None):
         header (js2py imports) will be skipped as it is assumed that the context already has all the necessary imports.
     :return: The JsObjectWrapper containing the translated module object. Can be used like a standard python object.
     """
-    module_name, maybe_version = (module_name+"@@@").split('@')[:2]
+    module_name, maybe_version = (module_name + "@@@").split('@')[:2]
 
     py_code = _get_and_translate_npm_module(module_name, include_polyfill=include_polyfill, update=update,
                                             maybe_version_str=maybe_version)

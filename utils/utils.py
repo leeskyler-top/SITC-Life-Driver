@@ -5,6 +5,7 @@ import io
 import base64
 import shutil
 
+
 def rm_results():
     path = os.path.join(os.getcwd(), 'results', 'zip_file')
     if os.path.exists(path):
@@ -79,6 +80,7 @@ def rar_file_in_parts(input_data, part_size_mb, output_dir, original_filename="f
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
+
 def image_to_base64_url(image_path):
     # 读取图片文件
     with open(image_path, "rb") as image_file:
@@ -105,6 +107,7 @@ def image_to_base64_url(image_path):
 
     return base64_url
 
+
 def download_file(url):
     """
     从 URL 下载文件内容并返回二进制数据。
@@ -123,6 +126,7 @@ def download_file(url):
     except Exception as e:
         print(f"下载文件时发生错误: {e}")
         raise
+
 
 def embed_zip_into_jpg(jpg_path, zip_data, output_path):
     """
@@ -148,4 +152,3 @@ def embed_zip_into_jpg(jpg_path, zip_data, output_path):
         print("可通过修改文件扩展名为 .zip 或 .rar 后解压获取嵌入的内容。")
     except Exception as e:
         print(f"发生错误：{e}")
-

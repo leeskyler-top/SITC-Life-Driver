@@ -1,9 +1,11 @@
 import six
+
 if six.PY3:
     basestring = str
     long = int
     xrange = range
     unicode = str
+
 
 def to_key(literal_or_identifier):
     ''' returns string representation of this object'''

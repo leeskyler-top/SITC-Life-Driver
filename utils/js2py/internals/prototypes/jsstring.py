@@ -111,7 +111,7 @@ class StringPrototype:
         search = to_string(get_arg(args, 0))
         pos = get_arg(args, 1)
         s = to_string(this)
-        pos = 10**12 if is_nan(pos) else to_int(pos)
+        pos = 10 ** 12 if is_nan(pos) else to_int(pos)
         return float(s.rfind(search, 0, min(max(pos, 0) + 1, len(s))))
 
     def localeCompare(this, args):
@@ -172,7 +172,7 @@ class StringPrototype:
                 res += s[last:e.span()[0]]
                 if func:
                     # prepare arguments for custom func (replaceValue)
-                    call_args = (e.group(), ) + e.groups() + (e.span()[1], s)
+                    call_args = (e.group(),) + e.groups() + (e.span()[1], s)
                     # convert all types to JS before Js bytecode call...
                     res += to_string(
                         replaceValue.call(
@@ -200,7 +200,7 @@ class StringPrototype:
             pars = ()
         res = s[:span[0]]
         if func:
-            call_args = (match, ) + pars + (span[1], s)
+            call_args = (match,) + pars + (span[1], s)
             # convert all types to JS before Js bytecode call...
             res += to_string(
                 replaceValue.call(this,
@@ -231,8 +231,8 @@ class StringPrototype:
         length = len(s)
         end = get_arg(args, 1)
         end = length if is_undefined(end) else to_int(end)
-        #From = max(length+start, 0) if start<0 else min(length, start)
-        #To = max(length+end, 0) if end<0 else min(length, end)
+        # From = max(length+start, 0) if start<0 else min(length, start)
+        # To = max(length+end, 0) if end<0 else min(length, end)
         return s[start:end]
 
     def split(this, args):
@@ -241,7 +241,7 @@ class StringPrototype:
         s = to_string(this)
         separator = get_arg(args, 0)
         limit = get_arg(args, 1)
-        lim = 2**32 - 1 if is_undefined(limit) else to_uint32(limit)
+        lim = 2 ** 32 - 1 if is_undefined(limit) else to_uint32(limit)
         if not lim:
             return args.space.ConstructArray([])
         if is_undefined(separator):
@@ -284,11 +284,11 @@ class StringPrototype:
 
     def substr(this, args):
         cok(this)
-        #I hate this function and its description in specification
+        # I hate this function and its description in specification
         r1 = to_string(this)
         r2 = to_int(get_arg(args, 0))
         length = get_arg(args, 1)
-        r3 = 10**20 if is_undefined(length) else to_int(length)
+        r3 = 10 ** 20 if is_undefined(length) else to_int(length)
         r4 = len(r1)
         r5 = r2 if r2 >= 0 else max(0, r2 + r4)
         r6 = min(max(r3, 0), r4 - r5)

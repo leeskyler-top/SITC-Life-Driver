@@ -6,15 +6,18 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
 }
 
+
 def reqApi(name, method, params={}, headers=headers, data=None, json={}, files=None):
     params['token'] = wechat_webhook_service_token
     if method == "GET":
         req = requests.get(wechat_webhook_service + name, params=params, verify=False, headers=headers)
         return req, req.status_code
     elif method == "POST":
-        req = requests.post(wechat_webhook_service + name, data=data, json=json, params=params, files=files, headers=headers,
+        req = requests.post(wechat_webhook_service + name, data=data, json=json, params=params, files=files,
+                            headers=headers,
                             verify=False)
         return req, req.status_code
+
 
 def check_health():
     req, code = reqApi("/healthz", "GET")
@@ -26,7 +29,6 @@ def check_health():
     except:
         return False, code
 
-import requests
 
 def msgV1(to, isRoom, content, name="file.zip"):
     """

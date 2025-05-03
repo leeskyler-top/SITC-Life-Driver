@@ -12,7 +12,7 @@ class ObjectPrototype:
         return this.get_own_property(prop.to_string().value) is not None
 
     def isPrototypeOf(obj):
-        #a bit stupid specification but well
+        # a bit stupid specification but well
         # for example Object.prototype.isPrototypeOf.call((5).__proto__, 5) gives false
         if not obj.is_object():
             return False

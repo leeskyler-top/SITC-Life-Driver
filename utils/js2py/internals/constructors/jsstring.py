@@ -2,6 +2,7 @@ from ..conversions import *
 from ..func_utils import *
 from six import unichr
 
+
 def fromCharCode(this, args):
     res = u''
     for e in args:

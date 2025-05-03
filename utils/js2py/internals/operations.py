@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 from .simplex import *
 from .conversions import *
 
+
 # ------------------------------------------------------------------------------
 # Unary operations
 
@@ -48,8 +49,9 @@ UNARY_OPERATIONS = {
     '~': bit_invert_uop,
     'void': void_op,
     'typeof':
-    typeof_uop,  # this one only for member expressions! for identifiers its slightly different...
+        typeof_uop,  # this one only for member expressions! for identifiers its slightly different...
 }
+
 
 # ------------------------------------------------------------------------------
 # ----- binary ops -------

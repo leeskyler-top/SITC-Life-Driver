@@ -5,15 +5,16 @@ from .byte_trans import ByteCodeGenerator
 from .code import Code
 from .simplex import *
 
-
 pyjsparser.parser.ENABLE_JS2PY_ERRORS = lambda msg: MakeError(u'SyntaxError', unicode(msg))
+
 
 def get_js_bytecode(js):
     a = ByteCodeGenerator(Code())
     d = pyjsparser.parse(js)
     a.emit(d)
-    return  a.exe.tape
-    
+    return a.exe.tape
+
+
 def eval_js_vm(js, debug=False):
     a = ByteCodeGenerator(Code(debug_mode=debug))
     s = Space()

@@ -29,13 +29,13 @@ class ByteCodeGenerator:
              self.implicit_breaks, self.implicit_continues, self.declared_vars,
              self.function_declaration_tape))
         self.declared_continue_labels, self.declared_break_labels, \
-        self.implicit_breaks, self.implicit_continues, \
-        self.declared_vars, self.function_declaration_tape = {}, {}, [], [], [], []
+            self.implicit_breaks, self.implicit_continues, \
+            self.declared_vars, self.function_declaration_tape = {}, {}, [], [], [], []
 
     def restore_state(self):
         self.declared_continue_labels, self.declared_break_labels, \
-        self.implicit_breaks, self.implicit_continues, \
-        self.declared_vars, self.function_declaration_tape = self.states.pop()
+            self.implicit_breaks, self.implicit_continues, \
+            self.declared_vars, self.function_declaration_tape = self.states.pop()
 
     def ArrayExpression(self, elements, **kwargs):
         for e in elements:
@@ -576,7 +576,7 @@ class ByteCodeGenerator:
 
     def UnaryExpression(self, operator, argument, **kwargs):
         if operator == 'typeof' and argument[
-                'type'] == 'Identifier':  # todo fix typeof
+            'type'] == 'Identifier':  # todo fix typeof
             self.emit('TYPEOF', argument['name'])
         elif operator == 'delete':
             if argument['type'] == 'MemberExpression':
@@ -721,7 +721,7 @@ def main():
     s.exe = a.exe
     con = get_file_contents('internals/esprima.js')
     d = parse(con + (
-        ''';JSON.stringify(exports.parse(%s), 4, 4)''' % json.dumps(con)))
+            ''';JSON.stringify(exports.parse(%s), 4, 4)''' % json.dumps(con)))
     # d = parse('''
     # function x(n) {
     #     log(n)

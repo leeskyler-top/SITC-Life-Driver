@@ -1,5 +1,6 @@
 # python 3 support
 import six
+
 if six.PY3:
     basestring = str
     long = int

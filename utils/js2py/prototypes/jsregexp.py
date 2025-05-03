@@ -35,7 +35,7 @@ def Exec(this, string):
             return this.null
         matched = this.match(string.value, i)
         i += 1
-    start, end = matched.span()  #[0]+i-1, matched.span()[1]+i-1
+    start, end = matched.span()  # [0]+i-1, matched.span()[1]+i-1
     if this.glob:
         this.put('lastIndex', this.Js(end))
     arr = this.Js(

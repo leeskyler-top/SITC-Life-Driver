@@ -191,7 +191,7 @@ class DateProto:
         offset = (UTCToLocal(this.value) - this.value) // msPerHour
         return this.local_strftime(
             '%a %b %d %Y %H:%M:%S GMT') + '%s00 (%s)' % (pad(
-                offset, 2, True), GetTimeZoneName(this.value))
+            offset, 2, True), GetTimeZoneName(this.value))
 
     def toDateString():
         check_date(this)
@@ -350,8 +350,10 @@ class DateProto:
         check_date(this)
         t = UTCToLocal(this.value)
         s = sec.to_number()
-        if not ms is None: milli = Js(msFromTime(t))
-        else: milli = ms.to_number()
+        if not ms is None:
+            milli = Js(msFromTime(t))
+        else:
+            milli = ms.to_number()
         date = MakeDate(
             Day(t), MakeTime(Js(HourFromTime(t)), Js(MinFromTime(t)), s, milli))
         u = TimeClip(LocalToUTC(date))
@@ -362,8 +364,10 @@ class DateProto:
         check_date(this)
         t = this.value
         s = sec.to_number()
-        if not ms is None: milli = Js(msFromTime(t))
-        else: milli = ms.to_number()
+        if not ms is None:
+            milli = Js(msFromTime(t))
+        else:
+            milli = ms.to_number()
         date = MakeDate(
             Day(t), MakeTime(Js(HourFromTime(t)), Js(MinFromTime(t)), s, milli))
         v = TimeClip(date)
@@ -374,10 +378,14 @@ class DateProto:
         check_date(this)
         t = UTCToLocal(this.value)
         m = min.to_number()
-        if not sec is None: s = Js(SecFromTime(t))
-        else: s = sec.to_number()
-        if not ms is None: milli = Js(msFromTime(t))
-        else: milli = ms.to_number()
+        if not sec is None:
+            s = Js(SecFromTime(t))
+        else:
+            s = sec.to_number()
+        if not ms is None:
+            milli = Js(msFromTime(t))
+        else:
+            milli = ms.to_number()
         date = MakeDate(Day(t), MakeTime(Js(HourFromTime(t)), m, s, milli))
         u = TimeClip(LocalToUTC(date))
         this.value = u
@@ -387,10 +395,14 @@ class DateProto:
         check_date(this)
         t = this.value
         m = min.to_number()
-        if not sec is None: s = Js(SecFromTime(t))
-        else: s = sec.to_number()
-        if not ms is None: milli = Js(msFromTime(t))
-        else: milli = ms.to_number()
+        if not sec is None:
+            s = Js(SecFromTime(t))
+        else:
+            s = sec.to_number()
+        if not ms is None:
+            milli = Js(msFromTime(t))
+        else:
+            milli = ms.to_number()
         date = MakeDate(Day(t), MakeTime(Js(HourFromTime(t)), m, s, milli))
         v = TimeClip(date)
         this.value = v
@@ -400,12 +412,18 @@ class DateProto:
         check_date(this)
         t = UTCToLocal(this.value)
         h = hour.to_number()
-        if not min is None: m = Js(MinFromTime(t))
-        else: m = min.to_number()
-        if not sec is None: s = Js(SecFromTime(t))
-        else: s = sec.to_number()
-        if not ms is None: milli = Js(msFromTime(t))
-        else: milli = ms.to_number()
+        if not min is None:
+            m = Js(MinFromTime(t))
+        else:
+            m = min.to_number()
+        if not sec is None:
+            s = Js(SecFromTime(t))
+        else:
+            s = sec.to_number()
+        if not ms is None:
+            milli = Js(msFromTime(t))
+        else:
+            milli = ms.to_number()
         date = MakeDate(Day(t), MakeTime(h, m, s, milli))
         u = TimeClip(LocalToUTC(date))
         this.value = u
@@ -415,12 +433,18 @@ class DateProto:
         check_date(this)
         t = this.value
         h = hour.to_number()
-        if not min is None: m = Js(MinFromTime(t))
-        else: m = min.to_number()
-        if not sec is None: s = Js(SecFromTime(t))
-        else: s = sec.to_number()
-        if not ms is None: milli = Js(msFromTime(t))
-        else: milli = ms.to_number()
+        if not min is None:
+            m = Js(MinFromTime(t))
+        else:
+            m = min.to_number()
+        if not sec is None:
+            s = Js(SecFromTime(t))
+        else:
+            s = sec.to_number()
+        if not ms is None:
+            milli = Js(msFromTime(t))
+        else:
+            milli = ms.to_number()
         date = MakeDate(Day(t), MakeTime(h, m, s, milli))
         v = TimeClip(date)
         this.value = v
@@ -450,8 +474,10 @@ class DateProto:
         check_date(this)
         t = UTCToLocal(this.value)
         m = month.to_number()
-        if not date is None: dt = Js(DateFromTime(t))
-        else: dt = date.to_number()
+        if not date is None:
+            dt = Js(DateFromTime(t))
+        else:
+            dt = date.to_number()
         newDate = MakeDate(
             MakeDay(Js(YearFromTime(t)), m, dt), TimeWithinDay(t))
         u = TimeClip(LocalToUTC(newDate))
@@ -462,8 +488,10 @@ class DateProto:
         check_date(this)
         t = this.value
         m = month.to_number()
-        if not date is None: dt = Js(DateFromTime(t))
-        else: dt = date.to_number()
+        if not date is None:
+            dt = Js(DateFromTime(t))
+        else:
+            dt = date.to_number()
         newDate = MakeDate(
             MakeDay(Js(YearFromTime(t)), m, dt), TimeWithinDay(t))
         v = TimeClip(newDate)
@@ -472,13 +500,19 @@ class DateProto:
 
     def setFullYear(year, month=None, date=None):
         check_date(this)
-        if not this.value is NaN: t = UTCToLocal(this.value)
-        else: t = 0
+        if not this.value is NaN:
+            t = UTCToLocal(this.value)
+        else:
+            t = 0
         y = year.to_number()
-        if not month is None: m = Js(MonthFromTime(t))
-        else: m = month.to_number()
-        if not date is None: dt = Js(DateFromTime(t))
-        else: dt = date.to_number()
+        if not month is None:
+            m = Js(MonthFromTime(t))
+        else:
+            m = month.to_number()
+        if not date is None:
+            dt = Js(DateFromTime(t))
+        else:
+            dt = date.to_number()
         newDate = MakeDate(
             MakeDay(y, m, dt), TimeWithinDay(t))
         u = TimeClip(LocalToUTC(newDate))
@@ -487,13 +521,19 @@ class DateProto:
 
     def setUTCFullYear(year, month=None, date=None):
         check_date(this)
-        if not this.value is NaN: t = UTCToLocal(this.value)
-        else: t = 0
+        if not this.value is NaN:
+            t = UTCToLocal(this.value)
+        else:
+            t = 0
         y = year.to_number()
-        if not month is None: m = Js(MonthFromTime(t))
-        else: m = month.to_number()
-        if not date is None: dt = Js(DateFromTime(t))
-        else: dt = date.to_number()
+        if not month is None:
+            m = Js(MonthFromTime(t))
+        else:
+            m = month.to_number()
+        if not date is None:
+            dt = Js(DateFromTime(t))
+        else:
+            dt = date.to_number()
         newDate = MakeDate(
             MakeDay(y, m, dt), TimeWithinDay(t))
         v = TimeClip(newDate)
@@ -510,8 +550,8 @@ class DateProto:
         year = YearFromTime(t)
         month, day, hour, minute, second, milli = pad(
             MonthFromTime(t) + 1), pad(DateFromTime(t)), pad(
-                HourFromTime(t)), pad(MinFromTime(t)), pad(
-                    SecFromTime(t)), pad(msFromTime(t))
+            HourFromTime(t)), pad(MinFromTime(t)), pad(
+            SecFromTime(t)), pad(msFromTime(t))
         return ISO_FORMAT % (unicode(year) if 0 <= year <= 9999 else pad(
             year, 6, True), month, day, hour, minute, second, milli)
 

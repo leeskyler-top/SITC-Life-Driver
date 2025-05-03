@@ -1,7 +1,8 @@
 from ..base import *
 import six
 
-#todo Double check everything is OK
+
+# todo Double check everything is OK
 
 
 @Js
@@ -17,7 +18,7 @@ def object_constructor():
     if len(arguments):
         val = arguments.get('0')
         if val.TYPE == 'Object':
-            #Implementation dependent, but my will simply return :)
+            # Implementation dependent, but my will simply return :)
             return val
         elif val.TYPE in ('Number', 'String', 'Boolean'):
             return val.to_object()
@@ -158,6 +159,7 @@ Object.define_own_property(
         'writable': False,
         'configurable': False
     })
+
 
 # some utility functions:
 

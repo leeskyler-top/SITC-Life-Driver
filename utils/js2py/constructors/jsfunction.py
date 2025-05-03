@@ -1,4 +1,5 @@
 from ..base import *
+
 try:
     from ..translators.translator import translate_js
 except:
@@ -29,18 +30,18 @@ def Function():
 
 
 def executor(f, glob):
-    exec (f, globals())
+    exec(f, globals())
     return globals()['PyJs_anonymous_0_']
 
 
-#new statement simply calls Function
+# new statement simply calls Function
 Function.create = Function
 
-#set constructor property inside FunctionPrototype
+# set constructor property inside FunctionPrototype
 
 fill_in_props(FunctionPrototype, {'constructor': Function}, default_attrs)
 
-#attach prototype to Function constructor
+# attach prototype to Function constructor
 Function.define_own_property(
     'prototype', {
         'value': FunctionPrototype,
@@ -48,5 +49,5 @@ Function.define_own_property(
         'writable': False,
         'configurable': False
     })
-#Fix Function length (its 0 and should be 1)
+# Fix Function length (its 0 and should be 1)
 Function.own['length']['value'] = Js(1)

@@ -1,12 +1,14 @@
 from __future__ import unicode_literals
 import six
+
 if six.PY3:
     basestring = str
     long = int
     xrange = range
     unicode = str
 
-#Undefined
+
+# Undefined
 class PyJsUndefined(object):
     TYPE = 'Undefined'
     Class = 'Undefined'
@@ -15,7 +17,7 @@ class PyJsUndefined(object):
 undefined = PyJsUndefined()
 
 
-#Null
+# Null
 class PyJsNull(object):
     TYPE = 'Null'
     Class = 'Null'

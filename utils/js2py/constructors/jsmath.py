@@ -121,7 +121,7 @@ class MathFunctions:
         if a != a or b != b:  # it must be a nan
             return NaN
         try:
-            return a**b
+            return a ** b
         except:
             return NaN
 
@@ -130,7 +130,7 @@ class MathFunctions:
         if a != a:  # it must be a nan
             return NaN
         try:
-            return a**0.5
+            return a ** 0.5
         except:
             return NaN
 

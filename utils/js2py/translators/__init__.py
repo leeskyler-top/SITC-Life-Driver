@@ -24,6 +24,7 @@ __all__ = [
 ]
 __author__ = 'Piotr Dabkowski'
 __version__ = '2.2.0'
+
 from pyjsparser import PyJsParser
 from .translator import translate_js, trasnlate, syntax_tree_translate, DEFAULT_HEADER
 

@@ -1,6 +1,7 @@
 # this is based on jsarray.py
 
 import six
+
 try:
     import numpy
 except:
@@ -24,7 +25,6 @@ class TypedArrayPrototype:
         # this function is wrong
         func = this.get('join')
         if not func.is_callable():
-
             @this.Js
             def func():
                 return '[object %s]' % this.Class
