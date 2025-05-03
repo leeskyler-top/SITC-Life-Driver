@@ -12,10 +12,10 @@ import pandas as pd
 template_controller = Blueprint('template_controller', __name__)
 
 
-@template_controller.route('/<int:id>', methods=['PATCH'], endpoint='update_template_by_id')
+@template_controller.route('/<int:template_id>', methods=['PATCH'], endpoint='update_template_by_id')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
-def update_template_by_id(id):
+def update_template_by_id(template_id):
     try:
         data = request.get_json()
         if not data:
@@ -44,7 +44,7 @@ def update_template_by_id(id):
             return json_response('fail', reason, code=422)
 
         status, result = update_template(
-            id,
+            template_id,
             data['building'],
             data['room'],
             data['classname']
@@ -75,15 +75,15 @@ def empty_template():
         return json_response('fail', reason, code=422)
 
 
-@template_controller.route('/<int:id>', methods=['DELETE'], endpoint='delete_template_by_id')
+@template_controller.route('/<int:template_id>', methods=['DELETE'], endpoint='delete_template_by_id')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
-def delete_template_by_id(id):
+def delete_template_by_id(template_id):
     """
     清空 template 表
     """
 
-    status, reason = delete_template(id)
+    status, reason = delete_template(template_id)
     if status:
         return json_response('success', reason)
     else:

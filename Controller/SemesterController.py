@@ -6,6 +6,8 @@ from SQLService.Operation import read_semester_config_from_sql, update_current_s
 from .globals import json_response, validate_schema
 
 semester_controller = Blueprint('semester_controller', __name__)
+
+
 @semester_controller.route('', methods=['GET'])
 @jwt_required()
 def get_semester():
@@ -26,6 +28,7 @@ def get_semester():
         return json_response('success', '获取成功', data=result, code=200)
     except Exception as e:
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
+
 
 @semester_controller.route('', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
@@ -50,8 +53,7 @@ def update_semester():
                     'type': 'string',
                     'required': True
                 },
-            }
-            , data
+            }, data
         )
         if not result:
             return json_response('fail', message=f"请求数据格式错误: {reason}", code=422)

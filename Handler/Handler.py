@@ -4,12 +4,13 @@ from functools import wraps
 from flask import jsonify
 from Model.User import User, PositionEnum
 from Controller.globals import json_response  # 导入统一的 JSON 响应函数
-from .globals import Session
+
 
 def handle_global_exceptions(app):
     """
     全局异常捕获
     """
+
     @app.errorhandler(IntegrityError)
     def handle_integrity_error(error):
         # 解析错误信息，提取字段信息（如果需要）
@@ -60,6 +61,7 @@ def position_required(positions=None, is_admin_required=False):
         positions = [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER,
                      PositionEnum.SUMMARY_LEADER, PositionEnum.INTERN_SUMMARY_LEADER]
     positions = [position.value for position in positions]
+
     def decorator(f):
         @wraps(f)
         @jwt_required()  # 确保是已认证的用户

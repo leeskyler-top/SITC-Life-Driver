@@ -17,6 +17,7 @@ auth_controller = Blueprint('auth_controller', __name__)
 ACCESS_EXPIRES = timedelta(seconds=access_token_exp_sec)  # 设置为 3 分钟的有效期
 REFRESH_EXPIRES = timedelta(seconds=refresh_token_exp_sec)  # 设置为 30 分钟的有效期
 
+
 # 登录逻辑
 @auth_controller.route('/login', methods=['POST'])
 def login():
@@ -43,12 +44,14 @@ def login():
         'user': user.to_dict()
     })
 
+
 # 登出逻辑
 @auth_controller.route('/logout', methods=['DELETE'])
 @jwt_required()
 def logout():
     # 实际登出逻辑是在客户端删除 Token
     return json_response('success', '已成功登出')
+
 
 # 刷新 Token
 @auth_controller.route('/refresh', methods=['POST'])

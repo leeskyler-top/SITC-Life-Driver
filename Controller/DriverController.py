@@ -7,7 +7,8 @@ from Handler.Handler import admin_required, position_required
 from Model.User import PositionEnum, User
 from .globals import json_response, validate_schema
 from SQLService.Operation import read_template_from_sql, read_semester_config_from_sql
-from AnyshareService.AnyShareOperation import findCYLCGroup, findLifeDepDir, findCurrentSemseter, genMonthDirBySemester, \
+from AnyshareService.AnyShareOperation import \
+    findCYLCGroup, findLifeDepDir, findCurrentSemseter, genMonthDirBySemester, \
     genDayDir, findDir, genOtherDayDir, listLifeDepDir, listSemesterDir, listMonthDir, listOtherDir, getLink, \
     downloadZip, safeDelDir
 
