@@ -1,8 +1,9 @@
+import pandas as pd
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from Handler.Handler import position_required
-from Model import CheckIn, CheckInUser
+from Model import CheckIn, CheckInUser, AskForLeaveApplication
 from Model.Message import Message
 from Model.Schedule import Schedule
 from Model.User import PositionEnum, User
@@ -429,5 +430,104 @@ def delete_checkin(check_in_id):
     except Exception as e:
         session.rollback()
         return json_response('fail', f'删除失败：{str(e)}', code=500)
+    finally:
+        session.close()
+
+
+@checkin_controller.route('/attendance/statistics', methods=['GET'], endpoint='attendance_statistics')
+@jwt_required()
+def attendance_statistics():
+    user_id = get_jwt_identity()
+    session = Session()
+
+    start_time = request.args.get('start_time')
+    end_time = request.args.get('end_time')
+
+    if not start_time or not end_time:
+        return json_response('fail', '请提供起止时间', code=400)
+
+    try:
+        # 转换时间格式
+        start_date = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
+        end_date = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+
+        if start_date >= end_date:
+            return json_response('fail', '结束时间必须晚于开始时间', code=400)
+
+        # 查询签到记录
+        check_in_users = session.query(CheckInUser).join(CheckIn).filter(
+            CheckIn.schedule_id == Schedule.id,
+            CheckIn.check_in_start_time >= start_date,
+            CheckIn.check_in_end_time <= end_date,
+            CheckInUser.user_id == user_id
+        ).all()
+
+        # 统计个人出勤率和旷班次数
+        attendance_count = len(check_in_users)
+        absentee_count = sum(1 for user in check_in_users if not user.check_in_time)
+
+        # 计算每月平均出勤次数
+        monthly_attendance = pd.Series()
+        for user in check_in_users:
+            month = user.check_in.check_in_start_time.strftime('%Y-%m')  # 提取年月
+            monthly_attendance[month] = monthly_attendance.get(month, 0) + 1
+
+        average_monthly_attendance = monthly_attendance.mean() if not monthly_attendance.empty else 0
+
+        # 获取部门的平均出勤率
+        department_id = session.query(User).filter_by(id=user_id).first().department
+        department_checkins = session.query(CheckInUser).join(CheckIn).join(User).filter(
+            CheckIn.schedule_id == Schedule.id,
+            CheckIn.check_in_start_time >= start_date,
+            CheckIn.check_in_end_time <= end_date,
+            User.department == department_id
+        ).all()
+
+        department_attendance_count = len(department_checkins)
+        department_absentee_count = sum(1 for user in department_checkins if not user.check_in_time)
+        department_average_attendance_rate = (department_attendance_count / (
+                department_attendance_count + department_absentee_count)) * 100 if department_attendance_count + department_absentee_count > 0 else 0
+
+        # 查询请假记录
+        leave_applications = session.query(AskForLeaveApplication).filter(
+            AskForLeaveApplication.check_in_user_id == user_id,
+            AskForLeaveApplication.created_at >= start_date,
+            AskForLeaveApplication.created_at <= end_date
+        ).all()
+
+        leave_count = len(leave_applications)
+        leave_counts_by_type = {}
+
+        for application in leave_applications:
+            leave_type = application.asl_type
+            leave_counts_by_type[leave_type] = leave_counts_by_type.get(leave_type, 0) + 1
+
+        # 统计部门请假数据
+        department_leave_applications = session.query(AskForLeaveApplication).join(User).filter(
+            AskForLeaveApplication.created_at >= start_date,
+            AskForLeaveApplication.created_at <= end_date,
+            User.department == department_id
+        ).all()
+
+        department_leave_count = len(department_leave_applications)
+        department_leave_count_by_type = {}
+
+        for application in department_leave_applications:
+            leave_type = application.asl_type
+            department_leave_count_by_type[leave_type] = department_leave_count_by_type.get(leave_type, 0) + 1
+
+        return json_response('success', '统计数据获取成功', data={
+            'individual_attendance_count': attendance_count,
+            'individual_absentee_count': absentee_count,
+            'average_monthly_attendance': average_monthly_attendance,
+            'department_average_attendance_rate': department_average_attendance_rate,
+            'individual_leave_count': leave_count,
+            'individual_leave_count_by_type': leave_counts_by_type,
+            'department_leave_count': department_leave_count,
+            'department_leave_count_by_type': department_leave_count_by_type
+        })
+
+    except Exception as e:
+        return json_response('fail', f'统计失败: {str(e)}', code=500)
     finally:
         session.close()

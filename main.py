@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_cors import CORS
 
-from Controller.AskForLeaveController import askforleave_controller
+from Controller.AskForLeaveController import ask_for_leave_controller
 from Controller.CheckInController import checkin_controller
 from Controller.MessageController import message_controller
 from Controller.ScheduleController import schedule_controller
@@ -36,7 +36,7 @@ app.register_blueprint(semester_controller, url_prefix='/api/v1/semester')
 app.register_blueprint(message_controller, url_prefix='/api/v1/message')
 app.register_blueprint(schedule_controller, url_prefix='/api/v1/schedule')
 app.register_blueprint(checkin_controller, url_prefix='/api/v1/checkin')
-app.register_blueprint(askforleave_controller, url_prefix='/api/v1/asl')
+app.register_blueprint(ask_for_leave_controller, url_prefix='/api/v1/asl')
 
 handle_global_exceptions(app)
 
