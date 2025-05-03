@@ -154,7 +154,7 @@ def batch_create_schedules():
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
 
-@schedule_controller.route('/<int:schedule_id>', methods=['GET'], endpoint='delete_schedule')
+@schedule_controller.route('/<int:schedule_id>', methods=['GET'], endpoint='get_schedule')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )

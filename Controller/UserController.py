@@ -2,7 +2,7 @@ import string
 import random
 import re
 
-from flask import Blueprint, request
+from flask import Blueprint, request, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from .globals import json_response, validate_schema, Session
 from Model.User import User, PositionEnum, GenderEnum, DepartmentEnum, PoliticalLandscapeEnum
@@ -224,6 +224,7 @@ def batch_create_users():
     except Exception as e:
         return json_response('fail', f"文件解析或处理错误：{str(e)}", code=500)
 
+
 # 管理员重置用户密码接口
 @user_controller.route('/pwd/reset/<int:user_id>', methods=['GET'], endpoint='reset_user_password')
 @admin_required  # 确保用户已登录
@@ -388,6 +389,7 @@ def patch_user(user_id):
     else:
         return json_response("fail", updated_user, code)
 
+
 @user_controller.route('/<int:user_id>', methods=['GET'], endpoint='get_user')
 @admin_required
 def get_user(user_id):
@@ -429,6 +431,7 @@ def get_all_users():
     users = User.get_all_users()
     return json_response("success", "用户列表获取成功", data=users, code=200)
 
+
 @user_controller.route('/my', methods=['GET'], endpoint='get_my_info')
 @jwt_required()
 def get_my_info():
@@ -442,6 +445,7 @@ def get_my_info():
     else:
         return json_response("fail", "用户不存在", code=404)
 
+
 @user_controller.route('/count', methods=['GET'], endpoint='calculate_statistics')
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 def calculate_statistics():
@@ -452,7 +456,8 @@ def calculate_statistics():
 
         # 统计数据
         CYLC_Count = query.filter(User.politicalLandscape == PoliticalLandscapeEnum.CYLC).count()
-        PublicPeople_Count = query.filter(User.politicalLandscape == PoliticalLandscapeEnum.PUBLICPEOPLE).count()   # 群众人数
+        PublicPeople_Count = query.filter(
+            User.politicalLandscape == PoliticalLandscapeEnum.PUBLICPEOPLE).count()  # 群众人数
         Male_Count = query.filter(User.gender == GenderEnum.MALE).count()
         Female_Count = query.filter(User.gender == GenderEnum.FEMALE).count()
 
@@ -506,3 +511,49 @@ def calculate_statistics():
         return json_response("error", f"统计数据获取失败: {str(e)}", code=500)
     finally:
         session.close()
+
+
+@user_controller.route('/export', methods=['GET'], endpoint='export_current_user')
+@admin_required  # 确保用户已登录
+def export_all_users():
+    """
+    导出所有用户信息为 CSV 格式
+    """
+    users = User.get_all_users()  # 获取所有用户信息
+    if not users:
+        return json_response("fail", "没有用户信息", code=404)
+
+    # 将用户信息放入字典列表
+    user_data_list = []
+    for user in users:
+        user_data = {
+            "studentId": user["studentId"],
+            "name": user["name"],
+            "classname": user["classname"],
+            "phone": user["phone"],
+            "position": user["position"],
+            "gender": user["gender"],
+            "department": user["department"],
+            "is_admin": user["is_admin"],
+            "qq": user["qq"],
+            "note": user["note"],
+            "politicalLandscape": user["politicalLandscape"],
+            "resident": user["resident"],
+            "join_at": user["join_at"]
+        }
+        user_data_list.append(user_data)
+
+    # 创建 DataFrame
+    df = pd.DataFrame(user_data_list)
+
+    # 转换为 CSV 格式
+    output = io.StringIO()
+    df.to_csv(output, index=False)
+    output.seek(0)
+
+    # 返回 CSV 文件
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=all_users_info.csv"}
+    )
