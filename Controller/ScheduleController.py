@@ -177,7 +177,7 @@ def delete_schedule(schedule_id):
     return json_response("success", "值班计划删除成功", code=200)
 
 
-@schedule_controller.route('/', methods=['GET'], endpoint='get_all_schedules')
+@schedule_controller.route('', methods=['GET'], endpoint='get_all_schedules')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )

@@ -296,23 +296,25 @@ class User(SoftDeleteMixin, Base):
         return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
-try:
-    Base.metadata.create_all(engine)
-    User.create_user_in_db(
-        studentId="22100484",
-        password="22100484",
-        name="李天成",
-        classname="214L01",
-        gender="男",
-        department="信息技术系",
-        phone="15216674952",
-        position="副部长",
-        is_admin=True,
-        qq="942702459",
-        note="技术支持，项目维护者。",
-        politicalLandscape="中国共产主义青年团团员",
-        resident=0,
-        join_at="2023-03-01"
-    )
-except:
-    print("User Table already exists")
+    @staticmethod
+    def create_default_user():
+        try:
+            Base.metadata.create_all(engine)
+            User.create_user_in_db(
+                studentId="22100484",
+                password="22100484",
+                name="李天成",
+                classname="214L01",
+                gender="男",
+                department="信息技术系",
+                phone="15216674952",
+                position="副部长",
+                is_admin=True,
+                qq="942702459",
+                note="技术支持，项目维护者。",
+                politicalLandscape="中国共产主义青年团团员",
+                resident=0,
+                join_at="2023-03-01"
+            )
+        except:
+            print("User Table already exists")

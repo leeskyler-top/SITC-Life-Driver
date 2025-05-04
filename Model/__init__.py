@@ -10,6 +10,7 @@ from .globals import Base, engine
 
 def init_db():
     Base.metadata.create_all(engine)  # 一次性创建所有表
+    User.create_default_user()
 
 
 create_database_and_table()
