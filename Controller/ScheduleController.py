@@ -27,7 +27,7 @@ def create_schedule():
     schema = {
         'schedule_name': {'type': 'string', 'required': True},
         'schedule_type': {'type': 'string', 'required': True, 'allowed': schedule_type_enum_values},
-        'schedule_start_time': {'type': 'string', 'regex': r'^\d{4}-\d{2}-\d{2}$ \d{2}:\d{2}:\d{2}'},  # YYYY-MM-DD 格式
+        'schedule_start_time': {'type': 'string', 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},  # YYYY-MM-DD 格式
     }
     # 验证请求数据
     is_valid, errors = validate_schema(schema, data)
@@ -107,7 +107,7 @@ def batch_create_schedules():
         for index, row in df.iterrows():
             if row['schedule_type'] not in [item.value for item in TypeEnum]:
                 errors.append(f"第 {index + 1} 行: 无效的值班类型 '{row['schedule_type']}'")
-            if not re.match(r'^\d{4}-\d{2}-\d{2}$', row['schedule_start_time']):
+            if not re.match(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$', row['schedule_start_time']):
                 errors.append(f"第 {index + 1} 行: 无效的值班开始时间 '{row['schedule_start_time']}'")
         if errors:
             return json_response('fail', f"数据校验失败: {', '.join(errors)}", code=422)
