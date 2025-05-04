@@ -5,9 +5,9 @@ from sqlalchemy import or_, and_
 
 
 class MsgTypeEnum(enum.Enum):
-    PRIVATE = '个人消息'
-    PUBLIC = '公共消息'
-    ADMIN = '管理员消息'
+    PRIVATE = 'PRIVATE'
+    PUBLIC = 'PUBLIC'
+    ADMIN = 'ADMIN'
 
 
 class Message(Base):

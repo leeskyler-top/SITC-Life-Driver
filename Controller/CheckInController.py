@@ -133,7 +133,7 @@ def assign_users_and_checkins():
             Message.add_message(
                 user_id=user.id,
                 msg_text="请查看新的排班，如有异议联系管理员。",
-                msg_type='private'
+                msg_type='PRIVATE'
             )
 
         session.commit()
@@ -188,7 +188,7 @@ def assign_users_by_check_in_id(check_in_id):
             Message.add_message(
                 user_id=user.id,
                 msg_text='请查看新的排班，如有异议请联系管理员。',
-                msg_type='private'
+                msg_type='PRIVATE'
             )
 
         session.commit()
@@ -256,7 +256,7 @@ def cancel(check_in_user_id):
         Message.add_message(
             user_id=user.id,
             msg_text=message,
-            msg_type='private'
+            msg_type='PRIVATE'
         )
         session.commit()
         return json_response('success', '签到已取消')
@@ -315,7 +315,7 @@ def change_record(check_in_user_id):
         Message.add_message(
             user_id=user.id,
             msg_text=message,
-            msg_type='private'
+            msg_type='PRIVATE'
         )
         return json_response('success', '签到时间修改成功')
     except Exception as e:
