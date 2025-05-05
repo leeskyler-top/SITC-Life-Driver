@@ -1,5 +1,7 @@
 import io
 import re
+from datetime import timedelta, datetime
+
 import pandas as pd
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
@@ -178,9 +180,67 @@ def delete_schedule(schedule_id):
 
 
 @schedule_controller.route('', methods=['GET'], endpoint='get_all_schedules')
-@position_required(
-    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
-)
+@jwt_required()
 def get_all_schedules():
     schedules = Schedule.get_all_schedules()
     return json_response("success", "所有值班计划已列出", data=schedules, code=200)
+
+
+@schedule_controller.route('/<int:schedule_id>', methods=['PATCH'], endpoint='update_schedule')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+def update_schedule(schedule_id):
+    """
+    更新值班计划
+    """
+    data = request.get_json()
+    if not data:
+        return json_response('fail', "未传递任何参数", code=422)
+
+    schema = {
+        'schedule_name': {'type': 'string', 'required': True},
+        'schedule_type': {'type': 'string', 'required': True, 'allowed': [item.value for item in TypeEnum]},
+        'schedule_start_time': {'type': 'string', 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},  # YYYY-MM-DD 格式
+    }
+
+    # 验证请求数据
+    is_valid, errors = validate_schema(schema, data)
+    if not is_valid:
+        return json_response('fail', f"请求数据格式错误: {errors}", code=422)
+
+    session = Session()
+    try:
+        schedule = session.query(Schedule).filter_by(id=schedule_id).first()
+        if not schedule:
+            return json_response('fail', "值班计划未找到", code=404)
+
+        # 更新值班计划信息
+        new_start_time = datetime.strptime(data['schedule_start_time'], '%Y-%m-%d %H:%M:%S')
+
+        result, reason, code = Schedule.patch_schedule_by_id(
+            schedule_id=schedule_id,
+            schedule_name=data['schedule_name'],
+            schedule_type=data['schedule_type'],
+            schedule_start_time=data['schedule_start_time']
+        )
+
+        if not result:
+            return json_response("fail", reason, code=code)
+
+        # 修改关联的主签到时间
+        for checkIn in schedule.check_ins:
+            if checkIn.is_main_check_in:
+                checkIn.check_in_start_time = new_start_time - timedelta(minutes=20)
+                checkIn.check_in_end_time = new_start_time + timedelta(minutes=10)
+
+        session.commit()
+        return json_response("success", "值班计划更新成功", code=200)
+    except IntegrityError:
+        session.rollback()
+        return json_response('fail', '更新失败，存在冲突', code=400)
+    except Exception as e:
+        session.rollback()
+        return json_response('fail', f"更新失败: {str(e)}", code=500)
+    finally:
+        session.close()
