@@ -13,6 +13,21 @@ from datetime import datetime
 checkin_controller = Blueprint('checkin_controller', __name__)
 
 
+@checkin_controller.route('/my', methods=['GET'], endpoint='list_my_checkins')
+@jwt_required()
+def list_my_checkins():
+    session = Session()
+    try:
+        user_id = get_jwt_identity()
+        checkin_users = session.query(CheckInUser).filter_by(user_id=user_id).all()
+        checkin_users = [ciu.to_dict() for ciu in checkin_users]
+        return json_response('success', '获取完成', checkin_users, code=200)
+    except Exception as e:
+        return json_response('fail', f'统计失败: {str(e)}', code=500)
+    finally:
+        session.close()
+
+
 @checkin_controller.route('/create/<int:schedule_id>', methods=['POST'], endpoint='create_checkin')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
@@ -230,7 +245,7 @@ def assign_users_by_check_in_id(check_in_id):
         session.close()
 
 
-@checkin_controller.route('/checkin/<int:check_in_id>', methods=['POST'], endpoint='checkin')
+@checkin_controller.route('/checkin/<int:check_in_id>', methods=['GET'], endpoint='checkin')
 @jwt_required()
 def checkin(check_in_id):
     session = Session()

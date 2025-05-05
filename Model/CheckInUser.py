@@ -8,6 +8,7 @@ from sqlalchemy import DateTime
 
 class CheckInStatusEnum(enum.Enum):
     NOT_STARTED = "未开始"
+    NOT_SIGNED = "未签到"
     NORMAL = "正常"
     LATE = "迟到"
     ABSENTEEISM = "缺勤"
@@ -54,7 +55,10 @@ class CheckInUser(Base):
         if not self.check_in_time:
             if datetime.now() > self.check_in.check_in_end_time:
                 return CheckInStatusEnum.ABSENTEEISM.value
-            return CheckInStatusEnum.NOT_STARTED.value
+            elif datetime.now() > self.check_in.check_in_start_time:
+                return CheckInStatusEnum.NOT_SIGNED.value
+            else:
+                return CheckInStatusEnum.NOT_STARTED.value
 
         if self.check_in.need_check_schedule_time and schedule_start_time:
             if self.check_in_time > schedule_start_time:
