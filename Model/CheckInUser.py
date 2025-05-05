@@ -67,7 +67,17 @@ class CheckInUser(Base):
             "id": self.id,
             "check_in_id": self.check_in_id,
             "user_id": self.user_id,
-            "user_name": self.user.name if self.user else None,
+            "user": {
+                "id": self.user.id,
+                "studentId": self.user.studentId,
+                "name": self.user.name
+            },
+            "check_in": {
+                "id": self.check_in.id,
+                "name": self.check_in.name,
+                "check_in_start_time": format_datetime(self.check_in.check_in_start_time),
+                "check_in_end_time": format_datetime(self.check_in.check_in_end_time)
+            },
             "is_necessary": self.is_necessary,
             "check_in_time": format_datetime(self.check_in_time),
             "status": self.get_status(schedule_start_time),

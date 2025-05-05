@@ -124,9 +124,19 @@ def assign_users_and_checkins():
         if len(users) != len(user_ids):
             return json_response('fail', '部分用户不存在', code=422)
 
+        # 用于存储成功和失败的用户分配信息
+        response_message = {
+            'success': {},
+            'failed': {}
+        }
+
         # 分配用户
         for checkin in checkins:
-            checkin.sync_users(user_ids, session)
+            result, reason, code = checkin.sync_users(checkin.id, user_ids)
+            if result:
+                response_message['success'][checkin.id] = user_ids  # 映射成功的用户
+            else:
+                response_message['failed'][checkin.id] = reason  # 失败的用户及原因
 
         # 发送通知
         for user in users:
@@ -137,7 +147,11 @@ def assign_users_and_checkins():
             )
 
         session.commit()
-        return json_response('success', '用户分配成功')
+
+        return json_response('success',
+                             f"成功数据: {response_message['success']}, 出错数据: {response_message['failed']}",
+                             code=200)
+
     except Exception as e:
         session.rollback()
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
@@ -179,20 +193,36 @@ def assign_users_by_check_in_id(check_in_id):
             return json_response('fail', '签到已开始，无法分配用户', code=422)
 
         users = session.query(User).filter(User.id.in_(user_ids)).all()
-        if len(users) != len(user_ids):
-            return json_response('fail', '部分用户不存在', code=422)
+        existing_user_ids = {user.id for user in users}
+        not_found_user_ids = set(user_ids) - existing_user_ids
 
-        checkin.sync_users(user_ids, session)
+        if not_found_user_ids:
+            return json_response('fail', f'部分用户ID不存在: {list(not_found_user_ids)}', code=422)
 
+        success_users = []
+        failed_users = []
+        result, reason, code = CheckIn.sync_users(check_in_id, user_ids)  # 假设 sync_users 也能处理列表
+
+        if not result:
+            return json_response("fail", reason, code=code)
+
+        # 发送通知
         for user in users:
             Message.add_message(
                 user_id=user.id,
-                msg_text='请查看新的排班，如有异议请联系管理员。',
+                msg_text="请查看新的排班，如有异议联系管理员。",
                 msg_type='PRIVATE'
             )
 
-        session.commit()
-        return json_response('success', '用户分配成功')
+        # 构建返回的内容
+        response_message = {
+            'success': success_users,
+            'failed': failed_users,
+        }
+
+        return json_response('success',
+                             f"成功数据：{response_message['success']}, 出错数据: {response_message['failed']}")
+
     except Exception as e:
         session.rollback()
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)

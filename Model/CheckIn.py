@@ -38,9 +38,8 @@ class CheckIn(Base):
     schedule = relationship("Schedule", back_populates="check_ins")
     check_in_users = relationship("CheckInUser", back_populates="check_in", cascade="all, delete-orphan")
 
-    def to_dict(self):
-
-        return {
+    def to_dict(self, include_users=True):
+        check_in_data = {
             "id": self.id,
             "schedule_id": self.schedule_id,
             "name": self.name,
@@ -52,11 +51,15 @@ class CheckIn(Base):
             "updated_at": format_datetime(self.updated_at)
         }
 
+        if include_users:
+            check_in_data["check_in_users"] = [ciu.to_dict() for ciu in self.check_in_users]
+
+        return check_in_data
+
     @classmethod
     def get_check_in_by_id(cls, check_in_id: int):
         session = Session()
         try:
-            # 使用 joinedload 一次性加载关联的 check_in_users
             from sqlalchemy.orm import joinedload
             check_in = session.query(cls) \
                 .options(joinedload(cls.check_in_users)) \
@@ -67,11 +70,6 @@ class CheckIn(Base):
                 return None
 
             result = check_in.to_dict()
-            # 添加关联的 check_in_users 数据
-            result['check_in_users'] = [
-                ciu.to_dict()  # 使用 CheckInUser 的 to_dict 方法
-                for ciu in check_in.check_in_users
-            ]
             return result
         finally:
             session.close()
@@ -273,7 +271,7 @@ class CheckIn(Base):
         session = Session()
         try:
             # 验证 check_in 存在
-            check_in = session.query(cls).get(check_in_id)
+            check_in = cls.get_check_in_by_id(check_in_id)
             if not check_in:
                 return False, "签到记录不存在", 404
 

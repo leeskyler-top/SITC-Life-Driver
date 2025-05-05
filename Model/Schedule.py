@@ -54,7 +54,15 @@ class Schedule(Base):
                 return None
 
             result = schedule.to_dict()
-            result['check_ins'] = [check_in.to_dict() for check_in in schedule.check_ins]
+            # 包含所有的 CheckIn 的用户数据
+            result['check_ins'] = []
+            for check_in in schedule.check_ins:
+                check_in_data = check_in.to_dict()
+                check_in_data['check_in_users'] = [
+                    ciu.to_dict() for ciu in check_in.check_in_users
+                ]
+                result['check_ins'].append(check_in_data)
+
             return result
         finally:
             session.close()
@@ -198,8 +206,12 @@ class Schedule(Base):
             result = []
             for schedule in schedules:
                 schedule_data = schedule.to_dict()
-                # 只添加check_ins基本信息，不包含check_in_users
-                schedule_data['check_ins'] = [check_in.to_dict() for check_in in schedule.check_ins]
+                # 包含所有的 CheckIn 和 CheckInUser 数据
+                schedule_data['check_ins'] = []
+                for check_in in schedule.check_ins:
+                    check_in_data = check_in.to_dict()
+                    schedule_data['check_ins'].append(check_in_data)
+
                 result.append(schedule_data)
             return result
         finally:
