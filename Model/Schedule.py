@@ -184,7 +184,19 @@ class Schedule(Base):
             session.commit()
             session.refresh(schedule)
 
-            return True, schedule.to_dict(), 201
+            # 获取并格式化check_ins
+            check_ins_data = []
+            for check_in in schedule.check_ins:
+                check_in_data = check_in.to_dict()
+                # 假设check_in有check_in_users字段需要展开
+                check_in_data['check_in_users'] = [
+                    ciu.to_dict() for ciu in check_in.check_in_users
+                ]
+                check_ins_data.append(check_in_data)
+
+            schedule = schedule.to_dict()
+            schedule['check_ins'] = check_ins_data
+            return True, schedule, 201
 
         except IntegrityError as e:
             session.rollback()
