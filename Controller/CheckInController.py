@@ -153,11 +153,13 @@ def assign_users_and_checkins():
             else:
                 response_message['failed'][checkin.id] = reason  # 失败的用户及原因
 
+        sep = "\n"
         # 发送通知
         for user in users:
             Message.add_message(
                 user_id=user.id,
-                msg_text="请查看新的排班，如有异议联系管理员。",
+                msg_title="新排班通知",
+                msg_text=f"请查看新的排班:\n {sep.join([checkin.name for checkin in checkins])} \n，如有异议联系管理员。",
                 msg_type='PRIVATE'
             )
 
@@ -225,7 +227,8 @@ def assign_users_by_check_in_id(check_in_id):
         for user in users:
             Message.add_message(
                 user_id=user.id,
-                msg_text="请查看新的排班，如有异议联系管理员。",
+                msg_title="新排班通知（单独排班）",
+                msg_text=f"请查看新的排班，名称为{checkin.name}，如有异议联系管理员。",
                 msg_type='PRIVATE'
             )
 
@@ -300,6 +303,7 @@ def cancel(check_in_user_id):
         message = f"管理员对你在 {schedule.name}-{schedule.start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.type} 的 {checkin.name} 签到产生了质疑并取消了签到，如果对本次处理有异议，请联系管理员。"
         Message.add_message(
             user_id=user.id,
+            msg_title="签到被驳回",
             msg_text=message,
             msg_type='PRIVATE'
         )
@@ -359,6 +363,7 @@ def change_record(check_in_user_id):
         message = f"管理员对你在 {schedule.name}-{schedule.start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.type} 的 {checkin.name} 签到时间进行了更改，如有疑问请联系管理员。"
         Message.add_message(
             user_id=user.id,
+            msg_title="个人签到状态变更",
             msg_text=message,
             msg_type='PRIVATE'
         )

@@ -36,6 +36,7 @@ def read_all():
 def read(message_id):
     current_user_id = get_jwt_identity()
     message = Message.get_message_by_id(message_id)
-    if (not message) or (message['user_id'] != current_user_id):
+    if (not message) or (message['user_id'] != int(current_user_id)):
         return json_response("success", "未找到消息", code=404)
+    Message.mark_message_read_by_id(message_id)
     return json_response("success", "已读完成", code=200)

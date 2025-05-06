@@ -15,6 +15,7 @@ class Message(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=True)
+    msg_title = Column(Text, nullable=False)
     msg_text = Column(Text, nullable=False)
     msg_type = Column(Enum(MsgTypeEnum), nullable=False)
     status = Column(Boolean, nullable=True, default=False)
@@ -25,8 +26,9 @@ class Message(Base):
         return {
             "id": self.id,
             "user_id": self.user_id,
+            "msg_title": self.msg_title,
             "msg_text": self.msg_text,
-            "msg_type": self.msg_type,
+            "msg_type": self.msg_type.value,
             "status": self.status,
             "created_at": format_datetime(self.created_at),
             "updated_at": format_datetime(self.updated_at)
@@ -45,10 +47,10 @@ class Message(Base):
 
     # 添加消息
     @classmethod
-    def add_message(cls, user_id, msg_text, msg_type):
+    def add_message(cls, user_id, msg_text, msg_title, msg_type):
         session = Session()
         try:
-            message = Message(user_id=user_id, msg_text=msg_text, msg_type=MsgTypeEnum(msg_type))
+            message = Message(user_id=user_id, msg_text=msg_text, msg_title=msg_title, msg_type=MsgTypeEnum(msg_type))
             session.add(message)
             session.commit()
             return message.to_dict()
