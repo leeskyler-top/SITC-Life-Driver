@@ -321,7 +321,7 @@ def getLink(docid, end_time, perm, use_password):
         return None, 500
 
 
-def downloadZip(name, docid):
+def downloadZip(session_id, name, docid):
     if str(docid).startswith(findLifeDepDir(findCYLCGroup())):
         docid_lst = [docid]
         name = name + ".zip"
@@ -334,10 +334,10 @@ def downloadZip(name, docid):
                 # 假设 url 返回的是压缩包文件路径
                 zip_data = download_file(url)  # 从 URL 下载压缩包内容
 
-                # 如果文件大小小于分卷大小（15 MB），直接发送
-                if len(zip_data) <= 15 * 1024 * 1024:
+                # 如果文件大小小于分卷大小（768 MB），直接发送
+                if len(zip_data) <= 768 * 1024 * 1024:
                     print("文件小于分卷大小限制，直接发送")
-                    status, response, code = msgV1(wechat_send_group, 1, zip_data, name)
+                    status, response, code = msgV1(session_id, zip_data, name)
                     if not status or code != 200:
                         print(f"直接发送失败，状态码: {code}")
                         return False, f"直接发送失败，状态码: {code}", 500

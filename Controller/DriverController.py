@@ -405,6 +405,10 @@ def download_a_zip():
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
             {
+                "session_id": {
+                    'type': 'string',
+                    'required': True
+                },
                 "docid": {
                     'type': 'string',
                     'required': True
@@ -418,7 +422,7 @@ def download_a_zip():
         )
         if not result:
             return json_response('fail', reason, code=422)
-        req, result, code = downloadZip(data["name"], data["docid"])
+        req, result, code = downloadZip(data['session_id'], data["name"], data["docid"])
         if code == 200:
             return json_response("success", f"已尝试发送:{result}", data=req, code=200)
         else:

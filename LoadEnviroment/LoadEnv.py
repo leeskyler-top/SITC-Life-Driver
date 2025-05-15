@@ -16,8 +16,6 @@ jwt_secret_key = ""
 server_env = "development",
 pan_host = "",
 wechat_webhook_service = "",
-wechat_webhook_service_token = "",
-wechat_send_group = "",
 chromedriver_path = None
 cas_login_method = "requests",
 refresh_token_exp_sec = 1800
@@ -29,7 +27,7 @@ def load_env_json(filepath):
     global cas_baseurl, pan_host, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, \
         mysql_host, mysql_port, mysql_username, mysql_password, \
         jwt_secret_key, server_env, \
-        wechat_webhook_service, wechat_webhook_service_token, wechat_send_group, \
+        wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
         refresh_token_exp_sec, access_token_exp_sec
     with open(filepath, 'r', encoding='utf-8') as f:
@@ -51,8 +49,6 @@ def load_env_json(filepath):
         server_env = data['server_env']
         pan_host = data['pan_host']
         wechat_webhook_service = data['wechat_webhook_service']
-        wechat_webhook_service_token = data['wechat_webhook_service_token'],
-        wechat_send_group = data['wechat_send_group']
         chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True and data['cas_login_method'] == "selenium" else None
         refresh_token_exp_sec = data['refresh_token_exp_sec']
         access_token_exp_sec = data['access_token_exp_sec']
