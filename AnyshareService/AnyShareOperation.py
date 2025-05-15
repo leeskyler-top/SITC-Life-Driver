@@ -4,7 +4,7 @@ import os
 import re
 from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, \
     setShareLink, getBatchDownloadLink, delDir
-from LoadEnviroment.LoadEnv import pan_host, wechat_send_group
+from LoadEnviroment.LoadEnv import pan_host
 from SQLService.Operation import *
 from datetime import datetime
 
