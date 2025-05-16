@@ -1,12 +1,9 @@
 import calendar
-import random
 import os
 import re
 from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, getLinkDetail, openShareLink, \
     setShareLink, getBatchDownloadLink, delDir
-from LoadEnviroment.LoadEnv import pan_host
 from SQLService.Operation import *
-from datetime import datetime
 
 from WeChatBotService.WeChatBaseService import msgV1
 from utils.utils import download_file, rm_results, rar_file_in_parts
@@ -381,8 +378,11 @@ def downloadZip(session_id, name, docid):
                     match = re.search(r"\.part(\d+)\.rar$", part_file)
                     if match:
                         part_num = match.group(1)  # 获取分卷编号（带前导零）
-                        # 发送分卷文件，并将编号填入文件名
-                        status, response, code = msgV1(wechat_send_group, 1, part_path, f"{name}.part{part_num}.rar")
+                        # 以二进制模式打开分卷文件并读取内容
+                        with open(part_path, 'rb') as f:
+                            part_data = f.read()
+                            # 发送分卷数据
+                            status, response, code = msgV1(session_id, part_data, f"{name}.part{part_num}.rar")
                         if not status or code != 200:
                             print(f"上传分卷 {part_num} 失败，状态码: {code}")
                             return False, f"上传分卷 {part_num} 失败，状态码: {code}", 500
