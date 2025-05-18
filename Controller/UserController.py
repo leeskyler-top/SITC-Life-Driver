@@ -452,7 +452,7 @@ def calculate_statistics():
     session = Session()
     try:
         # 过滤掉 "其他人员"
-        query = session.query(User).filter(User.position != PositionEnum.OTHERS)
+        query = User.query_active(session).filter(User.position != PositionEnum.OTHERS)
 
         # 统计数据
         CYLC_Count = query.filter(User.politicalLandscape == PoliticalLandscapeEnum.CYLC).count()
@@ -478,7 +478,10 @@ def calculate_statistics():
         grade_counts = session.query(
             func.substring(User.classname, 1, 2).label('grade'),
             func.count(User.id).label('count')
-        ).filter(User.position != PositionEnum.OTHERS)  # 过滤掉非团员
+        ).filter(
+            User.is_deleted == False,  # 确保只统计未删除用户
+            User.position != PositionEnum.OTHERS
+        )  # 过滤掉非团员
 
         # 进行分组统计
         grade_counts = grade_counts.group_by(func.substring(User.classname, 1, 2))
