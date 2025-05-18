@@ -88,7 +88,7 @@ class User(SoftDeleteMixin, Base):
     @classmethod
     def get_user_by_id(cls, user_id: int):
         session = Session()
-        user = session.query(cls).filter_by(id=user_id).first()
+        user = cls.query_active(session).filter_by(id=user_id).first()
         session.close()
         if user:
             return user.to_dict()
@@ -119,6 +119,23 @@ class User(SoftDeleteMixin, Base):
             session.close()
 
     @classmethod
+    def hard_delete_user_by_id(cls, user_id: int):
+        session = Session()
+        user = session.query(cls).filter_by(id=user_id).first()
+        if not user:
+            return False, "用户不存在", 404
+        user.is_deleted = False
+        try:
+            # 提交更改到数据库
+            session.delete(user)
+            session.close()
+            return True, "用户已永久删除", 200
+        except Exception as e:
+            session.rollback()
+            session.close()
+            return False, f"用户恢复失败: {str(e)}", 500
+
+    @classmethod
     def patch_user_by_id(cls, user_id: int, name: str = None, classname: str = None, phone: str = None,
                          qq: str = None, department: str = None, gender: str = None, is_admin: bool = None,
                          position: str = None, note: str = None, politicalLandscape: str = None, resident: bool = False,
@@ -127,7 +144,7 @@ class User(SoftDeleteMixin, Base):
         session = Session()
         try:
             # 查询用户
-            user = session.query(cls).filter_by(id=user_id).first()
+            user = cls.query_active(session).filter_by(id=user_id).first()
 
             if user:
                 # 更新字段
@@ -243,10 +260,35 @@ class User(SoftDeleteMixin, Base):
     @classmethod
     def get_all_users(cls):
         session = Session()
-        users = session.query(cls).all()  # 获取所有用户
+        users = cls.query_active(session).all()  # 获取所有用户
         session.close()
         users_list = [user.to_dict() for user in users]
         return users_list
+
+    @classmethod
+    def get_all_deleted_users(cls):
+        session = Session()
+        users = cls.query_inactive(session).all()  # 获取所有用户
+        session.close()
+        users_list = [user.to_dict() for user in users]
+        return users_list
+
+    @classmethod
+    def restore_deleted_user(cls, user_id):
+        session = Session()
+        user = session.query(cls).filter_by(id=user_id).first()
+        if not user:
+            return False, "用户不存在", 404
+        user.is_deleted = False
+        try:
+            # 提交更改到数据库
+            session.commit()
+            session.close()
+            return True, "用户已恢复", 200
+        except Exception as e:
+            session.rollback()
+            session.close()
+            return False, f"用户恢复失败: {str(e)}", 500
 
     # 散列密码
     @staticmethod
@@ -269,7 +311,7 @@ class User(SoftDeleteMixin, Base):
         session = Session()
 
         # 获取当前用户并确认其存在
-        user_to_update = session.query(User).filter_by(id=user_id).first()
+        user_to_update = User.query_active(session).filter_by(id=user_id).first()
 
         if not user_to_update:
             session.close()

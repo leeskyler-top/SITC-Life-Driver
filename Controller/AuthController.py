@@ -31,8 +31,11 @@ def login():
     # 验证用户身份
     session = Session()
     user = session.query(User).filter_by(studentId=student_id).first()
+
     if not user or not user.verify_password(password, user.password):  # 假设 User 模型有 verify_password 方法
         return json_response('fail', '用户名或密码错误', code=401)
+    if user.is_deleted == True:
+        return json_response('fail', '账户已封禁，联系管理员', code=403)
 
     # 创建访问和刷新 Token
     access_token = create_access_token(identity=str(user.id), expires_delta=ACCESS_EXPIRES)

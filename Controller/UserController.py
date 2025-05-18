@@ -557,3 +557,19 @@ def export_all_users():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=all_users_info.csv"}
     )
+
+
+@user_controller.route('/deleted', methods=['GET'], endpoint='show_deleted_user')
+@admin_required  # 确保用户已登录
+def show_deleted_users():
+    deleted_users = User.get_all_deleted_users()
+    return json_response("success", "用户列表获取成功", data=deleted_users, code=200)
+
+
+@user_controller.route('/restore/<int:user_id>', methods=['PATCH'], endpoint='restore_deleted_user')
+@admin_required  # 确保用户已登录
+def restore_deleted_user(user_id):
+    status, reason, code = User.restore_deleted_user(user_id)
+    if status:
+        return json_response("success", reason, code=code)
+    return json_response("fail", reason, code=code)

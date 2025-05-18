@@ -17,6 +17,11 @@ class SoftDeleteMixin:
         # 基础查询方法
         return session.query(cls).filter(cls.is_deleted == False)
 
+    @classmethod
+    def query_inactive(cls, session):
+        # 基础查询方法
+        return session.query(cls).filter(cls.is_deleted == True)
+
 
 engine = create_engine(f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC')
 
