@@ -5,6 +5,8 @@ import io
 import base64
 import shutil
 
+from LoadEnviroment.LoadEnv import rar_path
+
 
 def rm_results():
     path = os.path.join(os.getcwd(), 'results', 'zip_file')
@@ -59,7 +61,7 @@ def rar_file_in_parts(input_data, part_size_mb, output_dir, original_filename="f
     try:
         subprocess.run(
             [
-                r"C:\Program Files\WinRAR\rar.exe", "a",  # "a" 表示添加文件到压缩包
+                f"{rar_path}", "a",  # "a" 表示添加文件到压缩包
                 "-v" + str(part_size_mb) + "m",  # 设置分卷大小
                 "-ep1",  # 排除文件路径，仅保留文件本体
                 rar_output_path,  # 压缩包路径

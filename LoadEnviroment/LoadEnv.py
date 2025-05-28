@@ -20,6 +20,7 @@ chromedriver_path = None
 cas_login_method = "requests",
 refresh_token_exp_sec = 1800
 access_token_exp_sec = 180
+rar_path = ""
 
 
 # 读取 .env.json 文件
@@ -29,7 +30,7 @@ def load_env_json(filepath):
         jwt_secret_key, server_env, \
         wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
-        refresh_token_exp_sec, access_token_exp_sec
+        refresh_token_exp_sec, access_token_exp_sec, rar_path
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -52,6 +53,7 @@ def load_env_json(filepath):
         chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True and data['cas_login_method'] == "selenium" else None
         refresh_token_exp_sec = data['refresh_token_exp_sec']
         access_token_exp_sec = data['access_token_exp_sec']
+        rar_path = data['rar_path']
 
 
 # 默认加载 .env.json 文件（可选）
