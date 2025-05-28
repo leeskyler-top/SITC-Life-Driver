@@ -350,7 +350,7 @@ def downloadZip(session_id, name, docid):
                 output_dir = os.path.join(os.getcwd(), 'results', 'zip_file')
 
                 # 使用 WinRAR 对压缩包进行分卷
-                result = rar_file_in_parts(zip_data, 15, output_dir, name)
+                result = rar_file_in_parts(zip_data, 768, output_dir, name)
 
                 # 如果分卷处理失败，返回 500 错误
                 if not result:
