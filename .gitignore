@@ -8,3 +8,4 @@ SITC-Cas.json
 test.py
 /config/sitc-life-driver.service
 /config/sitc-life-driver.conf
+*cookie.json

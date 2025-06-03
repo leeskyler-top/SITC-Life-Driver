@@ -1,4 +1,4 @@
-from LoadEnviroment.LoadEnv import cas_login_method
+from LoadEnviroment.LoadEnv import cas_login_method, cas_cookie_path
 from .globals import headers, cas_baseurl, pan_sso_service, username, password, get_new_driver
 from datetime import datetime, timedelta
 from .CasLoginByRequests import loginAndSetCookie
@@ -50,7 +50,7 @@ def setCasCookie():
         cookies_dict = {cookie['name']: cookie['value'] for cookie in cookies}
         time.sleep(3)
         driver.close()
-        with open("./SITC-Cas.json", 'w') as file:
+        with open(cas_cookie_path, 'w') as file:
             json.dump(cookies, file, ensure_ascii=False)
 
         return headers, cookies_dict
@@ -83,7 +83,7 @@ def checkCookieExpired(cookies=None, white_list: list = []):
 def loadLocalCasCookie(check_expired=True):
     global cookies_dict, headers
     try:
-        with open('./SITC-Cas.json', 'r') as file:
+        with open(cas_cookie_path, 'r') as file:
             cookies = json.load(file)
             if check_expired and checkCookieExpired(cookies) and cas_login_method == "selenium":
                 return setCasCookie()

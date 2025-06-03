@@ -5,6 +5,7 @@ import urllib.parse
 import urllib3
 import json
 import requests
+from LoadEnviroment.LoadEnv import cas_cookie_path
 from bs4 import BeautifulSoup
 
 from .globals import username, password, pan_sso_service, cas_baseurl, pan_baseurl, des_trans_mode
@@ -111,13 +112,13 @@ def save_cookies_as_json(tokenid: str, expires_sec: int):
     cookies_list.append(token_json)
     cookies_list.append(default_json)
     try:
-        with open("./SITC-Cas.json", 'w') as file:
+        with open(cas_cookie_path, 'w') as file:
             json.dump(cookies_list, file, ensure_ascii=False)
     except Exception as e:
         print("cannot save tokenid cookie.")
         print(e)
 
-    print("Cookies have been saved to 'SITC-Cas.json'")
+    print(f"Cookies have been saved to '{cas_cookie_path}'")
 
 
 def get_token_id(ticket_id: str):
