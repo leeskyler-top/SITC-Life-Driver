@@ -175,6 +175,7 @@ class Schedule(Base):
             main_check_in = CheckIn(
                 schedule_id=schedule.id,
                 name=f"{schedule_name}-{schedule_start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule_type}-主签到",
+                need_check_schedule_time=True,
                 check_in_start_time=schedule_start_time - timedelta(minutes=25),
                 check_in_end_time=schedule_start_time + timedelta(minutes=10),
                 is_main_check_in=True

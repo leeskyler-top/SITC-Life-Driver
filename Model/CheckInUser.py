@@ -63,10 +63,10 @@ class CheckInUser(Base):
         if self.check_in.need_check_schedule_time and schedule_start_time:
             if self.check_in_time > schedule_start_time:
                 return CheckInStatusEnum.LATE.value
-
+        print(self.check_in.need_check_schedule_time)
         return CheckInStatusEnum.NORMAL.value
 
-    def to_dict(self, schedule_start_time=None):
+    def to_dict(self):
         return {
             "id": self.id,
             "check_in_id": self.check_in_id,
@@ -84,7 +84,7 @@ class CheckInUser(Base):
             },
             "is_necessary": self.is_necessary,
             "check_in_time": format_datetime(self.check_in_time),
-            "status": self.get_status(schedule_start_time),
+            "status": self.get_status(self.check_in.schedule.schedule_start_time),
             "created_at": format_datetime(self.created_at),
             "updated_at": format_datetime(self.updated_at)
         }

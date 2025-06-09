@@ -47,12 +47,12 @@ def create_checkin(schedule_id):
             'check_in_start_time': {
                 'type': 'string',
                 'required': True,
-                'check_with': non_empty_string
+                'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
             },
             'check_in_end_time': {
                 'type': 'string',
                 'required': True,
-                'check_with': non_empty_string
+                'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
             },
             'name': {
                 'type': 'string',
@@ -279,7 +279,7 @@ def checkin(check_in_id):
         session.close()
 
 
-@checkin_controller.route('/cancel/<int:check_in_user_id>', methods=['POST'], endpoint='cancel')
+@checkin_controller.route('/cancel/<int:check_in_user_id>', methods=['GET'], endpoint='cancel')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
@@ -300,7 +300,7 @@ def cancel(check_in_user_id):
         checkin = session.query(CheckIn).filter_by(id=checkin_user.check_in_id).first()
         schedule = session.query(Schedule).filter_by(id=checkin.schedule_id).first()
 
-        message = f"管理员对你在 {schedule.name}-{schedule.start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.type} 的 {checkin.name} 签到产生了质疑并取消了签到，如果对本次处理有异议，请联系管理员。"
+        message = f"管理员对你在 {schedule.schedule_name}-{schedule.schedule_start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.schedule_type.value} 的 {checkin.name} 签到产生了质疑并取消了签到，如果对本次处理有异议，请联系管理员。"
         Message.add_message(
             user_id=user.id,
             msg_title="签到被驳回",
@@ -331,7 +331,7 @@ def change_record(check_in_user_id):
             'check_in_time': {
                 'type': 'string',
                 'required': True,
-                'check_with': non_empty_string
+                'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
             }
         }
         result, reason = validate_schema(schema, data)
@@ -360,7 +360,7 @@ def change_record(check_in_user_id):
         # 获取相关信息
         user = session.query(User).filter_by(id=checkin_user.user_id).first()
         schedule = session.query(Schedule).filter_by(id=checkin.schedule_id).first()
-        message = f"管理员对你在 {schedule.name}-{schedule.start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.type} 的 {checkin.name} 签到时间进行了更改，如有疑问请联系管理员。"
+        message = f"管理员对你在 {schedule.schedule_name}-{schedule.schedule_start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.schedule_type.value  } 的 {checkin.name} 签到时间进行了更改，如有疑问请联系管理员。"
         Message.add_message(
             user_id=user.id,
             msg_title="个人签到状态变更",
@@ -405,7 +405,7 @@ def list_checkins():
         session.close()
 
 
-@checkin_controller.route('/<int:check_in_id>', methods=['PUT'], endpoint='update_checkin')
+@checkin_controller.route('/<int:check_in_id>', methods=['PATCH'], endpoint='update_checkin')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
@@ -415,8 +415,9 @@ def update_checkin(check_in_id):
         data = request.get_json()
         schema = {
             'name': {'type': 'string', 'required': False},
-            'check_in_start_time': {'type': 'string', 'required': False},
-            'check_in_end_time': {'type': 'string', 'required': False}
+            'check_in_start_time': {'type': 'string', 'required': False, 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+            'check_in_end_time': {'type': 'string', 'required': False, 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+            'need_check_schedule_time': {'type': 'boolean', 'required': False, 'allowed': [True, False]},  # 0 为普通用户，1 为管理员
         }
         result, reason = validate_schema(schema, data)
         if not result:
@@ -435,8 +436,6 @@ def update_checkin(check_in_id):
                 new_start = datetime.strptime(data['check_in_start_time'], "%Y-%m-%d %H:%M:%S")
             except ValueError:
                 return json_response('fail', '开始时间格式错误', code=422)
-            if new_start < schedule.start_time:
-                return json_response('fail', '签到开始时间不能早于值班开始时间', code=422)
             checkin.check_in_start_time = new_start
 
         if 'check_in_end_time' in data:
@@ -448,6 +447,9 @@ def update_checkin(check_in_id):
 
         if 'name' in data:
             checkin.name = data['name']
+
+        if 'need_check_schedule_time' in data:
+            checkin.need_check_schedule_time = data['need_check_schedule_time']
 
         session.commit()
         return json_response('success', '签到信息修改成功')
