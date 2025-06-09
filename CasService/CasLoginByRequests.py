@@ -5,9 +5,11 @@ import urllib.parse
 import urllib3
 import json
 import requests
-from LoadEnviroment.LoadEnv import cas_cookie_path
+import warnings
+from urllib3.exceptions import InsecureRequestWarning
 from bs4 import BeautifulSoup
 
+from LoadEnviroment.LoadEnv import cas_cookie_path, server_env
 from .globals import username, password, pan_sso_service, cas_baseurl, pan_baseurl, des_trans_mode
 from CasService import headers
 from CasService.DES import get_des_key
@@ -15,6 +17,9 @@ from requests.adapters import HTTPAdapter
 from datetime import datetime, timedelta
 
 local_headers = headers
+
+# 忽略 InsecureRequestWarning 警告
+warnings.simplefilter('ignore', InsecureRequestWarning)
 
 
 class CustomHttpAdapter(HTTPAdapter):
@@ -71,7 +76,8 @@ def try_redirect(session, location):
         location = "https://cas.shitac.net" + location
     res = session.get(location, verify=False, allow_redirects=False)
     location = res.headers.get('Location')
-    print(f"Redirect Location: {location}")
+    if server_env == 'development':
+        print(f"Redirect Location: {location}")
     return session, location
 
 
@@ -92,7 +98,7 @@ def save_cookies_as_json(tokenid: str, expires_sec: int):
     token_json = {
         "domain": "pan.shitac.net",
         "httpOnly": False, "name":
-        "tokenid", "path": "/",
+            "tokenid", "path": "/",
         "sameSite": "Lax",
         "secure": False,
         "value": tokenid,
