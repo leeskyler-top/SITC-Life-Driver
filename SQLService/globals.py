@@ -1,5 +1,5 @@
 from LoadEnviroment.LoadEnv import mysql_host, mysql_port, mysql_username, mysql_password, mysql_ssl_ca, mysql_ssl_cert, \
-    mysql_ssl_key
+    mysql_ssl_key, mysql_ssl_verify_cert
 import pymysql
 from pymysql.connections import Connection
 
@@ -14,7 +14,8 @@ config = {
     'ssl': {
         'ca': mysql_ssl_ca,
         'cert': mysql_ssl_cert,
-        'key': mysql_ssl_key
+        'key': mysql_ssl_key,
+        'verify_cert': mysql_ssl_verify_cert
     }
 }
 
