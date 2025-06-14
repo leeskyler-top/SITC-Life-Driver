@@ -17,7 +17,6 @@ mysql_ssl_ca = ""
 mysql_ssl_cert = ""
 mysql_ssl_key = ""
 mysql_ssl_verify_cert = ""
-mysql_ssl_required = ""
 jwt_secret_key = ""
 server_env = "development",
 pan_host = "",
@@ -33,7 +32,7 @@ rar_path = ""
 def load_env_json(filepath):
     global cas_baseurl, pan_host, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, \
         mysql_host, mysql_port, mysql_username, mysql_password, \
-        mysql_use_ssl, mysql_ssl_ca, mysql_ssl_cert, mysql_ssl_key, mysql_ssl_verify_cert, mysql_ssl_required, \
+        mysql_use_ssl, mysql_ssl_ca, mysql_ssl_cert, mysql_ssl_key, mysql_ssl_verify_cert, \
         jwt_secret_key, server_env, \
         wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
@@ -58,7 +57,6 @@ def load_env_json(filepath):
         mysql_ssl_cert = data['mysql_ssl_cert']
         mysql_ssl_key = data['mysql_ssl_key']
         mysql_ssl_verify_cert = data['mysql_ssl_verify_cert']
-        mysql_ssl_required = data['mysql_ssl_required']
         jwt_secret_key = data['jwt_secret_key']
         server_env = data['server_env']
         pan_host = data['pan_host']
