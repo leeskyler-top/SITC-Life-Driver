@@ -25,8 +25,17 @@ class SoftDeleteMixin:
 
 
 if mysql_use_ssl:
+    ssl_config = {
+        'ca': mysql_ssl_ca,
+        'cert': mysql_ssl_cert,
+        'key': mysql_ssl_key,
+        'check_hostname': mysql_ssl_verify_cert,
+    }
     engine = create_engine(
-        f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC?ssl_ca={mysql_ssl_ca}&ssl_cert={mysql_ssl_cert}&ssl_key={mysql_ssl_key}&ssl_verify_cert={mysql_ssl_verify_cert}&ssl_verify_identity={mysql_ssl_verify_cert}',
+        f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC',
+        connect_args={
+            'ssl': ssl_config
+        }
     )
 else:
     engine = create_engine(f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC')
