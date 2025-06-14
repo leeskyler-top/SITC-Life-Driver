@@ -15,7 +15,8 @@ config = {
         'ca': mysql_ssl_ca,
         'cert': mysql_ssl_cert,
         'key': mysql_ssl_key,
-        'verify_cert': mysql_ssl_verify_cert
+        'verify_cert': mysql_ssl_verify_cert,
+        'verify_identity': mysql_ssl_verify_cert
     }
 }
 

@@ -30,7 +30,8 @@ if mysql_use_ssl:
         'cert': mysql_ssl_cert,
         'key': mysql_ssl_key,
         'check_hostname': mysql_ssl_verify_cert,
-        'verify_cert': mysql_ssl_verify_cert
+        'verify_cert': mysql_ssl_verify_cert,
+        'verify_identity': mysql_ssl_verify_cert
     }
     engine = create_engine(
         f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC',
