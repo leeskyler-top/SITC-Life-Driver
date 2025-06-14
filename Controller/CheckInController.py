@@ -308,7 +308,7 @@ def cancel(check_in_user_id):
             msg_type='PRIVATE'
         )
         session.commit()
-        return json_response('success', '签到已取消')
+        return json_response('success', '签到已取消', checkin_user.to_dict(), code=200)
     except Exception as e:
         session.rollback()
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
@@ -367,7 +367,7 @@ def change_record(check_in_user_id):
             msg_text=message,
             msg_type='PRIVATE'
         )
-        return json_response('success', '签到时间修改成功')
+        return json_response('success', '签到时间修改成功', checkin_user.to_dict(), code=200)
     except Exception as e:
         session.rollback()
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
@@ -452,7 +452,7 @@ def update_checkin(check_in_id):
             checkin.need_check_schedule_time = data['need_check_schedule_time']
 
         session.commit()
-        return json_response('success', '签到信息修改成功')
+        return json_response('success', '签到信息修改成功', checkin.to_dict(),code=200)
     except Exception as e:
         session.rollback()
         return json_response('fail', f'修改失败：{str(e)}', code=500)

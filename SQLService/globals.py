@@ -1,4 +1,5 @@
-from LoadEnviroment.LoadEnv import mysql_host, mysql_port, mysql_username, mysql_password
+from LoadEnviroment.LoadEnv import mysql_host, mysql_port, mysql_username, mysql_password, mysql_ssl_ca, mysql_ssl_cert, \
+    mysql_ssl_key
 import pymysql
 from pymysql.connections import Connection
 
@@ -10,6 +11,11 @@ config = {
     'password': mysql_password,
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor,  # 返回字典形式，方便处理
+    'ssl': {
+        'ca': mysql_ssl_ca,
+        'cert': mysql_ssl_cert,
+        'key': mysql_ssl_key
+    }
 }
 
 

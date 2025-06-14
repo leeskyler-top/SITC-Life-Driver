@@ -3,7 +3,8 @@ from flask import jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from LoadEnviroment.LoadEnv import (mysql_host, mysql_port, mysql_username, mysql_password,
-                                    refresh_token_exp_sec, access_token_exp_sec)
+                                    refresh_token_exp_sec, access_token_exp_sec, mysql_use_ssl, mysql_ssl_ca,
+                                    mysql_ssl_cert, mysql_ssl_key, mysql_ssl_verify_cert, mysql_ssl_required)
 
 
 def json_response(status: str, message: str, data=None, code=200):
@@ -33,8 +34,12 @@ def validate_schema(schema, data):
     else:
         return True, ""
 
-
-engine = create_engine(f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC')
+if mysql_use_ssl:
+    engine = create_engine(
+        f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC?ssl_ca={mysql_ssl_ca}&ssl_cert={mysql_ssl_cert}&ssl_key={mysql_ssl_key}&ssl_verify_cert={mysql_ssl_verify_cert}&ssl_required={mysql_ssl_required}',
+    )
+else:
+    engine = create_engine(f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC')
 
 # 创建 session factory
 Session = sessionmaker(bind=engine)

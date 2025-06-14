@@ -235,7 +235,9 @@ def update_schedule(schedule_id):
                 checkIn.check_in_end_time = new_start_time + timedelta(minutes=10)
 
         session.commit()
-        return json_response("success", "值班计划更新成功", code=200)
+        schedule_dict = schedule.to_dict()
+        schedule_dict["check_ins"] = [ci.to_dict() for ci in schedule.check_ins]
+        return json_response("success", "值班计划更新成功", schedule_dict, code=200)
     except IntegrityError:
         session.rollback()
         return json_response('fail', '更新失败，存在冲突', code=400)

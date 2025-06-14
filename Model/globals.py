@@ -1,4 +1,5 @@
-from LoadEnviroment.LoadEnv import mysql_host, mysql_port, mysql_username, mysql_password
+from LoadEnviroment.LoadEnv import mysql_host, mysql_port, mysql_username, mysql_password, mysql_use_ssl, mysql_ssl_ca, \
+    mysql_ssl_cert, mysql_ssl_required, mysql_ssl_key, mysql_ssl_verify_cert
 from sqlalchemy import create_engine, Column, Boolean, Index
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.ext.declarative import declared_attr
@@ -23,7 +24,12 @@ class SoftDeleteMixin:
         return session.query(cls).filter(cls.is_deleted == True)
 
 
-engine = create_engine(f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC')
+if mysql_use_ssl:
+    engine = create_engine(
+        f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC?ssl_ca={mysql_ssl_ca}&ssl_cert={mysql_ssl_cert}&ssl_key={mysql_ssl_key}&ssl_verify_cert={mysql_ssl_verify_cert}&ssl_required={mysql_ssl_required}',
+    )
+else:
+    engine = create_engine(f'mysql+pymysql://{mysql_username}:{mysql_password}@{mysql_host}:{mysql_port}/SITC')
 
 # 创建 session factory
 Session = sessionmaker(bind=engine)

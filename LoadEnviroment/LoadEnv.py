@@ -12,6 +12,12 @@ mysql_host = "127.0.0.1"
 mysql_port = "3306"
 mysql_username = "root"
 mysql_password = ""
+mysql_use_ssl = ""
+mysql_ssl_ca = ""
+mysql_ssl_cert = ""
+mysql_ssl_key = ""
+mysql_ssl_verify_cert = ""
+mysql_ssl_required = ""
 jwt_secret_key = ""
 server_env = "development",
 pan_host = "",
@@ -27,6 +33,7 @@ rar_path = ""
 def load_env_json(filepath):
     global cas_baseurl, pan_host, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, \
         mysql_host, mysql_port, mysql_username, mysql_password, \
+        mysql_use_ssl, mysql_ssl_ca, mysql_ssl_cert, mysql_ssl_key, mysql_ssl_verify_cert, mysql_ssl_required, \
         jwt_secret_key, server_env, \
         wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
@@ -46,6 +53,12 @@ def load_env_json(filepath):
         mysql_port = data['mysql_port']
         mysql_username = data['mysql_username']
         mysql_password = data['mysql_password']
+        mysql_use_ssl = data['mysql_use_ssl']
+        mysql_ssl_ca = data['mysql_ssl_ca']
+        mysql_ssl_cert = data['mysql_ssl_cert']
+        mysql_ssl_key = data['mysql_ssl_key']
+        mysql_ssl_verify_cert = data['mysql_ssl_verify_cert']
+        mysql_ssl_required = data['mysql_ssl_required']
         jwt_secret_key = data['jwt_secret_key']
         server_env = data['server_env']
         pan_host = data['pan_host']
@@ -78,9 +91,14 @@ __all__ = [
     'mysql_port',
     'mysql_username',
     'mysql_password',
+    'mysql_use_ssl',
+    'mysql_ssl_ca',
+    'mysql_ssl_cert',
+    'mysql_ssl_key',
+    'mysql_ssl_verify_cert',
+    'mysql_ssl_required',
     'pan_host',
     'wechat_webhook_service',
-    'wechat_webhook_service_token',
     'chromedriver_path',
     'refresh_token_exp_sec',
     'access_token_exp_sec',
