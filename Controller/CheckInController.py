@@ -2,7 +2,7 @@ import pandas as pd
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from Handler.Handler import position_required
+from Handler.Handler import position_required, record_history
 from Model import CheckIn, CheckInUser, AskForLeaveApplication
 from Model.Message import Message
 from Model.Schedule import Schedule
@@ -15,6 +15,7 @@ checkin_controller = Blueprint('checkin_controller', __name__)
 
 @checkin_controller.route('/my', methods=['GET'], endpoint='list_my_checkins')
 @jwt_required()
+@record_history
 def list_my_checkins():
     session = Session()
     try:
@@ -32,6 +33,7 @@ def list_my_checkins():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def create_checkin(schedule_id):
     session = Session()
     try:
@@ -97,6 +99,7 @@ def create_checkin(schedule_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def assign_users_and_checkins():
     session = Session()
     try:
@@ -180,6 +183,7 @@ def assign_users_and_checkins():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def assign_users_by_check_in_id(check_in_id):
     session = Session()
     try:
@@ -250,6 +254,7 @@ def assign_users_by_check_in_id(check_in_id):
 
 @checkin_controller.route('/checkin/<int:check_in_id>', methods=['GET'], endpoint='checkin')
 @jwt_required()
+@record_history
 def checkin(check_in_id):
     session = Session()
     try:
@@ -283,6 +288,7 @@ def checkin(check_in_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def cancel(check_in_user_id):
     session = Session()
     try:
@@ -320,6 +326,7 @@ def cancel(check_in_user_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def change_record(check_in_user_id):
     session = Session()
     try:
@@ -379,6 +386,7 @@ def change_record(check_in_user_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def list_checkins():
     session = Session()
     try:
@@ -409,6 +417,7 @@ def list_checkins():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def update_checkin(check_in_id):
     session = Session()
     try:
@@ -464,6 +473,7 @@ def update_checkin(check_in_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def delete_checkin(check_in_id):
     session = Session()
     try:

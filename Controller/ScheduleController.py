@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 import pandas as pd
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from Handler.Handler import position_required
+from Handler.Handler import position_required, record_history
 from Model.Schedule import TypeEnum, Schedule
 from Model.User import PositionEnum
 from .globals import json_response, Session, validate_schema
@@ -18,6 +18,7 @@ schedule_controller = Blueprint('schedule_controller', __name__)
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def create_schedule():
     """
     创建值班计划
@@ -69,6 +70,7 @@ def create_schedule():
 
 @schedule_controller.route('/upload', methods=['POST'], endpoint='batch_create_schedules')
 @jwt_required()
+@record_history
 def batch_create_schedules():
     """
     批量创建值班安排及对应主签到记录
@@ -160,6 +162,7 @@ def batch_create_schedules():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def get_schedule(schedule_id):
     schedule = Schedule.get_schedule_by_id(schedule_id)
     if not schedule:
@@ -171,6 +174,7 @@ def get_schedule(schedule_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def delete_schedule(schedule_id):
     schedule = Schedule.get_schedule_by_id(schedule_id)
     if not schedule:
@@ -181,6 +185,7 @@ def delete_schedule(schedule_id):
 
 @schedule_controller.route('', methods=['GET'], endpoint='get_all_schedules')
 @jwt_required()
+@record_history
 def get_all_schedules():
     schedules = Schedule.get_all_schedules()
     return json_response("success", "所有值班计划已列出", data=schedules, code=200)
@@ -190,6 +195,7 @@ def get_all_schedules():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def update_schedule(schedule_id):
     """
     更新值班计划

@@ -4,6 +4,7 @@ from Model.CheckIn import CheckIn
 from Model.CheckInUser import CheckInUser
 from Model.AskForLeaveApplication import AskForLeaveApplication
 from Model.Message import Message
+from Model.History import History
 from SQLService.Operation import create_database_and_table
 from .globals import Base, engine
 
@@ -21,5 +22,6 @@ __all__ = [
     "Schedule",
     "CheckIn",
     "CheckInUser",
-    "AskForLeaveApplication"
+    "AskForLeaveApplication",
+    "History"
 ]

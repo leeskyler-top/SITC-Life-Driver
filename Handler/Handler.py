@@ -1,7 +1,9 @@
-from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from functools import wraps
-from flask import jsonify
+from flask import jsonify, request
+
+from Model.History import History, MethodEnum
 from Model.User import User, PositionEnum
 from Controller.globals import json_response  # 导入统一的 JSON 响应函数
 
@@ -49,7 +51,7 @@ def admin_required(f):
         user = User.get_user_by_id(current_user_id)  # 替换为你的查询方法
 
         if not user or not user["is_admin"]:
-            return jsonify({"status": "fail", "message": "权限不足"}), 403  # 403 禁止访问
+            return jsonify({"status": "fail", "msg": "权限不足"}), 403  # 403 禁止访问
 
         return f(*args, **kwargs)
 
@@ -84,3 +86,37 @@ def position_required(positions=None, is_admin_required=False):
         return wrapper
 
     return decorator
+
+
+def record_history(f):
+    """
+    智能历史记录装饰器：
+    - 只记录成功通过JWT认证的请求
+    - 自动排除OPTIONS预检请求
+    - 错误处理不会影响主流程
+    """
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # 先执行视图函数获取响应
+        response = f(*args, **kwargs)
+        # 只在响应成功时记录历史(2xx/3xx状态码)
+        if 200 <= response[1] < 400:
+            try:
+                # 检查请求是否携带有效JWT(不抛出异常)
+                verify_jwt_in_request(optional=True)
+                user_id = get_jwt_identity()
+
+                if user_id and request.method != 'OPTIONS':
+                    method_enum = MethodEnum[request.method]
+                    History.add_history(
+                        user_id=user_id,
+                        method=method_enum,
+                        url=request.url
+                    )
+            except Exception as e:
+                print(f"历史记录失败: {str(e)}")
+
+        return response
+
+    return decorated_function

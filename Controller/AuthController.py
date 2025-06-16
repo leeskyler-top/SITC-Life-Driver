@@ -1,3 +1,4 @@
+from Handler.Handler import record_history
 from .globals import access_token_exp_sec, refresh_token_exp_sec
 from flask import Blueprint, request
 from flask_jwt_extended import (
@@ -51,6 +52,7 @@ def login():
 # 登出逻辑
 @auth_controller.route('/logout', methods=['DELETE'])
 @jwt_required()
+@record_history
 def logout():
     # 实际登出逻辑是在客户端删除 Token
     return json_response('success', '已成功登出')

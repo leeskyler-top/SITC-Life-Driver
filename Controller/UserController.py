@@ -6,7 +6,7 @@ from flask import Blueprint, request, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from .globals import json_response, validate_schema, Session
 from Model.User import User, PositionEnum, GenderEnum, DepartmentEnum, PoliticalLandscapeEnum
-from Handler.Handler import admin_required, position_required
+from Handler.Handler import admin_required, position_required, record_history
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 import io
@@ -424,6 +424,7 @@ def delete_user(user_id):
 
 @user_controller.route('', methods=['GET'], endpoint='get_all_users')
 @admin_required
+@record_history
 def get_all_users():
     """
     获取所有用户信息
@@ -434,6 +435,7 @@ def get_all_users():
 
 @user_controller.route('/my', methods=['GET'], endpoint='get_my_info')
 @jwt_required()
+@record_history
 def get_my_info():
     """
     获取某一用户信息
@@ -448,6 +450,7 @@ def get_my_info():
 
 @user_controller.route('/count', methods=['GET'], endpoint='calculate_statistics')
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def calculate_statistics():
     session = Session()
     try:
@@ -518,6 +521,7 @@ def calculate_statistics():
 
 @user_controller.route('/export', methods=['GET'], endpoint='export_current_user')
 @admin_required  # 确保用户已登录
+@record_history
 def export_all_users():
     """
     导出所有用户信息为 CSV 格式
@@ -564,6 +568,7 @@ def export_all_users():
 
 @user_controller.route('/deleted', methods=['GET'], endpoint='show_deleted_user')
 @admin_required  # 确保用户已登录
+@record_history
 def show_deleted_users():
     deleted_users = User.get_all_deleted_users()
     return json_response("success", "用户列表获取成功", data=deleted_users, code=200)
@@ -571,6 +576,7 @@ def show_deleted_users():
 
 @user_controller.route('/restore/<int:user_id>', methods=['PATCH'], endpoint='restore_deleted_user')
 @admin_required  # 确保用户已登录
+@record_history
 def restore_deleted_user(user_id):
     status, reason, code = User.restore_deleted_user(user_id)
     if status:

@@ -25,6 +25,9 @@ chromedriver_path = None
 cas_login_method = "requests",
 refresh_token_exp_sec = 1800
 access_token_exp_sec = 180
+save_histories = False
+save_histories_days = 7
+save_histories_count = None
 rar_path = ""
 
 
@@ -36,7 +39,8 @@ def load_env_json(filepath):
         jwt_secret_key, server_env, \
         wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
-        refresh_token_exp_sec, access_token_exp_sec, rar_path
+        refresh_token_exp_sec, access_token_exp_sec, rar_path, \
+        save_histories, save_histories_days, save_histories_count
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -64,6 +68,9 @@ def load_env_json(filepath):
         chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True and data['cas_login_method'] == "selenium" else None
         refresh_token_exp_sec = data['refresh_token_exp_sec']
         access_token_exp_sec = data['access_token_exp_sec']
+        save_histories = data['save_histories']
+        save_histories_days = data['save_histories_days']
+        save_histories_count = data['save_histories_count']
         rar_path = data['rar_path']
 
 
@@ -94,10 +101,12 @@ __all__ = [
     'mysql_ssl_cert',
     'mysql_ssl_key',
     'mysql_ssl_verify_cert',
-    'mysql_ssl_required',
     'pan_host',
     'wechat_webhook_service',
     'chromedriver_path',
     'refresh_token_exp_sec',
+    'save_histories',
+    'save_histories_days',
+    'save_histories_count',
     'access_token_exp_sec',
 ]

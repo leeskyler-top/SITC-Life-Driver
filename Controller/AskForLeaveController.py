@@ -7,7 +7,6 @@ from Model.User import User
 from Model.User import PositionEnum
 from .globals import json_response, Session, validate_schema
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
 
 ask_for_leave_controller = Blueprint('ask_for_leave_controller', __name__)
 

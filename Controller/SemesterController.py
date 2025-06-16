@@ -1,6 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from Handler.Handler import position_required
+from Handler.Handler import position_required, record_history
 from Model.User import PositionEnum
 from SQLService.Operation import read_semester_config_from_sql, update_current_semester_info
 from .globals import json_response, validate_schema
@@ -10,6 +10,7 @@ semester_controller = Blueprint('semester_controller', __name__)
 
 @semester_controller.route('', methods=['GET'])
 @jwt_required()
+@record_history
 def get_semester():
     try:
         result = read_semester_config_from_sql()
@@ -32,6 +33,7 @@ def get_semester():
 
 @semester_controller.route('', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def update_semester():
     try:
         data = request.get_json()

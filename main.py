@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from Controller.AskForLeaveController import ask_for_leave_controller
 from Controller.CheckInController import checkin_controller
+from Controller.HistoryController import history_controller
 from Controller.MessageController import message_controller
 from Controller.ScheduleController import schedule_controller
 from Controller.UserController import user_controller
@@ -37,6 +38,7 @@ app.register_blueprint(message_controller, url_prefix='/api/v1/message')
 app.register_blueprint(schedule_controller, url_prefix='/api/v1/schedule')
 app.register_blueprint(checkin_controller, url_prefix='/api/v1/checkin')
 app.register_blueprint(ask_for_leave_controller, url_prefix='/api/v1/asl')
+app.register_blueprint(history_controller, url_prefix='/api/v1/security-history')
 
 handle_global_exceptions(app)
 

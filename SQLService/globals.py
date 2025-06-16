@@ -1,5 +1,5 @@
 from LoadEnviroment.LoadEnv import mysql_host, mysql_port, mysql_username, mysql_password, mysql_ssl_ca, mysql_ssl_cert, \
-    mysql_ssl_key, mysql_ssl_verify_cert
+    mysql_ssl_key, mysql_ssl_verify_cert, mysql_use_ssl
 import pymysql
 from pymysql.connections import Connection
 
@@ -11,15 +11,16 @@ config = {
     'password': mysql_password,
     'charset': 'utf8mb4',
     'cursorclass': pymysql.cursors.DictCursor,  # 返回字典形式，方便处理
-    'ssl': {
+}
+
+if mysql_use_ssl:
+    config['ssl'] = {
         'ca': mysql_ssl_ca,
         'cert': mysql_ssl_cert,
         'key': mysql_ssl_key,
         'verify_cert': mysql_ssl_verify_cert,
         'verify_identity': mysql_ssl_verify_cert
     }
-}
-
 
 def get_connection(database=None):
     """

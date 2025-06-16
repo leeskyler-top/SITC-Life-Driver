@@ -1,7 +1,7 @@
 from flask import Blueprint, request, Response
 from flask_jwt_extended import jwt_required
 
-from Handler.Handler import position_required
+from Handler.Handler import position_required, record_history
 from Model.User import PositionEnum
 from .globals import json_response, validate_schema, non_empty_string
 from SQLService.Operation import truncate_template, insert_template, delete_template, update_current_semester_info, \
@@ -15,6 +15,7 @@ template_controller = Blueprint('template_controller', __name__)
 @template_controller.route('/<int:template_id>', methods=['PATCH'], endpoint='update_template_by_id')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def update_template_by_id(template_id):
     try:
         data = request.get_json()
@@ -64,6 +65,7 @@ def update_template_by_id(template_id):
 
 @template_controller.route('', methods=['DELETE'], endpoint='empty_template')
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def empty_template():
     """
     清空 template 表
@@ -78,6 +80,7 @@ def empty_template():
 @template_controller.route('/<int:template_id>', methods=['DELETE'], endpoint='delete_template_by_id')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def delete_template_by_id(template_id):
     """
     清空 template 表
@@ -94,6 +97,7 @@ def delete_template_by_id(template_id):
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER]
 )
+@record_history
 def add_template():
     try:
         data = request.get_json()
@@ -143,6 +147,7 @@ def add_template():
 
 @template_controller.route('/upload', methods=['POST'], endpoint='upload_template')
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def upload_template():
     """
     上传并处理 CSV 文件，将数据插入 template 表
@@ -203,6 +208,7 @@ def upload_template():
 
 @template_controller.route('/download', methods=['GET'], endpoint="download_templates")
 @jwt_required()
+@record_history
 def download_templates():
     """
     下载 template 表中的所有数据为 CSV 文件
@@ -230,6 +236,7 @@ def download_templates():
 
 @template_controller.route('', methods=['GET'], endpoint="get_templates")
 @jwt_required()
+@record_history
 def get_templates():
     """
     查询 template 表的所有记录

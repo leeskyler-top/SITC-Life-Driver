@@ -3,7 +3,7 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from datetime import date
 
 from AnyshareService.AnyShareBaseService import listDir
-from Handler.Handler import admin_required, position_required
+from Handler.Handler import admin_required, position_required, record_history
 from Model.User import PositionEnum, User
 from .globals import json_response, validate_schema
 from SQLService.Operation import read_template_from_sql, read_semester_config_from_sql
@@ -17,6 +17,7 @@ driver_controller = Blueprint('driver_controller', __name__)
 
 @driver_controller.route('/docid/groupid', methods=['GET'])
 @admin_required
+@record_history
 def get_group_id():
     """
     获取群组 ID
@@ -30,6 +31,7 @@ def get_group_id():
 
 @driver_controller.route('/docid/lifedir', methods=['GET'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def get_lifedir_id():
     """
     获取群组 ID
@@ -43,6 +45,7 @@ def get_lifedir_id():
 
 @driver_controller.route('/docid/semesterdir', methods=['GET'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def get_semesterdir_id():
     """
     获取群组 ID
@@ -59,6 +62,7 @@ def get_semesterdir_id():
 
 @driver_controller.route('/dir/all/create_by_semseter', methods=['GET'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def create_semester_all_dir():
     try:
         semester_name, start_month, end_month = read_semester_config_from_sql()
@@ -79,6 +83,7 @@ def create_semester_all_dir():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
      PositionEnum.INTERN_SUMMARY_LEADER])
+@record_history
 def create_semester_month_dir():
     try:
         data = request.get_json()
@@ -114,6 +119,7 @@ def create_semester_month_dir():
 
 @driver_controller.route('/dir/month/create_current_month', methods=['GET'])
 @jwt_required()
+@record_history
 def create_current_month_dir():
     try:
         semester_name, start_month, end_month = read_semester_config_from_sql()
@@ -133,6 +139,7 @@ def create_current_month_dir():
 
 @driver_controller.route('/dir/daily/create_by_semseter', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def create_semester_other_daily_dir():
     try:
         data = request.get_json()
@@ -174,6 +181,7 @@ def create_semester_other_daily_dir():
 
 @driver_controller.route('/dir/list/life_dep', methods=['GET'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def list_life_dep_dir():
     req, code = listLifeDepDir()
     try:
@@ -189,6 +197,7 @@ def list_life_dep_dir():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
      PositionEnum.INTERN_SUMMARY_LEADER])
+@record_history
 def list_semester_dir():
     req, code = listSemesterDir()
     try:
@@ -202,6 +211,7 @@ def list_semester_dir():
 
 @driver_controller.route('/dir/list/month', methods=['POST'])
 @jwt_required()
+@record_history
 def list_month_dir():
     try:
         data = request.get_json()
@@ -246,6 +256,7 @@ def check_valid_access(user, docid):
 
 @driver_controller.route('/dir/list/other', methods=['POST'])
 @jwt_required()
+@record_history
 def list_other_dir():
     try:
         data = request.get_json()
@@ -278,6 +289,7 @@ def list_other_dir():
 
 @driver_controller.route('/dir/del', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
 def delete_dir():
     try:
         data = request.get_json()
@@ -309,6 +321,7 @@ def delete_dir():
 
 @driver_controller.route('/file/del', methods=['POST'])
 @jwt_required()
+@record_history
 def delete_file():
     try:
         data = request.get_json()
@@ -349,6 +362,7 @@ def delete_file():
 
 @driver_controller.route('/dir/link', methods=['POST'])
 @jwt_required()
+@record_history
 def get_link():
     try:
         data = request.get_json()
@@ -398,6 +412,7 @@ def get_link():
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
      PositionEnum.INTERN_SUMMARY_LEADER])
+@record_history
 def download_a_zip():
     try:
         data = request.get_json()
