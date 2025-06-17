@@ -1,7 +1,8 @@
+import flask.wrappers
 from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from functools import wraps
-from flask import jsonify, request
+from flask import jsonify, request, Response
 
 from Model.History import History, MethodEnum
 from Model.User import User, PositionEnum
@@ -101,7 +102,11 @@ def record_history(f):
         # 先执行视图函数获取响应
         response = f(*args, **kwargs)
         # 只在响应成功时记录历史(2xx/3xx状态码)
-        if 200 <= response[1] < 400:
+        if (
+            (isinstance(response, tuple) and 200 <= response[1] < 400)
+                or
+            (isinstance(response, flask.wrappers.Response) and response.status == "200 OK")
+        ):
             try:
                 # 检查请求是否携带有效JWT(不抛出异常)
                 verify_jwt_in_request(optional=True)
