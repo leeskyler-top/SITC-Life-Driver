@@ -29,6 +29,7 @@ save_histories = False
 save_histories_days = 7
 save_histories_count = None
 rar_path = ""
+upload_folder = ""
 
 
 # 读取 .env.json 文件
@@ -40,7 +41,7 @@ def load_env_json(filepath):
         wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
         refresh_token_exp_sec, access_token_exp_sec, rar_path, \
-        save_histories, save_histories_days, save_histories_count
+        save_histories, save_histories_days, save_histories_count, upload_folder
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -72,6 +73,9 @@ def load_env_json(filepath):
         save_histories_days = data['save_histories_days']
         save_histories_count = data['save_histories_count']
         rar_path = data['rar_path']
+        upload_folder = data['upload_folder']
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
 
 
 # 默认加载 .env.json 文件（可选）
@@ -109,4 +113,6 @@ __all__ = [
     'save_histories_days',
     'save_histories_count',
     'access_token_exp_sec',
+    'rar_path',
+    'upload_folder'
 ]

@@ -4,8 +4,25 @@ import os
 import io
 import base64
 import shutil
-
+from werkzeug.utils import secure_filename
+import imghdr
 from LoadEnviroment.LoadEnv import rar_path
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+def allowed_file(filename):
+    """检查文件扩展名和实际类型"""
+    return '.' in filename and \
+        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def validate_image(file_stream):
+    """验证图片的真实类型"""
+    header = file_stream.read(32)
+    file_stream.seek(0)
+    format = imghdr.what(None, header)
+    return format in ALLOWED_EXTENSIONS
 
 
 def rm_results():

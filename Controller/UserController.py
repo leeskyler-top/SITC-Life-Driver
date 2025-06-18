@@ -17,6 +17,7 @@ user_controller = Blueprint('user_controller', __name__)
 
 @user_controller.route('', methods=['POST'], endpoint='create_user')
 @admin_required
+@record_history
 def create_user():
     """
     创建用户，默认密码为账户名
@@ -111,6 +112,7 @@ def create_user():
 
 @user_controller.route('/upload', methods=['POST'], endpoint='batch_create_users')
 @admin_required  # 需要管理员权限
+@record_history
 def batch_create_users():
     """
     批量创建用户，默认密码为学号
@@ -228,6 +230,7 @@ def batch_create_users():
 # 管理员重置用户密码接口
 @user_controller.route('/pwd/reset/<int:user_id>', methods=['GET'], endpoint='reset_user_password')
 @admin_required  # 确保用户已登录
+@record_history
 def reset_user_password(user_id):
     current_user_id = get_jwt_identity()  # 获取当前用户的 ID
 
@@ -272,6 +275,7 @@ def generate_random_password(length=8):
 # 用户更新密码接口
 @user_controller.route('/pwd/update', methods=['PATCH'], endpoint='update_own_password')
 @jwt_required()  # 确保用户已登录
+@record_history
 def update_own_password():
     current_user_id = get_jwt_identity()  # 获取当前用户的 ID
 
@@ -324,6 +328,7 @@ def update_own_password():
 
 @user_controller.route('/<int:user_id>', methods=['PATCH'], endpoint='patch_user')
 @admin_required
+@record_history
 def patch_user(user_id):
     """
     更新用户信息，除了密码和学生ID字段
@@ -392,6 +397,7 @@ def patch_user(user_id):
 
 @user_controller.route('/<int:user_id>', methods=['GET'], endpoint='get_user')
 @admin_required
+@record_history
 def get_user(user_id):
     """
     获取某一用户信息
@@ -405,6 +411,7 @@ def get_user(user_id):
 
 @user_controller.route('/<int:user_id>', methods=['DELETE'], endpoint='delete_user')
 @admin_required
+@record_history
 def delete_user(user_id):
     """
     删除某一用户，但不能删除自己
