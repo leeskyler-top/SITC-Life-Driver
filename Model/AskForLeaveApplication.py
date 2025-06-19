@@ -34,14 +34,11 @@ class AskForLeaveApplication(Base):
     updated_at = Column(DateTime, onupdate=func.now())
 
     check_in_user = relationship("CheckInUser", back_populates="ask_for_leaves")
-
     def to_dict(self):
-        check_in = self.check_in_user.check_in if self.check_in_user else None
-
+        # check_in = self.check_in_user.check_in if self.check_in_user else None
         return {
             "id": self.id,
-            "check_in_user": self.check_in_user,
-            "check_in": check_in,
+            "check_in_user": self.check_in_user.to_dict(),
             "asl_type": self.asl_type.value,
             "asl_reason": self.asl_reason,
             "image_url": json.loads(self.image_url) if self.image_url else None,
@@ -109,19 +106,18 @@ class AskForLeaveApplication(Base):
 
         leave_application = cls(
             check_in_user_id=check_in_user_id,
-            asl_type=asl_type,
+            asl_type=AskForLeaveEnum(asl_type),
             asl_reason=asl_reason,
             image_url=image_url,
-            status=status  # 初始状态为待审核
+            status=StatusEnum(status)  # 初始状态为待审核
         )
         session.add(leave_application)
         try:
             session.commit()  # 提交事务，保存数据到数据库
             session.refresh(leave_application)  # 刷新对象
+            return True, leave_application.to_dict(), 201
         except Exception as e:
             session.rollback()  # 回滚事务
-            session.close()  # 关闭会话
             return False, f"创建请假失败: {str(e)}", 500
-
-        session.close()  # 关闭会话
-        return True, leave_application.to_dict(), 201
+        finally:
+            session.close()

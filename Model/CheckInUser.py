@@ -46,9 +46,8 @@ class CheckInUser(Base):
         # 通过 ORM 关系直接访问请假申请
         approved_asl = next((
             asl for asl in self.ask_for_leaves
-            if asl.status == StatusEnum.ACCEPTED
+            if asl.status.value == StatusEnum.ACCEPTED.value
         ), None)
-
         if approved_asl:
             return approved_asl.asl_type.value
 
@@ -63,7 +62,6 @@ class CheckInUser(Base):
         if self.check_in.need_check_schedule_time and schedule_start_time:
             if self.check_in_time > schedule_start_time:
                 return CheckInStatusEnum.LATE.value
-        print(self.check_in.need_check_schedule_time)
         return CheckInStatusEnum.NORMAL.value
 
     def to_dict(self):
