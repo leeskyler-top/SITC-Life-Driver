@@ -629,8 +629,6 @@ def attendance_stats():
 
             attendance_stats['user_data'].append(user_data)
 
-
-
         # 统计每个用户的数据
         for user in active_users:
             # 获取该用户的所有 CheckInUser 记录
@@ -672,13 +670,16 @@ def attendance_stats():
         # 计算出勤率、缺勤率和迟到率
         if department_stats['total_schedule'] > 0:
             department_stats['attendance_rate'] = department_stats['total_attendance'] / department_stats['total_schedule']
-            department_stats['absenteeism_rate'] = (department_stats['total_absenteeism'] / department_stats['total_schedule']) if department_stats['total_schedule'] > 0 else 0
-            department_stats['late_rate'] = (department_stats['total_late'] / department_stats['total_schedule']) if department_stats['total_schedule'] > 0 else 0
+            department_stats['absenteeism_rate'] = (
+                        department_stats['total_absenteeism'] / department_stats['total_schedule']) if department_stats[
+                                                                                                           'total_schedule'] > 0 else 0
+            department_stats['late_rate'] = (department_stats['total_late'] / department_stats['total_schedule']) if \
+            department_stats['total_schedule'] > 0 else 0
         else:
             department_stats['attendance_rate'] = 0
             department_stats['absenteeism_rate'] = 0
             department_stats['late_rate'] = 0
-        attendance_stats['department_data']=department_stats
+        attendance_stats['department_data'] = department_stats
         return json_response('success', '统计数据获取成功', data=attendance_stats)
     except Exception as e:
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
