@@ -4,6 +4,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from Handler.Handler import position_required, record_history
 from Model import CheckIn, CheckInUser, AskForLeaveApplication
+from Model.AskForLeaveApplication import StatusEnum
+from Model.CheckInUser import CheckInStatusEnum
 from Model.Message import Message
 from Model.Schedule import Schedule
 from Model.User import PositionEnum, User
@@ -367,7 +369,7 @@ def change_record(check_in_user_id):
         # 获取相关信息
         user = session.query(User).filter_by(id=checkin_user.user_id).first()
         schedule = session.query(Schedule).filter_by(id=checkin.schedule_id).first()
-        message = f"管理员对你在 {schedule.schedule_name}-{schedule.schedule_start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.schedule_type.value  } 的 {checkin.name} 签到时间进行了更改，如有疑问请联系管理员。"
+        message = f"管理员对你在 {schedule.schedule_name}-{schedule.schedule_start_time.strftime('%Y-%m-%d %H:%M:%S')}-{schedule.schedule_type.value} 的 {checkin.name} 签到时间进行了更改，如有疑问请联系管理员。"
         Message.add_message(
             user_id=user.id,
             msg_title="个人签到状态变更",
@@ -424,9 +426,12 @@ def update_checkin(check_in_id):
         data = request.get_json()
         schema = {
             'name': {'type': 'string', 'required': False},
-            'check_in_start_time': {'type': 'string', 'required': False, 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
-            'check_in_end_time': {'type': 'string', 'required': False, 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
-            'need_check_schedule_time': {'type': 'boolean', 'required': False, 'allowed': [True, False]},  # 0 为普通用户，1 为管理员
+            'check_in_start_time': {'type': 'string', 'required': False,
+                                    'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+            'check_in_end_time': {'type': 'string', 'required': False,
+                                  'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+            'need_check_schedule_time': {'type': 'boolean', 'required': False, 'allowed': [True, False]},
+            # 0 为普通用户，1 为管理员
         }
         result, reason = validate_schema(schema, data)
         if not result:
@@ -461,7 +466,7 @@ def update_checkin(check_in_id):
             checkin.need_check_schedule_time = data['need_check_schedule_time']
 
         session.commit()
-        return json_response('success', '签到信息修改成功', checkin.to_dict(),code=200)
+        return json_response('success', '签到信息修改成功', checkin.to_dict(), code=200)
     except Exception as e:
         session.rollback()
         return json_response('fail', f'修改失败：{str(e)}', code=500)
@@ -496,100 +501,186 @@ def delete_checkin(check_in_id):
         session.close()
 
 
-@checkin_controller.route('/attendance/statistics', methods=['GET'], endpoint='attendance_statistics')
-@jwt_required()
-def attendance_statistics():
-    user_id = get_jwt_identity()
+@checkin_controller.route('/attendance/stats', methods=['POST'], endpoint='attendance_stats')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+@record_history
+def attendance_stats():
+    data = request.get_json()
+    if not data:
+        return json_response('fail', '未提供请求数据', code=422)
+
+    schema = {
+        'start_time': {
+            'type': 'string',
+            'required': True,
+            'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+        },
+        'end_time': {
+            'type': 'string',
+            'required': True,
+            'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
+        },
+    }
+
+    result, reason = validate_schema(schema, data)
+    if not result:
+        return json_response('fail', f"请求数据格式错误: {reason}", code=422)
+
     session = Session()
-
-    start_time = request.args.get('start_time')
-    end_time = request.args.get('end_time')
-
-    if not start_time or not end_time:
-        return json_response('fail', '请提供起止时间', code=400)
-
     try:
-        # 转换时间格式
-        start_date = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S')
-        end_date = datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+        # 解析请求参数
+        start_time_str = data['start_time']
+        end_time_str = data['end_time']
 
-        if start_date >= end_date:
-            return json_response('fail', '结束时间必须晚于开始时间', code=400)
+        if not start_time_str or not end_time_str:
+            return json_response('fail', '缺少时间参数', code=422)
 
-        # 查询签到记录
-        check_in_users = session.query(CheckInUser).join(CheckIn).filter(
-            CheckIn.schedule_id == Schedule.id,
-            CheckIn.check_in_start_time >= start_date,
-            CheckIn.check_in_end_time <= end_date,
-            CheckInUser.user_id == user_id
-        ).all()
+        try:
+            start_time = datetime.strptime(start_time_str, '%Y-%m-%d %H:%M:%S')
+            end_time = datetime.strptime(end_time_str, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return json_response('fail', '时间格式应为 %Y-%m-%d %H:%M:%S', code=422)
 
-        # 统计个人出勤率和旷班次数
-        attendance_count = len(check_in_users)
-        absentee_count = sum(1 for user in check_in_users if not user.check_in_time)
+        if start_time >= end_time:
+            return json_response('fail', '开始时间必须早于结束时间', code=422)
 
-        # 计算每月平均出勤次数
-        monthly_attendance = pd.Series()
-        for user in check_in_users:
-            month = user.check_in.check_in_start_time.strftime('%Y-%m')  # 提取年月
-            monthly_attendance[month] = monthly_attendance.get(month, 0) + 1
+        # 获取活跃用户
+        active_users = User.query_active(session)
 
-        average_monthly_attendance = monthly_attendance.mean() if not monthly_attendance.empty else 0
+        # 统计部门的数据（例如：所有用户的出勤率等）
+        department_stats = {
+            'total_sick_leaves': 0,
+            'total_ordinary_leaves': 0,
+            'total_attendance': 0,
+            'total_absenteeism': 0,
+            'total_late': 0,
+            'total_schedule': 0,
+        }
 
-        # 获取部门的平均出勤率
-        department_id = session.query(User).filter_by(id=user_id).first().department
-        department_checkins = session.query(CheckInUser).join(CheckIn).join(User).filter(
-            CheckIn.schedule_id == Schedule.id,
-            CheckIn.check_in_start_time >= start_date,
-            CheckIn.check_in_end_time <= end_date,
-            User.department == department_id
-        ).all()
+        attendance_stats = {
+            'user_data': [],
+            'department_data': department_stats
+        }
 
-        department_attendance_count = len(department_checkins)
-        department_absentee_count = sum(1 for user in department_checkins if not user.check_in_time)
-        department_average_attendance_rate = (department_attendance_count / (
-                department_attendance_count + department_absentee_count)) * 100 if department_attendance_count + department_absentee_count > 0 else 0
+        # 统计每个用户的数据
+        for user in active_users:
+            user_data = {
+                'user_id': user.studentId,
+                'department': user.department.value,
+                'classname': user.classname,
+                'user_name': user.name,
+                'approved_sick_leaves': 0,
+                'approved_competition_leaves': 0,
+                'approved_ordinary_leaves': 0,
+                'attendance_count': 0,
+                'absence_count': 0,
+                'late_count': 0,
+                'schedule_count': 0,
+                'attendance_rate': 0,
+                'absence_rate': 0,
+            }
 
-        # 查询请假记录
-        leave_applications = session.query(AskForLeaveApplication).filter(
-            AskForLeaveApplication.check_in_user_id == user_id,
-            AskForLeaveApplication.created_at >= start_date,
-            AskForLeaveApplication.created_at <= end_date
-        ).all()
+            # 获取该用户的所有 CheckInUser 记录
+            check_in_users = session.query(CheckInUser).join(CheckIn).filter(
+                CheckInUser.user_id == user.id,
+                CheckIn.check_in_start_time >= start_time,
+                CheckIn.check_in_end_time <= end_time,
+                CheckIn.is_main_check_in == True,
+            ).all()
 
-        leave_count = len(leave_applications)
-        leave_counts_by_type = {}
+            for ciu in check_in_users:
+                # 只统计“未开始”状态的记录不算在出勤统计中
+                if ciu.get_status() == CheckInStatusEnum.NOT_STARTED.value:
+                    continue
 
-        for application in leave_applications:
-            leave_type = application.asl_type
-            leave_counts_by_type[leave_type] = leave_counts_by_type.get(leave_type, 0) + 1
+                user_data['schedule_count'] += 1  # 应出勤次数
 
-        # 统计部门请假数据
-        department_leave_applications = session.query(AskForLeaveApplication).join(User).filter(
-            AskForLeaveApplication.created_at >= start_date,
-            AskForLeaveApplication.created_at <= end_date,
-            User.department == department_id
-        ).all()
+                if ciu.check_in_time:
+                    user_data['attendance_count'] += 1  # 实际出勤次数
+                    # 判断是否迟到
+                    if ciu.check_in_time > ciu.check_in.check_in_start_time:
+                        user_data['late_count'] += 1  # 迟到
 
-        department_leave_count = len(department_leave_applications)
-        department_leave_count_by_type = {}
+            # 统计请假情况
+            leave_applications = session.query(AskForLeaveApplication).filter(
+                AskForLeaveApplication.check_in_user_id.in_([ciu.id for ciu in check_in_users]),  # 根据 CheckInUser 的 ID
+                AskForLeaveApplication.status == StatusEnum.ACCEPTED,
+                AskForLeaveApplication.created_at.between(start_time, end_time)
+            ).all()
 
-        for application in department_leave_applications:
-            leave_type = application.asl_type
-            department_leave_count_by_type[leave_type] = department_leave_count_by_type.get(leave_type, 0) + 1
+            for application in leave_applications:
+                if application.asl_type == '病假':
+                    user_data['approved_sick_leaves'] += 1
+                elif application.asl_type == '事假':
+                    user_data['approved_ordinary_leaves'] += 1
+                elif application.asl_type == '符合要求的赛事或集训':  # 排除赛事
+                    continue  # 不计入
 
-        return json_response('success', '统计数据获取成功', data={
-            'individual_attendance_count': attendance_count,
-            'individual_absentee_count': absentee_count,
-            'average_monthly_attendance': average_monthly_attendance,
-            'department_average_attendance_rate': department_average_attendance_rate,
-            'individual_leave_count': leave_count,
-            'individual_leave_count_by_type': leave_counts_by_type,
-            'department_leave_count': department_leave_count,
-            'department_leave_count_by_type': department_leave_count_by_type
-        })
+            user_data['absence_count'] = user_data['schedule_count'] - user_data['attendance_count']  # 缺勤次数
 
+            # 计算出勤率
+            if user_data['schedule_count'] > 0:
+                user_data['attendance_rate'] = user_data['attendance_count'] / user_data['schedule_count']
+                user_data['absence_rate'] = user_data['absence_count'] / user_data['schedule_count']
+            else:
+                user_data['attendance_rate'] = user_data['absence_rate'] = 0
+
+            attendance_stats['user_data'].append(user_data)
+
+
+
+        # 统计每个用户的数据
+        for user in active_users:
+            # 获取该用户的所有 CheckInUser 记录
+            check_in_users = session.query(CheckInUser).join(CheckIn).filter(
+                CheckInUser.user_id == user.id,
+                CheckIn.check_in_start_time >= start_time,
+                CheckIn.check_in_end_time <= end_time,
+                CheckIn.is_main_check_in == True,
+            ).all()
+
+            for ciu in check_in_users:
+                # 只统计“未开始”状态的记录不算在出勤统计中
+                if ciu.get_status() == CheckInStatusEnum.NOT_STARTED.value:
+                    continue
+
+                department_stats['total_schedule'] += 1  # 应出勤次数
+
+                if ciu.check_in_time:
+                    department_stats['total_attendance'] += 1  # 实际出勤次数
+                    # 判断是否迟到
+                    if ciu.check_in_time > ciu.check_in.check_in_start_time:
+                        department_stats['total_late'] += 1  # 迟到
+
+            # 统计请假情况
+            leave_applications = session.query(AskForLeaveApplication).filter(
+                AskForLeaveApplication.check_in_user_id.in_([ciu.id for ciu in check_in_users]),
+                AskForLeaveApplication.status == StatusEnum.ACCEPTED,
+                AskForLeaveApplication.created_at.between(start_time, end_time)
+            ).all()
+
+            for application in leave_applications:
+                if application.asl_type == '病假':
+                    department_stats['total_sick_leaves'] += 1
+                elif application.asl_type == '事假':
+                    department_stats['total_ordinary_leaves'] += 1
+                elif application.asl_type == '符合要求的赛事或集训':  # 排除赛事
+                    continue  # 不计入
+
+        # 计算出勤率、缺勤率和迟到率
+        if department_stats['total_schedule'] > 0:
+            department_stats['attendance_rate'] = department_stats['total_attendance'] / department_stats['total_schedule']
+            department_stats['absenteeism_rate'] = (department_stats['total_absenteeism'] / department_stats['total_schedule']) if department_stats['total_schedule'] > 0 else 0
+            department_stats['late_rate'] = (department_stats['total_late'] / department_stats['total_schedule']) if department_stats['total_schedule'] > 0 else 0
+        else:
+            department_stats['attendance_rate'] = 0
+            department_stats['absenteeism_rate'] = 0
+            department_stats['late_rate'] = 0
+        attendance_stats['department_data']=department_stats
+        return json_response('success', '统计数据获取成功', data=attendance_stats)
     except Exception as e:
-        return json_response('fail', f'统计失败: {str(e)}', code=500)
+        return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
     finally:
         session.close()
