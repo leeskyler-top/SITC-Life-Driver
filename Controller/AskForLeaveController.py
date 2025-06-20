@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from PIL import Image
 import json
 
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 
@@ -14,7 +14,7 @@ from Model import CheckInUser
 from Model.AskForLeaveApplication import AskForLeaveApplication, StatusEnum, AskForLeaveEnum
 from Model.CheckInUser import CheckInStatusEnum
 from Model.User import PositionEnum
-from utils.utils import allowed_file, validate_image
+from utils.utils import allowed_file, validate_image, detect_mime
 from .globals import json_response, Session, validate_schema
 
 ask_for_leave_controller = Blueprint('ask_for_leave_controller', __name__)
@@ -40,10 +40,10 @@ def cleanup_old_images():
 
         for record in records:
             try:
-                image_urls = json.loads(record.image_url)
+                image_urls = json.loads(record.image_url) if record.image_url is not None else []
                 for path in image_urls:
-                    if os.path.exists(path):
-                        os.remove(path)
+                    if os.path.exists(os.path.join(upload_folder, path)):
+                        os.remove(os.path.join(upload_folder, path))
                 record.image_url = None
             except:
                 continue
@@ -58,17 +58,13 @@ def cleanup_old_images():
 def save_uploaded_images(files, check_in_user_id):
     """保存上传的图片并返回路径列表"""
     saved_paths = []
-    user_folder = os.path.join(upload_folder, f'check_in_user_{check_in_user_id}')
-
-    if not os.path.exists(user_folder):
-        os.makedirs(user_folder)
 
     for file in files:
         if file and allowed_file(file.filename) and validate_image(file.stream):
             # 生成安全的随机文件名
             ext = file.filename.rsplit('.', 1)[1].lower()
-            new_filename = f"{uuid.uuid4()}_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.{ext}"
-            filepath = os.path.join(user_folder, new_filename)
+            new_filename = f"{uuid.uuid4()}_(check_in_user_{check_in_user_id})_{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.{ext}"
+            filepath = os.path.join(upload_folder, new_filename)
 
             # 保存文件
             file.save(filepath)
@@ -271,6 +267,45 @@ def cancel_my_leave_application(application_id):
         session.close()
 
 
+@ask_for_leave_controller.route('/my/photo/<int:application_id>/<string:photo_name>', methods=['GET'],
+                                endpoint='get_my_photo')
+@jwt_required()
+@record_history
+def get_my_photo(application_id, photo_name):
+    """
+    获取请假申请中的特定图片（自动检测MIME类型）
+    """
+    user_id = get_jwt_identity()
+    try:
+        # 获取请假申请
+        asl_application = AskForLeaveApplication.get_asl_by_id(application_id)
+
+        # 验证权限和图片存在性
+        if (not asl_application or
+                asl_application["check_in_user"]["user_id"] != int(user_id) or
+                asl_application['image_url'] is None or
+                photo_name not in asl_application['image_url']):
+            return json_response('fail', "未授权访问或图片不存在", code=404)
+
+        # 构建完整文件路径
+        file_path = os.path.join(upload_folder, photo_name)
+
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            return json_response('fail', "图片文件不存在", code=404)
+
+        # 使用send_file并自动设置MIME
+        return send_file(
+            file_path,
+            mimetype=detect_mime(file_path),
+            as_attachment=False,  # 直接显示而非下载
+            conditional=True  # 支持条件请求（缓存相关）
+        )
+
+    except Exception as e:
+        return json_response('fail', f'获取图片失败: {str(e)}', code=500)
+
+
 @ask_for_leave_controller.route('/<int:application_id>', methods=['PATCH'], endpoint='update_leave_application')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
@@ -452,6 +487,43 @@ def create_leave_application(check_in_user_id):
     return json_response('success', '请假申请创建成功', data={'id': asl['id']})
 
 
+@ask_for_leave_controller.route('/photo/<int:application_id>/<string:photo_name>', methods=['GET'],
+                                endpoint='get_photo')
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
+def get_photo(application_id, photo_name):
+    """
+    获取请假申请中的特定图片（自动检测MIME类型）
+    """
+    try:
+        # 获取请假申请
+        asl_application = AskForLeaveApplication.get_asl_by_id(application_id)
+
+        # 验证权限和图片存在性
+        if (not asl_application or
+                asl_application['image_url'] is None or
+                photo_name not in asl_application['image_url']):
+            return json_response('fail', "图片不存在", code=404)
+
+        # 构建完整文件路径
+        file_path = os.path.join(upload_folder, photo_name)
+
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            return json_response('fail', "图片文件不存在", code=404)
+
+        # 使用send_file并自动设置MIME
+        return send_file(
+            file_path,
+            mimetype=detect_mime(file_path),
+            as_attachment=False,  # 直接显示而非下载
+            conditional=True  # 支持条件请求（缓存相关）
+        )
+
+    except Exception as e:
+        return json_response('fail', f'获取图片失败: {str(e)}', code=500)
+
+
 @ask_for_leave_controller.route('/cleanup-images', methods=['POST'], endpoint='cleanup_images')
 @admin_required
 @record_history
@@ -472,22 +544,22 @@ def cleanup_images():
     try:
         # 查找目标日期的记录
         records = session.query(AskForLeaveApplication).filter(
-            func.date(AskForLeaveApplication.created_at) == target_date,
+            func.date(AskForLeaveApplication.created_at) <= target_date,
             AskForLeaveApplication.image_url.isnot(None)
         ).all()
 
         deleted_count = 0
         for record in records:
             try:
-                image_urls = json.loads(record.image_url)
+                image_urls = json.loads(record.image_url) if record.image_url else []
                 for path in image_urls:
-                    if os.path.exists(path):
-                        os.remove(path)
+                    if os.path.exists(os.path.join(upload_folder, path)):
+                        os.remove(os.path.join(upload_folder, path))
                 record.image_url = None
                 deleted_count += 1
-            except:
+            except Exception as e:
+                print(e)
                 continue
-
         session.commit()
         return json_response('success', f'成功清理{deleted_count}条记录的图片')
 

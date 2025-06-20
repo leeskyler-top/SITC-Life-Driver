@@ -25,6 +25,15 @@ def validate_image(file_stream):
     return format in ALLOWED_EXTENSIONS
 
 
+def detect_mime(file_path):
+    if not os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            header = f.read(32)
+            file_type = imghdr.what(None, header)
+            return f'image/{file_type}' if file_type else 'application/octet-stream'
+    return None
+
+
 def rm_results():
     path = os.path.join(os.getcwd(), 'results', 'zip_file')
     if os.path.exists(path):
