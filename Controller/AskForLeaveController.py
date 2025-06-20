@@ -77,12 +77,13 @@ def save_uploaded_images(files, check_in_user_id):
             try:
                 img = Image.open(filepath)
                 img.verify()
-                saved_paths.append(filepath)
+                saved_paths.append(new_filename)
             except:
                 os.remove(filepath)
                 continue
 
     return saved_paths
+
 
 @ask_for_leave_controller.route('/my', methods=['GET'], endpoint='get_my_leave_applications')
 @jwt_required()
@@ -99,7 +100,8 @@ def get_my_leave_applications():
     except Exception as e:
         return json_response('fail', f'查询失败：{str(e)}', code=500)
 
-@ask_for_leave_controller.route('/my/<int:check_in_user_id>', methods=['POST'], endpoint='create_leave_application')
+
+@ask_for_leave_controller.route('/my/<int:check_in_user_id>', methods=['POST'], endpoint='create_my_leave_application')
 @jwt_required()
 @record_history
 def create_my_leave_application(check_in_user_id):
@@ -248,11 +250,12 @@ def cancel_my_leave_application(application_id):
     """
     取消请假申请
     """
+    user_id = get_jwt_identity()
     session = Session()
     try:
         application = session.query(AskForLeaveApplication).filter_by(id=application_id).first()
 
-        if not application:
+        if not application or application.check_in_user.user_id != int(user_id):
             return json_response('fail', '请假申请不存在', code=404)
 
         if application.status != StatusEnum.PENDING:
@@ -368,8 +371,90 @@ def get_leave_application_info(application_id):
         return json_response('fail', f'查询失败：{str(e)}', code=500)
 
 
+@ask_for_leave_controller.route('/<int:check_in_user_id>', methods=['POST'], endpoint='create_leave_application')
+@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@record_history
+def create_leave_application(check_in_user_id):
+    """
+    为当前用户的某个签到创建请假申请
+    - 事假：可以不上传图片
+    - 其他类型：必须上传图片
+    """
+
+    if not request.form:
+        return json_response('fail', '未提供表单数据', code=422)
+
+    # 验证请假类型
+    asl_values = [item.value for item in AskForLeaveEnum]
+    if 'asl_type' not in request.form or request.form['asl_type'] not in asl_values:
+        return json_response('fail', '无效的请假类型', code=422)
+
+    # 获取上传的文件（但不立即处理）
+    files = request.files.getlist('image_url')
+
+    if files and any(files):
+        if len(files) > MAX_IMAGES:
+            return json_response('fail', f'最多上传{MAX_IMAGES}张图片', code=422)
+        total_size = sum(len(file.read()) for file in files)
+        for file in files:
+            file.seek(0)
+        if total_size > MAX_IMAGE_SIZE:
+            return json_response('fail', '图片总大小不能超过35MB', code=422)
+
+    # 验证其他字段
+    if 'asl_reason' not in request.form or not request.form['asl_reason'].strip():
+        return json_response('fail', '请填写请假原因', code=422)
+
+    # 检查签到记录
+    check_in_user = CheckInUser.get_by_id(check_in_user_id)
+    if not check_in_user:
+        return json_response('fail', "未找到签到记录", code=404)
+
+    # 检查是否已有待审核或已通过的请假
+    session = Session()
+    existing_asl = session.query(AskForLeaveApplication).filter(
+        AskForLeaveApplication.check_in_user_id == check_in_user_id,
+        AskForLeaveApplication.status.in_([StatusEnum.ACCEPTED, StatusEnum.PENDING])
+    ).first()
+    if existing_asl:
+        return json_response('fail', '该签到已存在待审核或已批准的请假申请', code=400)
+    session.close()
+
+    # 所有验证通过后，再处理图片上传
+    image_urls = []
+    if files and any(files):
+        # 实际保存图片
+        image_urls = save_uploaded_images(files, check_in_user_id)
+
+        # 非事假类型必须确保图片上传成功
+        if not image_urls:
+            return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)
+
+    # 创建请假申请
+    status, asl, code = AskForLeaveApplication.create_asl(
+        check_in_user_id=check_in_user_id,
+        asl_type=request.form['asl_type'],
+        asl_reason=request.form['asl_reason'],
+        status="已批准",
+        image_url=json.dumps(image_urls) if image_urls else None
+    )
+
+    if not status:
+        # 如果创建失败，删除已上传的图片
+        if image_urls:
+            for path in image_urls:
+                try:
+                    os.remove(path)
+                except:
+                    pass
+        return json_response('fail', asl, code=code)
+
+    return json_response('success', '请假申请创建成功', data={'id': asl['id']})
+
+
 @ask_for_leave_controller.route('/cleanup-images', methods=['POST'], endpoint='cleanup_images')
 @admin_required
+@record_history
 def cleanup_images():
     """
     清理指定日期的图片并更新数据库记录
