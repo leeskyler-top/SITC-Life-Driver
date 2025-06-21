@@ -5,7 +5,7 @@ import io
 import base64
 import shutil
 from werkzeug.utils import secure_filename
-import imghdr
+import utils.imghdr as imghdr
 from LoadEnviroment.LoadEnv import rar_path
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
