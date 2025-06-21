@@ -384,7 +384,7 @@ def change_record(check_in_user_id):
         session.close()
 
 
-@checkin_controller.route('/', methods=['GET'], endpoint='list_checkins')
+@checkin_controller.route('', methods=['GET'], endpoint='list_checkins')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )

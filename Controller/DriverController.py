@@ -20,7 +20,7 @@ driver_controller = Blueprint('driver_controller', __name__)
 @record_history
 def get_group_id():
     """
-    获取群组 ID
+    获取群组文件夹 ID
     """
     try:
         doc_id = findCYLCGroup()
@@ -34,7 +34,7 @@ def get_group_id():
 @record_history
 def get_lifedir_id():
     """
-    获取群组 ID
+    获取生活部文件夹 ID
     """
     try:
         doc_id = findLifeDepDir(findCYLCGroup())
@@ -48,7 +48,7 @@ def get_lifedir_id():
 @record_history
 def get_semesterdir_id():
     """
-    获取群组 ID
+    获取学期文件夹 ID
     """
     try:
         semester_name, start_month, end_month = read_semester_config_from_sql()
