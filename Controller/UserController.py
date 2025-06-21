@@ -159,7 +159,7 @@ def batch_create_users():
         session = Session()
         existing_ids = session.query(User.studentId).filter(User.studentId.in_(df['studentId'].tolist())).all()
         session.close()
-        existing_ids = {id[0] for id in existing_ids}  # 转为集合以便快速检查
+        existing_ids = {user_id[0] for user_id in existing_ids}  # 转为集合以便快速检查
 
         # 校验数据的有效性
         errors = []
@@ -268,7 +268,7 @@ def reset_user_password(user_id):
 def generate_random_password(length=8):
     """生成一个包含字母和数字的随机密码"""
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters) for i in range(length))
+    return ''.join(random.choice(characters) for _ in range(length))
 
 
 # 其他用户管理功能类似
@@ -464,19 +464,20 @@ def calculate_statistics():
         # 过滤掉 "其他人员"
         query = User.query_active(session).filter(User.position != PositionEnum.OTHERS)
 
-        # 统计数据
-        CYLC_Count = query.filter(User.politicalLandscape == PoliticalLandscapeEnum.CYLC).count()
-        PublicPeople_Count = query.filter(
-            User.politicalLandscape == PoliticalLandscapeEnum.PUBLICPEOPLE).count()  # 群众人数
-        Male_Count = query.filter(User.gender == GenderEnum.MALE).count()
-        Female_Count = query.filter(User.gender == GenderEnum.FEMALE).count()
+        def data_count(data_query, cond, enum):
+            return data_query.filter(cond == enum).count()
 
+        # 统计数据
+        CYLC_Count = data_count(query, User.politicalLandscape, PoliticalLandscapeEnum.CYLC)
+        PublicPeople_Count = data_count(query, User.politicalLandscape, PoliticalLandscapeEnum.PUBLICPEOPLE)
+        Male_Count = data_count(query, User.gender, GenderEnum.MALE)
+        Female_Count = data_count(query, User.gender, GenderEnum.FEMALE)
         # 部门人数统计
-        Information_Count = query.filter(User.department == DepartmentEnum.INFORMATION).count()
-        Manufacting_Count = query.filter(User.department == DepartmentEnum.MANUFACTURING).count()
-        Bussiness_Count = query.filter(User.department == DepartmentEnum.BUSSINESS).count()
-        Material_Count = query.filter(User.department == DepartmentEnum.MATERIALS).count()
-        Public_Count = query.filter(User.department == DepartmentEnum.PUBLIC).count()
+        Information_Count = data_count(query, User.department, DepartmentEnum.INFORMATION)
+        Manufacturing_Count = data_count(query, User.department, DepartmentEnum.MANUFACTURING)
+        Business_Count = data_count(query, User.department, DepartmentEnum.BUSINESS)
+        Material_Count = data_count(query, User.department, DepartmentEnum.MATERIALS)
+        Public_Count = data_count(query, User.department, DepartmentEnum.PUBLIC)
 
         # 部门总人数
         Department_Count = query.count()
@@ -511,8 +512,8 @@ def calculate_statistics():
             "Female_Count": Female_Count,
             "Youth_Ratio": Youth_Ratio,
             "Information_Count": Information_Count,
-            "Manufacting_Count": Manufacting_Count,
-            "Bussiness_Count": Bussiness_Count,
+            "Manufacturing_Count": Manufacturing_Count,
+            "Business_Count": Business_Count,
             "Material_Count": Material_Count,
             "Public_Count": Public_Count,
             "Grade_Count": Grade_Count

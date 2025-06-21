@@ -559,7 +559,7 @@ def attendance_stats():
             'total_schedule': 0,
         }
 
-        attendance_stats = {
+        attendance_stats_dict = {
             'user_data': [],
             'department_data': department_stats
         }
@@ -627,7 +627,7 @@ def attendance_stats():
             else:
                 user_data['attendance_rate'] = user_data['absence_rate'] = 0
 
-            attendance_stats['user_data'].append(user_data)
+            attendance_stats_dict['user_data'].append(user_data)
 
         # 统计每个用户的数据
         for user in active_users:
@@ -679,8 +679,8 @@ def attendance_stats():
             department_stats['attendance_rate'] = 0
             department_stats['absenteeism_rate'] = 0
             department_stats['late_rate'] = 0
-        attendance_stats['department_data'] = department_stats
-        return json_response('success', '统计数据获取成功', data=attendance_stats)
+        attendance_stats_dict['department_data'] = department_stats
+        return json_response('success', '统计数据获取成功', data=attendance_stats_dict)
     except Exception as e:
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
     finally:

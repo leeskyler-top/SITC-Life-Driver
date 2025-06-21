@@ -2,7 +2,7 @@ import flask.wrappers
 from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
 from sqlalchemy.exc import IntegrityError
 from functools import wraps
-from flask import jsonify, request, Response
+from flask import jsonify, request
 
 from Model.History import History, MethodEnum
 from Model.User import User, PositionEnum

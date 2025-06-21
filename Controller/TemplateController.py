@@ -4,7 +4,7 @@ from flask_jwt_extended import jwt_required
 from Handler.Handler import position_required, record_history
 from Model.User import PositionEnum
 from .globals import json_response, validate_schema, non_empty_string
-from SQLService.Operation import truncate_template, insert_template, delete_template, update_current_semester_info, \
+from SQLService.Operation import truncate_template, insert_template, delete_template, \
     update_template, read_template_from_sql
 import io
 import pandas as pd

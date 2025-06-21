@@ -79,7 +79,7 @@ class History(Base):
                     excess = total - max_records
                     # 找出最旧的excess条记录
                     oldest_ids = [
-                        id for (id,) in session.query(cls.id)
+                        rec_id for (rec_id,) in session.query(cls.id)
                         .order_by(cls.created_at)
                         .limit(excess)
                         .all()

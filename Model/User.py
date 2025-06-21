@@ -27,7 +27,7 @@ class GenderEnum(enum.Enum):
 
 class DepartmentEnum(enum.Enum):
     INFORMATION = "信息技术系"
-    BUSSINESS = "商务管理系"
+    BUSINESS = "商务管理系"
     MANUFACTURING = "智能制造系"
     MATERIALS = "材料与检测系"
     PUBLIC = "公共基础部"

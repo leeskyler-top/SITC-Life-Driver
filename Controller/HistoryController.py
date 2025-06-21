@@ -1,6 +1,4 @@
 from flask import Blueprint
-from flask_jwt_extended import jwt_required
-
 from Controller.globals import json_response
 from Handler.Handler import record_history, admin_required
 from LoadEnviroment.LoadEnv import save_histories_days, save_histories_count
