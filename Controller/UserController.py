@@ -430,7 +430,8 @@ def delete_user(user_id):
 
 
 @user_controller.route('', methods=['GET'], endpoint='get_all_users')
-@admin_required
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 @record_history
 def get_all_users():
     """

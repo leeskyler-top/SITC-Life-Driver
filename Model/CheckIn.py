@@ -38,7 +38,7 @@ class CheckIn(Base):
     schedule = relationship("Schedule", back_populates="check_ins")
     check_in_users = relationship("CheckInUser", back_populates="check_in", cascade="all, delete-orphan")
 
-    def to_dict(self, include_users=True):
+    def to_dict(self, include_users=True, include_schedule=False):
         check_in_data = {
             "id": self.id,
             "schedule_id": self.schedule_id,
@@ -52,7 +52,10 @@ class CheckIn(Base):
         }
 
         if include_users:
-            check_in_data["check_in_users"] = [ciu.to_dict() for ciu in self.check_in_users]
+            check_in_data["check_in_users"] = [ciu.to_dict(include_check_in=False) for ciu in self.check_in_users]
+
+        if include_schedule:
+            check_in_data["schedule"] = self.schedule.to_dict()
 
         return check_in_data
 
@@ -229,14 +232,7 @@ class CheckIn(Base):
                 .all()
 
             return [
-                {
-                    **check_in.to_dict(),
-                    'check_in_users': [
-                        ciu.to_dict()  # 使用 CheckInUser 的 to_dict 方法
-                        for ciu in check_in.check_in_users
-                    ]
-                }
-                for check_in in check_ins
+                check_in.to_dict(include_schedule=True, include_users=True) for check_in in check_ins
             ]
         finally:
             session.close()

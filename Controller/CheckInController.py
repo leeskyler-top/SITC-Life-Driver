@@ -392,23 +392,8 @@ def change_record(check_in_user_id):
 def list_checkins():
     session = Session()
     try:
-        schedule_id = request.args.get('schedule_id', type=int)
-        query = session.query(CheckIn)
-        if schedule_id:
-            query = query.filter(CheckIn.schedule_id == schedule_id)
-
-        checkins = query.all()
-        result = []
-        for checkin in checkins:
-            result.append({
-                'id': checkin.id,
-                'name': checkin.name,
-                'check_in_start_time': checkin.check_in_start_time.strftime('%Y-%m-%d %H:%M:%S'),
-                'check_in_end_time': checkin.check_in_end_time.strftime('%Y-%m-%d %H:%M:%S'),
-                'schedule_id': checkin.schedule_id,
-                'is_main_check_in': checkin.is_main_check_in
-            })
-        return json_response('success', '查询成功', data=result)
+        checkins = CheckIn.get_all_check_ins()
+        return json_response('success', '查询成功', data=checkins)
     except Exception as e:
         return json_response('fail', f'查询失败：{str(e)}', code=500)
     finally:

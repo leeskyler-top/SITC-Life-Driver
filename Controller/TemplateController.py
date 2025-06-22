@@ -1,7 +1,7 @@
 from flask import Blueprint, request, Response
 from flask_jwt_extended import jwt_required
 
-from Handler.Handler import position_required, record_history
+from Handler.Handler import position_required, record_history, admin_required
 from Model.User import PositionEnum
 from .globals import json_response, validate_schema, non_empty_string
 from SQLService.Operation import truncate_template, insert_template, delete_template, \
@@ -64,7 +64,7 @@ def update_template_by_id(template_id):
 
 
 @template_controller.route('', methods=['DELETE'], endpoint='empty_template')
-@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@admin_required
 @record_history
 def empty_template():
     """
@@ -146,7 +146,7 @@ def add_template():
 
 
 @template_controller.route('/upload', methods=['POST'], endpoint='upload_template')
-@position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
+@admin_required
 @record_history
 def upload_template():
     """

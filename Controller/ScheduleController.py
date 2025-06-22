@@ -5,7 +5,7 @@ from datetime import timedelta, datetime
 import pandas as pd
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
-from Handler.Handler import position_required, record_history
+from Handler.Handler import position_required, record_history, admin_required
 from Model.Schedule import TypeEnum, Schedule
 from Model.User import PositionEnum
 from .globals import json_response, Session, validate_schema
@@ -69,7 +69,7 @@ def create_schedule():
 
 
 @schedule_controller.route('/upload', methods=['POST'], endpoint='batch_create_schedules')
-@jwt_required()
+@admin_required
 @record_history
 def batch_create_schedules():
     """

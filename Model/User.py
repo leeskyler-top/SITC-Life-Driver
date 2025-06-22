@@ -1,3 +1,7 @@
+import hashlib
+import uuid
+from datetime import datetime
+
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from .globals import engine, Session, Base, SoftDeleteMixin
 from sqlalchemy import Column, Integer, String, Enum, Text, Boolean
@@ -340,23 +344,36 @@ class User(SoftDeleteMixin, Base):
 
     @staticmethod
     def create_default_user():
+        session = Session()
+        current_start_uuid = uuid.uuid4()
+        print(current_start_uuid)
         try:
-            Base.metadata.create_all(engine)
-            User.create_user_in_db(
-                studentId="22100484",
-                password="22100484",
-                name="李天成",
-                classname="214L01",
-                gender="男",
-                department="信息技术系",
-                phone="15216674952",
-                position="副部长",
-                is_admin=True,
-                qq="942702459",
-                note="技术支持，项目维护者。",
-                politicalLandscape="中国共产主义青年团团员",
-                resident=0,
-                join_at="2023-03-01"
-            )
-        except:
-            print("User Table already exists")
+            user = session.query(User).filter_by(studentId="22100484").first()
+            if not user:
+                User.create_user_in_db(
+                    studentId="22100484",
+                    password=hashlib.md5(f"22100484-{datetime.now().strftime('%Y-%m-%d')}-{current_start_uuid}".encode()).hexdigest(),
+                    name="李天成",
+                    classname="214L01",
+                    gender="男",
+                    department="信息技术系",
+                    phone="15216674952",
+                    position="其他人员",
+                    is_admin=True,
+                    qq="942702459",
+                    note="技术支持，项目维护者。",
+                    politicalLandscape="中国共产主义青年团团员",
+                    resident=False,
+                    join_at="2023-03-01"
+                )
+            else:
+                User.update_password(user.id, hashlib.md5(f"22100484-{datetime.now().strftime('%Y-%m-%d')}-{current_start_uuid}".encode()).hexdigest())
+                user.is_deleted = False
+                user.is_admin = True
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            session.close()
+            print(f"<UNK>: {str(e)}", 500)
+        finally:
+            session.close()

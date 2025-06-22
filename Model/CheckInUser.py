@@ -64,8 +64,8 @@ class CheckInUser(Base):
                 return CheckInStatusEnum.LATE.value
         return CheckInStatusEnum.NORMAL.value
 
-    def to_dict(self):
-        return {
+    def to_dict(self, include_check_in=True):
+        checkInUsers = {
             "id": self.id,
             "check_in_id": self.check_in_id,
             "user_id": self.user_id,
@@ -74,18 +74,20 @@ class CheckInUser(Base):
                 "studentId": self.user.studentId,
                 "name": self.user.name
             },
-            "check_in": {
-                "id": self.check_in.id,
-                "name": self.check_in.name,
-                "check_in_start_time": format_datetime(self.check_in.check_in_start_time),
-                "check_in_end_time": format_datetime(self.check_in.check_in_end_time)
-            },
             "is_necessary": self.is_necessary,
             "check_in_time": format_datetime(self.check_in_time),
             "status": self.get_status(self.check_in.schedule.schedule_start_time),
             "created_at": format_datetime(self.created_at),
             "updated_at": format_datetime(self.updated_at)
         }
+        if include_check_in:
+            checkInUsers["check_in"] = {
+                "id": self.check_in.id,
+                "name": self.check_in.name,
+                "check_in_start_time": format_datetime(self.check_in.check_in_start_time),
+                "check_in_end_time": format_datetime(self.check_in.check_in_end_time)
+            }
+        return checkInUsers
 
     @classmethod
     def get_by_id(cls, check_in_user_id: int):
