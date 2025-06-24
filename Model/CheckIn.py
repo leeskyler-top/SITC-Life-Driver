@@ -8,9 +8,6 @@ from sqlalchemy import DateTime, exists
 
 class CheckIn(Base):
     __tablename__ = 'check_ins'
-    __table_args__ = (
-        UniqueConstraint('schedule_id', 'is_main_check_in', name='_schedule_main_check_in_uc'),
-    )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     schedule_id = Column(Integer, ForeignKey('schedules.id'), nullable=False)
@@ -25,13 +22,17 @@ class CheckIn(Base):
     @validates('is_main_check_in')
     def validate_main_check_in(self, key, value):
         if value is True:
-            # 应用层验证确保每个 schedule 只有一个主签到
-            existing = Session().query(CheckIn).filter(
-                CheckIn.schedule_id == self.schedule_id,
-                CheckIn.is_main_check_in == True
-            ).first()
-            if existing and existing.id != self.id:
-                raise ValueError("每个值班计划只能有一个主签到记录")
+            session = Session()
+            try:
+                existing = session.query(CheckIn).filter(
+                    CheckIn.schedule_id == self.schedule_id,
+                    CheckIn.is_main_check_in == True,
+                    CheckIn.id != self.id  # 排除自己（如果是更新操作）
+                ).first()
+                if existing:
+                    raise ValueError("每个值班计划只能有一个主签到记录")
+            finally:
+                session.close()
         return value
 
     # 添加关系
@@ -93,16 +94,12 @@ class CheckIn(Base):
                     nonexistent_users.append(str(user_id))
 
             if len(nonexistent_users) > 0:
-                raise ValueError(
-                    f"以下用户ID不存在: {', '.join(nonexistent_users)}"
-                )
+                return False, f"以下用户ID不存在: {', '.join(nonexistent_users)}", 422
 
             from Model.Schedule import Schedule
             schedule = Schedule.get_schedule_by_id(schedule_id)
             if not schedule:
-                raise ValueError(
-                    f"值班安排不存在"
-                )
+                return False, "值班计划不存在", 404
 
             # 转换时间格式（如果输入是字符串）
             @validates('check_in_start_time', 'check_in_end_time')
@@ -136,21 +133,13 @@ class CheckIn(Base):
                     } for uid in check_in_users]
                 )
 
-            session.flush()
-
-            result = check_in.to_dict()
-            result['check_in_users'] = [
-                ciu.to_dict()  # 使用 CheckInUser 的 to_dict 方法
-                for ciu in check_in.check_in_users
-            ]
-            return True, check_in.to_dict(), 201
+            session.commit()  # 提交事务，保存数据到数据库
+            session.refresh(check_in)  # 刷新对象
+            return True, check_in.to_dict(include_schedule=True), 201
 
         except IntegrityError as e:
             session.rollback()
-            return False, "值班计划已存在（名称/时间/类型组合需唯一）", 400
-        except ValueError as e:
-            session.rollback()
-            return False, str(e), 400
+            return False, "签到已存在（名称/时间/类型组合需唯一）", 400
         except Exception as e:
             session.rollback()
             return False, f"创建失败: {str(e)}", 500

@@ -58,10 +58,21 @@ def create_checkin(schedule_id):
                 'required': True,
                 'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'
             },
+            'need_check_schedule_time': {
+                'type': 'boolean',
+                'required': True,
+            },
             'name': {
                 'type': 'string',
                 'required': True,
                 'check_with': non_empty_string
+            },
+            'check_in_users': {
+                'type': 'list',
+                "schema": {
+                    "type": "integer",
+                },
+                'required': True
             }
         }
 
@@ -80,16 +91,18 @@ def create_checkin(schedule_id):
         if start_time < datetime.now():
             return json_response('fail', '开始时间不能早于当前时间', code=422)
 
-        new_checkin = CheckIn(
+        status, result, code = CheckIn.create_check_in_in_db(
             schedule_id=schedule_id,
             name=data['name'].strip(),
-            check_in_start_time=start_time,
-            check_in_end_time=end_time,
+            check_in_start_time=data['check_in_start_time'],
+            check_in_end_time=data['check_in_end_time'],
+            need_check_schedule_time=data['need_check_schedule_time'],
+            check_in_users=data['check_in_users'],
             is_main_check_in=False
         )
-        session.add(new_checkin)
-        session.commit()
-        return json_response('success', '签到创建成功', data={'check_in_id': new_checkin.id})
+        if status:
+            return json_response('success', "签到创建成功", data=result, code=code)
+        return json_response('fail', result, code=code)
     except Exception as e:
         session.rollback()
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
