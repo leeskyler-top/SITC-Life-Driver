@@ -23,7 +23,7 @@ def list_my_checkins():
     try:
         user_id = get_jwt_identity()
         checkin_users = session.query(CheckInUser).filter_by(user_id=user_id).all()
-        checkin_users = [ciu.to_dict() for ciu in checkin_users]
+        checkin_users = [ciu.to_dict(include_schedule=True, include_asl=True) for ciu in checkin_users]
         return json_response('success', '获取完成', checkin_users, code=200)
     except Exception as e:
         return json_response('fail', f'统计失败: {str(e)}', code=500)

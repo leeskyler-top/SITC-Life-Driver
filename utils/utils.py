@@ -6,6 +6,7 @@ import base64
 import shutil
 from werkzeug.utils import secure_filename
 import utils.imghdr as imghdr
+from PIL import Image
 from LoadEnviroment.LoadEnv import rar_path
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -18,11 +19,20 @@ def allowed_file(filename):
 
 
 def validate_image(file_stream):
-    """验证图片的真实类型"""
-    header = file_stream.read(32)
-    file_stream.seek(0)
-    format = imghdr.what(None, header)
-    return format in ALLOWED_EXTENSIONS
+    """使用Pillow严格验证图片完整性和格式"""
+    try:
+        # 将文件流转换为字节（确保指针重置）
+        file_stream.seek(0)
+        img_bytes = file_stream.read()
+
+        # 通过内存中的字节验证
+        with Image.open(io.BytesIO(img_bytes)) as img:
+            img.verify()  # 验证完整性
+            return img.format.lower() in ALLOWED_EXTENSIONS
+    except Exception:
+        return False
+    finally:
+        file_stream.seek(0)  # 无论如何都重置指针
 
 
 def detect_mime(file_path):

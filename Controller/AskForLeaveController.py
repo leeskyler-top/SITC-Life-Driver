@@ -174,7 +174,7 @@ def create_my_leave_application(check_in_user_id):
     if files and any(files):
         # 实际保存图片
         image_urls = save_uploaded_images(files, check_in_user_id)
-
+        print(image_urls)
         # 非事假类型必须确保图片上传成功
         if not image_urls:
             return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)

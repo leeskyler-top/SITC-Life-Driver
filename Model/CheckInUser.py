@@ -64,29 +64,51 @@ class CheckInUser(Base):
                 return CheckInStatusEnum.LATE.value
         return CheckInStatusEnum.NORMAL.value
 
-    def to_dict(self, include_check_in=True):
+    def to_dict(self, include_user=True, include_check_in=True, include_schedule=False, include_asl=False):
         checkInUsers = {
             "id": self.id,
             "check_in_id": self.check_in_id,
             "user_id": self.user_id,
-            "user": {
-                "id": self.user.id,
-                "studentId": self.user.studentId,
-                "name": self.user.name
-            },
             "is_necessary": self.is_necessary,
             "check_in_time": format_datetime(self.check_in_time),
             "status": self.get_status(self.check_in.schedule.schedule_start_time),
             "created_at": format_datetime(self.created_at),
             "updated_at": format_datetime(self.updated_at)
         }
+        if include_user:
+            checkInUsers["user"] = {
+                "id": self.user.id,
+                "studentId": self.user.studentId,
+                "name": self.user.name
+            }
         if include_check_in:
             checkInUsers["check_in"] = {
                 "id": self.check_in.id,
                 "name": self.check_in.name,
+                "need_check_schedule_time": self.check_in.need_check_schedule_time,
+                "is_main_check_in": self.check_in.is_main_check_in,
                 "check_in_start_time": format_datetime(self.check_in.check_in_start_time),
                 "check_in_end_time": format_datetime(self.check_in.check_in_end_time)
             }
+        if include_schedule:
+            checkInUsers["schedule"] = {
+                "id": self.check_in.schedule_id,
+                "schedule_name": self.check_in.schedule.schedule_name,
+                "schedule_start_time": format_datetime(self.check_in.schedule.schedule_start_time),
+                "schedule_type": self.check_in.schedule.schedule_type.value
+            }
+        if include_asl:
+            checkInUsers["asl"] = [
+                {
+                    "id": asl.id,
+                    "asl_type": asl.asl_type.value,
+                    "asl_reason": asl.asl_reason,
+                    "image_url": asl.image_url,
+                    "reject_reason": asl.reject_reason,
+                    "status": asl.status.value,
+                    "created_at": asl.created_at
+                } for asl in self.ask_for_leaves
+            ]
         return checkInUsers
 
     @classmethod

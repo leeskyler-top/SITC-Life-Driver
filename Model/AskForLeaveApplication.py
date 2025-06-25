@@ -38,7 +38,7 @@ class AskForLeaveApplication(Base):
         # check_in = self.check_in_user.check_in if self.check_in_user else None
         return {
             "id": self.id,
-            "check_in_user": self.check_in_user.to_dict(),
+            "check_in_user": self.check_in_user.to_dict(include_schedule=True, include_check_in=True, include_user=True),
             "asl_type": self.asl_type.value,
             "asl_reason": self.asl_reason,
             "image_url": json.loads(self.image_url) if self.image_url else None,
