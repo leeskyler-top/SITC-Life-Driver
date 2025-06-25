@@ -16,7 +16,6 @@ def get_histories():
     return json_response("success", "所有值班计划已列出", data=histories, code=200)
 
 @history_controller.route('/internal-ip', methods=['GET'])
-@record_history
 def get_internal_ip():
     try:
         # 创建一个UDP套接字
