@@ -413,6 +413,33 @@ def list_checkins():
         session.close()
 
 
+@checkin_controller.route('/checkinuser', methods=['POST'], endpoint='list_checkin_users')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+@record_history
+def list_checkin_users():
+    data = request.get_json()
+    if not data:
+        return json_response('fail', "未传递任何参数", code=422)
+    schema = {
+        'start_time': {'type': 'string', 'required': True,
+                                'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+        'end_time': {'type': 'string', 'required': True,
+                              'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+        'type': {'type': 'string', 'required': True, 'allowed': ['checkin_time', 'schedule_time']}
+    }
+    result, reason = validate_schema(schema, data)
+    if not result:
+        return json_response('fail', f'请求参数错误: {reason}', code=422)
+
+    checkinusers = CheckInUser.get_all_by_date_range(start=data['start_time'],
+                                                         end=data['end_time'], type=data['type'])
+
+    checkinusers = [ciu.to_dict(include_schedule=True, include_check_in=True, include_asl=True) for ciu in checkinusers]
+    return json_response('success', '已列出指定日期内所有签到流水', data=checkinusers, code=200)
+
+
 @checkin_controller.route('/<int:check_in_id>', methods=['PATCH'], endpoint='update_checkin')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
@@ -422,6 +449,8 @@ def update_checkin(check_in_id):
     session = Session()
     try:
         data = request.get_json()
+        if not data:
+            return json_response('fail', "未传递任何参数", code=422)
         schema = {
             'name': {'type': 'string', 'required': False},
             'check_in_start_time': {'type': 'string', 'required': False,
