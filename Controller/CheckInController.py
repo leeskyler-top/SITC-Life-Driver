@@ -424,9 +424,9 @@ def list_checkin_users():
         return json_response('fail', "未传递任何参数", code=422)
     schema = {
         'start_time': {'type': 'string', 'required': True,
-                                'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+                       'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
         'end_time': {'type': 'string', 'required': True,
-                              'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+                     'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
         'type': {'type': 'string', 'required': True, 'allowed': ['checkin_time', 'schedule_time']}
     }
     result, reason = validate_schema(schema, data)
@@ -434,7 +434,7 @@ def list_checkin_users():
         return json_response('fail', f'请求参数错误: {reason}', code=422)
 
     checkinusers = CheckInUser.get_all_by_date_range(start=data['start_time'],
-                                                         end=data['end_time'], type=data['type'])
+                                                     end=data['end_time'], type=data['type'])
 
     checkinusers = [ciu.to_dict(include_schedule=True, include_check_in=True, include_asl=True) for ciu in checkinusers]
     return json_response('success', '已列出指定日期内所有签到流水', data=checkinusers, code=200)
@@ -594,10 +594,10 @@ def attendance_stats():
         # 统计每个用户的数据
         for user in active_users:
             user_data = {
-                'user_id': user.studentId,
+                'studentId': user.studentId,
                 'department': user.department.value,
                 'classname': user.classname,
-                'user_name': user.name,
+                'name': user.name,
                 'approved_sick_leaves': 0,
                 'approved_competition_leaves': 0,
                 'approved_ordinary_leaves': 0,
@@ -636,21 +636,20 @@ def attendance_stats():
                 AskForLeaveApplication.status == StatusEnum.ACCEPTED,
                 AskForLeaveApplication.created_at.between(start_time, end_time)
             ).all()
-
             for application in leave_applications:
-                if application.asl_type == '病假':
+                if application.asl_type.value == '病假':
                     user_data['approved_sick_leaves'] += 1
-                elif application.asl_type == '事假':
+                elif application.asl_type.value == '事假':
                     user_data['approved_ordinary_leaves'] += 1
-                elif application.asl_type == '符合要求的赛事或集训':  # 排除赛事
+                else:  # 排除赛事
                     continue  # 不计入
 
             user_data['absence_count'] = user_data['schedule_count'] - user_data['attendance_count']  # 缺勤次数
 
             # 计算出勤率
             if user_data['schedule_count'] > 0:
-                user_data['attendance_rate'] = user_data['attendance_count'] / user_data['schedule_count']
-                user_data['absence_rate'] = user_data['absence_count'] / user_data['schedule_count']
+                user_data['attendance_rate'] = round(user_data['attendance_count'] / user_data['schedule_count'], 2)
+                user_data['absence_rate'] = round(user_data['absence_count'] / user_data['schedule_count'], 2)
             else:
                 user_data['attendance_rate'] = user_data['absence_rate'] = 0
 
@@ -696,12 +695,15 @@ def attendance_stats():
 
         # 计算出勤率、缺勤率和迟到率
         if department_stats['total_schedule'] > 0:
-            department_stats['attendance_rate'] = department_stats['total_attendance'] / department_stats['total_schedule']
+            department_stats['attendance_rate'] = round(
+                department_stats['total_attendance'] / department_stats['total_schedule'], 2)
             department_stats['absenteeism_rate'] = (
-                        department_stats['total_absenteeism'] / department_stats['total_schedule']) if department_stats[
-                                                                                                           'total_schedule'] > 0 else 0
-            department_stats['late_rate'] = (department_stats['total_late'] / department_stats['total_schedule']) if \
-            department_stats['total_schedule'] > 0 else 0
+                round(department_stats['total_absenteeism'] / department_stats['total_schedule'], 2)) if \
+                department_stats[
+                    'total_schedule'] > 0 else 0
+            department_stats['late_rate'] = (
+                round(department_stats['total_late'] / department_stats['total_schedule'], 2)) if \
+                department_stats['total_schedule'] > 0 else 0
         else:
             department_stats['attendance_rate'] = 0
             department_stats['absenteeism_rate'] = 0
