@@ -1,5 +1,7 @@
+from io import BytesIO
+
 import pandas as pd
-from flask import Blueprint, request
+from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from Handler.Handler import position_required, record_history
@@ -425,7 +427,8 @@ def list_checkin_users():
                        'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
         'end_time': {'type': 'string', 'required': True,
                      'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
-        'type': {'type': 'string', 'required': True, 'allowed': ['checkin_time', 'schedule_time']}
+        'type': {'type': 'string', 'required': True, 'allowed': ['checkin_time', 'schedule_time']},
+        'export': {'type': 'boolean', 'required': False, 'default': False}
     }
     result, reason = validate_schema(schema, data)
     if not result:
@@ -433,8 +436,70 @@ def list_checkin_users():
 
     checkinusers = CheckInUser.get_all_by_date_range(start=data['start_time'],
                                                      end=data['end_time'], type=data['type'])
-
     checkinusers = [ciu.to_dict(include_schedule=True, include_check_in=True, include_asl=True) for ciu in checkinusers]
+
+    def get_nested_value(record, keys):
+        """根据dataIndex路径获取嵌套值"""
+        if isinstance(keys, str):
+            return record.get(keys, '')
+        value = record
+        for key in keys:
+            if isinstance(value, dict):
+                value = value.get(key, '')
+            else:
+                return ''
+        return value
+
+    if data.get('export', False):
+        # If export flag is True, return as Excel file
+        # 定义与前端一致的列映射
+        COLUMNS_MAPPING = [
+            {'title': '签到流水ID', 'dataIndex': 'id'},
+            {'title': '学籍号', 'dataIndex': ['user', 'studentId']},
+            {'title': '姓名', 'dataIndex': ['user', 'name']},
+            {'title': '计划ID', 'dataIndex': ['schedule', 'id']},
+            {'title': '签到ID', 'dataIndex': ['check_in', 'id']},
+            {'title': '计划名称', 'dataIndex': ['schedule', 'schedule_name']},
+            {'title': '计划开始时间', 'dataIndex': ['schedule', 'schedule_start_time']},
+            {'title': '计划类型', 'dataIndex': ['schedule', 'schedule_type']},
+            {'title': '签到名称', 'dataIndex': ['check_in', 'name']},
+            {'title': '签到开始时间', 'dataIndex': ['check_in', 'check_in_start_time']},
+            {'title': '签到结束时间', 'dataIndex': ['check_in', 'check_in_end_time']},
+            {'title': '主签到', 'dataIndex': ['check_in', 'is_main_check_in']},
+            {'title': '检查迟到', 'dataIndex': ['check_in', 'need_check_schedule_time']},
+            {'title': '状态', 'dataIndex': 'status'}
+        ]
+
+        # 准备导出数据
+        export_data = []
+        for ciu in checkinusers:
+            row = {}
+            for col in COLUMNS_MAPPING:
+                value = get_nested_value(ciu, col['dataIndex'])
+                row[col['title']] = value
+            export_data.append(row)
+
+        # 创建DataFrame（确保列顺序与前端一致）
+        df = pd.DataFrame(export_data, columns=[col['title'] for col in COLUMNS_MAPPING])
+
+        # 创建内存文件
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='签到记录')
+
+        output.seek(0)
+
+        # 创建文件名
+        start = data['start_time'][:10].replace('-', '')
+        end = data['end_time'][:10].replace('-', '')
+        filename = f"签到记录_{start}_至_{end}.xlsx"
+
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
     return json_response('success', '已列出指定日期内所有签到流水', data=checkinusers, code=200)
 
 
@@ -712,3 +777,193 @@ def attendance_stats():
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
     finally:
         session.close()
+
+@checkin_controller.route('/export/<int:check_in_id>', methods=['POST'], endpoint='export_check_in_by_id')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+@record_history
+def export_check_in_by_id(check_in_id):
+    """根据签到ID导出签到信息（POST带export参数返回Excel）"""
+    data = request.get_json() or {}
+    export = data.get('export', False)
+
+    check_in = CheckIn.get_check_in_by_id(check_in_id)
+    if not check_in:
+        return json_response('fail', '签到记录不存在', code=404)
+
+    if not export:
+        return json_response('success', '获取签到记录成功', data=check_in, code=200)
+
+    # 使用您提供的列映射
+    COLUMNS_MAPPING = [
+        {'title': '签到流水ID', 'dataIndex': ['check_in_user', 'id']},
+        {'title': '学籍号', 'dataIndex': ['check_in_user', 'user', 'studentId']},
+        {'title': '姓名', 'dataIndex': ['check_in_user', 'user', 'name']},
+        {'title': '计划ID', 'dataIndex': ['schedule', 'id']},
+        {'title': '签到ID', 'dataIndex': 'id'},
+        {'title': '计划名称', 'dataIndex': ['schedule', 'schedule_name']},
+        {'title': '计划开始时间', 'dataIndex': ['schedule', 'schedule_start_time']},
+        {'title': '计划类型', 'dataIndex': ['schedule', 'schedule_type']},
+        {'title': '签到名称', 'dataIndex': 'name'},
+        {'title': '签到开始时间', 'dataIndex': 'check_in_start_time'},
+        {'title': '签到结束时间', 'dataIndex': 'check_in_end_time'},
+        {'title': '主签到', 'dataIndex': 'is_main_check_in'},
+        {'title': '检查迟到', 'dataIndex': 'need_check_schedule_time'},
+        {'title': '状态', 'dataIndex': ['check_in_user', 'status']}
+    ]
+
+    def get_nested_value(record, keys):
+        """处理多级嵌套字段"""
+        if isinstance(keys, str):
+            return record.get(keys, '')
+        value = record
+        for key in keys:
+            if isinstance(value, dict):
+                value = value.get(key, '')
+            else:
+                return ''
+        return value
+
+    # 准备导出数据（平铺签到用户和签到信息）
+    export_data = []
+    for check_in_user in check_in.get('check_in_users', []):
+        row = {}
+        # 合并签到基础信息和用户信息
+        merged_data = {**check_in, 'check_in_user': check_in_user}
+
+        for col in COLUMNS_MAPPING:
+            value = get_nested_value(merged_data, col['dataIndex'])
+            # 特殊类型转换
+            if isinstance(value, bool):
+                value = '是' if value else '否'
+            row[col['title']] = value
+        export_data.append(row)
+
+    # 创建DataFrame
+    df = pd.DataFrame(export_data, columns=[col['title'] for col in COLUMNS_MAPPING])
+
+    # 生成Excel文件
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, index=False, sheet_name='签到详情')
+
+        # 添加签到概要信息到第二个sheet
+        summary_data = {
+            '字段': ['签到ID', '签到名称', '签到开始时间', '签到结束时间',
+                     '是否主签到', '需要检查迟到', '计划名称', '计划类型'],
+            '值': [
+                check_in.get('id', ''),
+                check_in.get('name', ''),
+                check_in.get('check_in_start_time', ''),
+                check_in.get('check_in_end_time', ''),
+                '是' if check_in.get('is_main_check_in', False) else '否',
+                '是' if check_in.get('need_check_schedule_time', False) else '否',
+                check_in.get('schedule', {}).get('schedule_name', ''),
+                check_in.get('schedule', {}).get('schedule_type', '')
+            ]
+        }
+        pd.DataFrame(summary_data).to_excel(writer, index=False, sheet_name='签到概要')
+
+    output.seek(0)
+
+    # 生成文件名
+    filename = f"签到详情_{check_in_id}_{check_in.get('name', '')}.xlsx".replace(':', '-')
+
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
+
+@checkin_controller.route('/checkinuser/user/<int:user_id>', methods=['POST'], endpoint='list_checkin_users_by_user_id')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+@record_history
+def list_checkin_users_by_user_id(user_id):
+    data = request.get_json()
+    if not data:
+        return json_response('fail', "未传递任何参数", code=422)
+    schema = {
+        'start_time': {'type': 'string', 'required': True,
+                       'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+        'end_time': {'type': 'string', 'required': True,
+                     'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
+        'type': {'type': 'string', 'required': True, 'allowed': ['checkin_time', 'schedule_time']},
+        'export': {'type': 'boolean', 'required': False, 'default': False}
+    }
+    result, reason = validate_schema(schema, data)
+    if not result:
+        return json_response('fail', f'请求参数错误: {reason}', code=422)
+
+    checkinusers = CheckInUser.get_all_by_user_and_date_range(user_id=user_id, start=data['start_time'],
+                                                     end=data['end_time'], type=data['type'])
+    checkinusers = [ciu.to_dict(include_schedule=True, include_check_in=True, include_asl=True) for ciu in checkinusers]
+
+    def get_nested_value(record, keys):
+        """根据dataIndex路径获取嵌套值"""
+        if isinstance(keys, str):
+            return record.get(keys, '')
+        value = record
+        for key in keys:
+            if isinstance(value, dict):
+                value = value.get(key, '')
+            else:
+                return ''
+        return value
+
+    if data.get('export', False):
+        # If export flag is True, return as Excel file
+        # 定义与前端一致的列映射
+        COLUMNS_MAPPING = [
+            {'title': '签到流水ID', 'dataIndex': 'id'},
+            {'title': '学籍号', 'dataIndex': ['user', 'studentId']},
+            {'title': '姓名', 'dataIndex': ['user', 'name']},
+            {'title': '计划ID', 'dataIndex': ['schedule', 'id']},
+            {'title': '签到ID', 'dataIndex': ['check_in', 'id']},
+            {'title': '计划名称', 'dataIndex': ['schedule', 'schedule_name']},
+            {'title': '计划开始时间', 'dataIndex': ['schedule', 'schedule_start_time']},
+            {'title': '计划类型', 'dataIndex': ['schedule', 'schedule_type']},
+            {'title': '签到名称', 'dataIndex': ['check_in', 'name']},
+            {'title': '签到开始时间', 'dataIndex': ['check_in', 'check_in_start_time']},
+            {'title': '签到结束时间', 'dataIndex': ['check_in', 'check_in_end_time']},
+            {'title': '主签到', 'dataIndex': ['check_in', 'is_main_check_in']},
+            {'title': '检查迟到', 'dataIndex': ['check_in', 'need_check_schedule_time']},
+            {'title': '状态', 'dataIndex': 'status'}
+        ]
+
+        # 准备导出数据
+        export_data = []
+        for ciu in checkinusers:
+            row = {}
+            for col in COLUMNS_MAPPING:
+                value = get_nested_value(ciu, col['dataIndex'])
+                row[col['title']] = value
+            export_data.append(row)
+
+        # 创建DataFrame（确保列顺序与前端一致）
+        df = pd.DataFrame(export_data, columns=[col['title'] for col in COLUMNS_MAPPING])
+
+        # 创建内存文件
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='签到记录')
+
+        output.seek(0)
+
+        # 创建文件名
+        start = data['start_time'][:10].replace('-', '')
+        end = data['end_time'][:10].replace('-', '')
+        filename = f"签到记录_{start}_至_{end}.xlsx"
+
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+    return json_response('success', '已列出指定日期内所有签到流水', data=checkinusers, code=200)
+

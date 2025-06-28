@@ -73,7 +73,7 @@ class CheckIn(Base):
             if not check_in:
                 return None
 
-            result = check_in.to_dict()
+            result = check_in.to_dict(include_schedule=True)
             return result
         finally:
             session.close()

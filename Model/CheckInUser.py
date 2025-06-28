@@ -125,19 +125,32 @@ class CheckInUser(Base):
             session.close()
 
     @classmethod
-    def get_all_by_user_and_date_range(cls, user_id: int, start: datetime, end: datetime):
+    def get_all_by_user_and_date_range(cls, user_id: int, start: datetime, end: datetime, type: str):
         session = Session()
         try:
-            from Model.CheckIn import CheckIn
-            return session.query(cls).join(CheckIn).filter(
-                cls.user_id == user_id,
-                CheckIn.check_in_start_time >= start,
-                CheckIn.check_in_end_time <= end
-            ).options(
-                joinedload(cls.check_in).joinedload(CheckIn.schedule),
-                joinedload(cls.user),
-                joinedload(cls.ask_for_leaves)
-            ).all()
+            if type == 'checkin_time':
+                from Model.CheckIn import CheckIn
+                return session.query(cls).join(CheckIn).filter(
+                    cls.user_id == user_id,
+                    CheckIn.check_in_start_time >= start,
+                    CheckIn.check_in_end_time <= end
+                ).options(
+                    joinedload(cls.user),
+                    joinedload(cls.check_in).joinedload(CheckIn.schedule),
+                    joinedload(cls.ask_for_leaves)
+                ).all()
+            else:
+                from Model.CheckIn import CheckIn
+                from Model.Schedule import Schedule
+                return session.query(cls).join(CheckIn, cls.check_in).join(Schedule, CheckIn.schedule).filter(
+                    cls.user_id == user_id,
+                    Schedule.schedule_start_time >= start,
+                    Schedule.schedule_start_time <= end
+                ).options(
+                    joinedload(cls.user),
+                    joinedload(cls.check_in).joinedload(CheckIn.schedule),
+                    joinedload(cls.ask_for_leaves)
+                ).all()
         finally:
             session.close()
 
