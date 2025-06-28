@@ -171,18 +171,16 @@ def assign_users_and_checkins():
             else:
                 response_message['failed'][checkin.id] = reason  # 失败的用户及原因
 
-        sep = "\n"
-        # 发送通知
+        session.commit()
         for user in users:
             Message.add_message(
                 user_id=user.id,
-                msg_title="新排班通知",
-                msg_text=f"请查看新的排班:\n {sep.join([checkin.name for checkin in checkins])} \n，如有异议联系管理员。",
+                msg_title="新排班(签到)通知",
+                msg_text=f"<h3>请查看新的排班:</h3>"
+                         f"<ul>{''.join(f'<li>{checkin.name}</li>' for checkin in checkins)}</ul>"
+                         f"<p>如有异议联系管理员。</p>",
                 msg_type='PRIVATE'
             )
-
-        session.commit()
-
         return json_response('success',
                              f"成功数据: {response_message['success']}, 出错数据: {response_message['failed']}",
                              code=200)
@@ -246,7 +244,7 @@ def assign_users_by_check_in_id(check_in_id):
         for user in users:
             Message.add_message(
                 user_id=user.id,
-                msg_title="新排班通知（单独排班）",
+                msg_title="新排班(签到)通知（单独排班）",
                 msg_text=f"请查看新的排班，名称为{checkin.name}，如有异议联系管理员。",
                 msg_type='PRIVATE'
             )

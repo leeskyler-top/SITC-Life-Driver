@@ -10,7 +10,7 @@ from sqlalchemy import func
 
 from Handler.Handler import position_required, record_history, admin_required
 from LoadEnviroment.LoadEnv import upload_folder
-from Model import CheckInUser
+from Model import CheckInUser, Message
 from Model.AskForLeaveApplication import AskForLeaveApplication, StatusEnum, AskForLeaveEnum
 from Model.CheckInUser import CheckInStatusEnum
 from Model.User import PositionEnum
@@ -198,6 +198,18 @@ def create_my_leave_application(check_in_user_id):
                     pass
         return json_response('fail', asl, code=code)
 
+    Message.add_message(
+        user_id=None,
+        msg_text=f"有一条请假申请待审批-{asl['created_at']}",
+        msg_title=f""
+                  f"<h3>请假ID:{asl['id']}</h3>"
+                  f"<p>请假者:{asl['check_in_user']['user']['studentId']}-{asl['check_in_user']['user']['name']}</p>"
+                  f"<p>值班：{asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{asl['check_in_user']['schedule']['schedule_start_time']}</p>"
+                  f"<p>签到：{asl['check_in_user']['check_in']['name']}</p>"
+                  f"<p>申请时间：{asl['created_at']}</p>"
+                  f"<p>详情请前往审批页面。</p>",
+        msg_type="ADMIN"
+    )
     return json_response('success', '请假申请创建成功', data={'id': asl['id']})
 
 
@@ -359,8 +371,22 @@ def update_leave_application(application_id):
 
         if data.get('asl_type', None) is not None:
             application.asl_type = AskForLeaveEnum(data['asl_type'])
-
         session.commit()
+        application = application.to_dict()
+        Message.add_message(
+            user_id=application['check_in_user']['user']['id'],
+            msg_title=f"请假审批通知（{application['status']}）",
+            msg_text=f""
+                     f"<h3>请假ID: {application['id']}</h3>"
+                     f"<p>值班: {application['check_in_user']['schedule']['schedule_name']}-{application['check_in_user']['schedule']['schedule_type']}-{application['check_in_user']['schedule']['schedule_start_time']} </p> "
+                     f"<p>签到: {application['check_in_user']['check_in']['name']} </p>"
+                     f'<p>请假申请<span style="color: red;">{application["status"]}</span></p>'
+                     f"<p>审批意见：{application['reject_reason']}</p>"
+                     f"<p>如果存在疑问，请联系管理员。</p>"
+            ,
+            msg_type='PRIVATE'
+        )
+
         return json_response('success', '请假申请状态已更新')
 
     except Exception as e:
@@ -483,6 +509,17 @@ def create_leave_application(check_in_user_id):
                 except:
                     pass
         return json_response('fail', asl, code=code)
+
+    Message.add_message(
+        user_id=asl['check_in_user']['user']['id'],
+        msg_title="管理员帮助你补充请假",
+        msg_text=f""
+                     f"<h3>请假ID: {asl['id']}</h3>"
+                     f"<p>值班: {asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{application['check_in_user']['schedule']['schedule_start_time']} </p> "
+                     f"<p>签到: {asl['check_in_user']['check_in']['name']} </p>"
+                     f"<p>如果存在疑问，请联系管理员。</p>",
+        msg_type='PRIVATE'
+    )
 
     return json_response('success', '请假申请创建成功', data={'id': asl['id']})
 
