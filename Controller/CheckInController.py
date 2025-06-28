@@ -778,6 +778,7 @@ def attendance_stats():
     finally:
         session.close()
 
+
 @checkin_controller.route('/export/<int:check_in_id>', methods=['POST'], endpoint='export_check_in_by_id')
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
@@ -900,7 +901,7 @@ def list_checkin_users_by_user_id(user_id):
         return json_response('fail', f'请求参数错误: {reason}', code=422)
 
     checkinusers = CheckInUser.get_all_by_user_and_date_range(user_id=user_id, start=data['start_time'],
-                                                     end=data['end_time'], type=data['type'])
+                                                              end=data['end_time'], type=data['type'])
     checkinusers = [ciu.to_dict(include_schedule=True, include_check_in=True, include_asl=True) for ciu in checkinusers]
 
     def get_nested_value(record, keys):
@@ -967,3 +968,97 @@ def list_checkin_users_by_user_id(user_id):
         )
     return json_response('success', '已列出指定日期内所有签到流水', data=checkinusers, code=200)
 
+
+@checkin_controller.route('/checkinuser/schedule/<int:schedule_id>', methods=['POST'],
+                          endpoint='list_checkin_users_by_schedule_id')
+@position_required(
+    [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
+)
+@record_history
+def list_checkin_users_by_schedule_id(schedule_id):
+    data = request.get_json()
+    if not data:
+        return json_response('fail', "未传递任何参数", code=422)
+    schema = {
+        'export': {'type': 'boolean', 'required': False, 'default': False}
+    }
+    result, reason = validate_schema(schema, data)
+    if not result:
+        return json_response('fail', f'请求参数错误: {reason}', code=422)
+
+    schedule = Schedule.get_schedule_by_id(schedule_id)
+    if not schedule:
+        return json_response('fail', f'未找到值班计划', code=404)
+    schedule_dict = {
+        'schedule_id': schedule['id'],
+        'schedule_name': schedule['schedule_name'],
+        'schedule_start_time': schedule['schedule_start_time'],
+        'schedule_type': schedule['schedule_type'],
+    }
+    ciu = []
+    checkinusers = [ciu.extend(ci['check_in_users']) for ci in schedule['check_ins']]
+    for ciu_ele in ciu:
+        ciu_ele['schedule'] = schedule_dict  # Or however you get the schedule data for each user    print(ciu)
+
+    def get_nested_value(record, keys):
+        """根据dataIndex路径获取嵌套值"""
+        if isinstance(keys, str):
+            return record.get(keys, '')
+        value = record
+        for key in keys:
+            if isinstance(value, dict):
+                value = value.get(key, '')
+            else:
+                return ''
+        return value
+
+    if data.get('export', False):
+        # If export flag is True, return as Excel file
+        # 定义与前端一致的列映射
+        COLUMNS_MAPPING = [
+            {'title': '签到流水ID', 'dataIndex': 'id'},
+            {'title': '学籍号', 'dataIndex': ['user', 'studentId']},
+            {'title': '姓名', 'dataIndex': ['user', 'name']},
+            {'title': '计划ID', 'dataIndex': ['schedule', 'id']},
+            {'title': '签到ID', 'dataIndex': ['check_in', 'id']},
+            {'title': '计划名称', 'dataIndex': ['schedule', 'schedule_name']},
+            {'title': '计划开始时间', 'dataIndex': ['schedule', 'schedule_start_time']},
+            {'title': '计划类型', 'dataIndex': ['schedule', 'schedule_type']},
+            {'title': '签到名称', 'dataIndex': ['check_in', 'name']},
+            {'title': '签到开始时间', 'dataIndex': ['check_in', 'check_in_start_time']},
+            {'title': '签到结束时间', 'dataIndex': ['check_in', 'check_in_end_time']},
+            {'title': '主签到', 'dataIndex': ['check_in', 'is_main_check_in']},
+            {'title': '检查迟到', 'dataIndex': ['check_in', 'need_check_schedule_time']},
+            {'title': '状态', 'dataIndex': 'status'}
+        ]
+
+        # 准备导出数据
+        export_data = []
+        for ciu_ele in ciu:
+            row = {}
+            for col in COLUMNS_MAPPING:
+                value = get_nested_value(ciu_ele, col['dataIndex'])
+                row[col['title']] = value
+            export_data.append(row)
+
+        # 创建DataFrame（确保列顺序与前端一致）
+        print(export_data)
+        df = pd.DataFrame(export_data, columns=[col['title'] for col in COLUMNS_MAPPING])
+
+        # 创建内存文件
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='签到记录')
+
+        output.seek(0)
+
+        # 创建文件名
+        filename = f"签到记录_schedule_{schedule_id}.xlsx"
+
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name=filename
+        )
+    return json_response('success', '已列出指定日期内所有签到流水', data=checkinusers, code=200)
