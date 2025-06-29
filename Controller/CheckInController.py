@@ -1,6 +1,7 @@
 from io import BytesIO
 
 import pandas as pd
+from dateutil.relativedelta import relativedelta
 from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -704,10 +705,11 @@ def attendance_stats():
                     user_data['approved_sick_leaves'] += 1
                 elif application.asl_type.value == '事假':
                     user_data['approved_ordinary_leaves'] += 1
-                else:  # 排除赛事
+                else:  # 排除赛事、公务假
                     continue  # 不计入
 
             user_data['absence_count'] = user_data['schedule_count'] - user_data['attendance_count']  # 缺勤次数
+            department_stats['total_absenteeism'] += user_data['absence_count']
 
             # 计算出勤率
             if user_data['schedule_count'] > 0:
@@ -749,11 +751,11 @@ def attendance_stats():
             ).all()
 
             for application in leave_applications:
-                if application.asl_type == '病假':
+                if application.asl_type.value == '病假':
                     department_stats['total_sick_leaves'] += 1
-                elif application.asl_type == '事假':
+                elif application.asl_type.value == '事假':
                     department_stats['total_ordinary_leaves'] += 1
-                elif application.asl_type == '符合要求的赛事或集训':  # 排除赛事
+                else:  # 排除赛事
                     continue  # 不计入
 
         # 计算出勤率、缺勤率和迟到率
@@ -772,6 +774,38 @@ def attendance_stats():
             department_stats['absenteeism_rate'] = 0
             department_stats['late_rate'] = 0
         attendance_stats_dict['department_data'] = department_stats
+
+        monthly_leave_stats = []
+        current_month = start_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        while current_month <= end_time:
+            next_month = current_month + relativedelta(months=1)
+
+            # Query leave applications for this month
+            leave_applications = session.query(AskForLeaveApplication).filter(
+                AskForLeaveApplication.status == StatusEnum.ACCEPTED,
+                AskForLeaveApplication.created_at >= current_month,
+                AskForLeaveApplication.created_at < next_month
+            ).all()
+
+            sick_leaves = 0
+            ordinary_leaves = 0
+
+            for application in leave_applications:
+                if application.asl_type.value == '病假':
+                    sick_leaves += 1
+                elif application.asl_type.value == '事假':
+                    ordinary_leaves += 1
+
+            monthly_leave_stats.append({
+                'month': current_month.strftime('%Y-%m'),
+                'sick_leaves': sick_leaves,
+                'ordinary_leaves': ordinary_leaves
+            })
+
+            current_month = next_month
+
+        attendance_stats_dict['monthly_leave_stats'] = monthly_leave_stats
+
         return json_response('success', '统计数据获取成功', data=attendance_stats_dict)
     except Exception as e:
         return json_response('fail', f'处理请求时出错：{str(e)}', code=500)
