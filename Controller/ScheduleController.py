@@ -91,6 +91,24 @@ def batch_create_schedules():
         if not required_columns.issubset(df.columns):
             return json_response('fail', f"CSV 文件缺少必要的列：{', '.join(required_columns)}", code=422)
 
+        df = df.replace(r'^\s*$', None, regex=True)
+        injection_patterns = re.compile(r'^[=+\-@]|--|\/\/|\/\*|\*\/|\\|[<>]')
+        # 检查DataFrame中每个单元格
+        for col in df.columns:
+            # 找出非空且包含危险模式的单元格
+            dangerous_cells = df[col].apply(
+                lambda x: bool(injection_patterns.search(str(x))) if pd.notna(x) else False
+            )
+
+            if dangerous_cells.any():
+                # 获取第一个违规的单元格作为示例
+                sample = df.loc[dangerous_cells.idxmax(), col]
+                return json_response(
+                    'fail',
+                    f"检测到潜在危险内容 (列: {col}, 值: '{sample}')",
+                    code=422
+                )
+
         # 清洗数据
         df['schedule_name'] = df['schedule_name'].astype(str).str.strip()
         df['schedule_type'] = df['schedule_type'].astype(str).str.strip()

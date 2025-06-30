@@ -7,6 +7,7 @@ from .globals import json_response, validate_schema, non_empty_string
 from SQLService.Operation import truncate_template, insert_template, delete_template, \
     update_template, read_template_from_sql
 import io
+import re
 import pandas as pd
 
 template_controller = Blueprint('template_controller', __name__)
@@ -171,6 +172,25 @@ def upload_template():
         df['building'] = df['building'].astype('str')
         df['room'] = df['room'].astype('str')
         df['classname'] = df['classname'].astype('str')
+
+        df = df.replace(r'^\s*$', None, regex=True)
+        injection_patterns = re.compile(r'^[=+\-@]|--|\/\/|\/\*|\*\/|\\|[<>]')
+        # 检查DataFrame中每个单元格
+        for col in df.columns:
+            # 找出非空且包含危险模式的单元格
+            dangerous_cells = df[col].apply(
+                lambda x: bool(injection_patterns.search(str(x))) if pd.notna(x) else False
+            )
+
+            if dangerous_cells.any():
+                # 获取第一个违规的单元格作为示例
+                sample = df.loc[dangerous_cells.idxmax(), col]
+                return json_response(
+                    'fail',
+                    f"检测到潜在危险内容 (列: {col}, 值: '{sample}')",
+                    code=422
+                )
+
         # 清理数据
         df = df.dropna(subset=['building', 'room', 'classname']).reset_index(drop=True)
         # 检查唯一性

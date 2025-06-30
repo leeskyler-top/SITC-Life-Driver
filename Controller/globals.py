@@ -28,7 +28,7 @@ def non_empty_string(field, value, error):
         return False
 
 
-def validate_schema(schema, data, strict: bool = True) -> tuple:
+def validate_schema(schema, data, check_xml_tag: bool = True, strict: bool = True) -> tuple:
     html_tag_pattern = re.compile(r'<[^>]+>')
 
     def contains_html(value) -> bool:
@@ -68,9 +68,9 @@ def validate_schema(schema, data, strict: bool = True) -> tuple:
         return data
 
     # First check for HTML tags
-    if check_for_html(data):
+    if check_xml_tag and check_for_html(data):
         if strict:
-            return False, {'_error': 'illegal character - HTML/XML tags detected'}
+            return False, '非法传入HTML、XML标签'
         processed_data = process_data(data)
         v = Validator(schema)
         if not v.validate(processed_data):
@@ -81,6 +81,7 @@ def validate_schema(schema, data, strict: bool = True) -> tuple:
     if not v.validate(data):
         return False, v.errors
     return True, data if not strict else ""
+
 
 if mysql_use_ssl:
     ssl_config = {

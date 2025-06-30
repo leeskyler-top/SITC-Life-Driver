@@ -204,8 +204,8 @@ def create_my_leave_application(check_in_user_id):
 
     Message.add_message(
         user_id=None,
-        msg_text=f"有一条请假申请待审批-{asl['created_at']}",
-        msg_title=f""
+        msg_title=f"有一条请假申请待审批-{asl['created_at']}",
+        msg_text=f""
                   f"<h3>请假ID:{asl['id']}</h3>"
                   f"<p>请假者:{asl['check_in_user']['user']['studentId']}-{asl['check_in_user']['user']['name']}</p>"
                   f"<p>值班：{asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{asl['check_in_user']['schedule']['schedule_start_time']}</p>"
