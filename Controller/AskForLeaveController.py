@@ -116,6 +116,10 @@ def create_my_leave_application(check_in_user_id):
     if 'asl_type' not in request.form or request.form['asl_type'] not in asl_values:
         return json_response('fail', '无效的请假类型', code=422)
 
+    is_valid, errors = validate_schema({'asl_reason': {'required': False}}, {'asl_reason': request.form['asl_reason']})
+    if not is_valid:
+        return json_response('fail', '请填写合法请假原因', code=422)
+
     # 获取上传的文件（但不立即处理）
     files = request.files.getlist('image_url')
 
@@ -450,6 +454,10 @@ def create_leave_application(check_in_user_id):
     if 'asl_type' not in request.form or request.form['asl_type'] not in asl_values:
         return json_response('fail', '无效的请假类型', code=422)
 
+    is_valid, errors = validate_schema({'asl_reason': {'required': False}}, {'asl_reason': request.form['asl_reason']})
+    if not is_valid:
+        return json_response('fail', '请填写合法请假原因', code=422)
+
     # 获取上传的文件（但不立即处理）
     files = request.files.getlist('image_url')
 
@@ -461,10 +469,6 @@ def create_leave_application(check_in_user_id):
             file.seek(0)
         if total_size > MAX_IMAGE_SIZE:
             return json_response('fail', '图片总大小不能超过35MB', code=422)
-
-    # 验证其他字段
-    if 'asl_reason' not in request.form or not request.form['asl_reason'].strip():
-        return json_response('fail', '请填写请假原因', code=422)
 
     # 检查签到记录
     check_in_user = CheckInUser.get_by_id(check_in_user_id)
@@ -514,10 +518,10 @@ def create_leave_application(check_in_user_id):
         user_id=asl['check_in_user']['user']['id'],
         msg_title="管理员帮助你补充请假",
         msg_text=f""
-                     f"<h3>请假ID: {asl['id']}</h3>"
-                     f"<p>值班: {asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{application['check_in_user']['schedule']['schedule_start_time']} </p> "
-                     f"<p>签到: {asl['check_in_user']['check_in']['name']} </p>"
-                     f"<p>如果存在疑问，请联系管理员。</p>",
+                 f"<h3>请假ID: {asl['id']}</h3>"
+                 f"<p>值班: {asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{asl['check_in_user']['schedule']['schedule_start_time']} </p> "
+                 f"<p>签到: {asl['check_in_user']['check_in']['name']} </p>"
+                 f"<p>如果存在疑问，请联系管理员。</p>",
         msg_type='PRIVATE'
     )
 

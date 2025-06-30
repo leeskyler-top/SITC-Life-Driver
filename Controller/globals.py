@@ -1,3 +1,4 @@
+import re
 from cerberus import Validator
 from flask import jsonify
 from sqlalchemy import create_engine
@@ -27,12 +28,59 @@ def non_empty_string(field, value, error):
         return False
 
 
-def validate_schema(schema, data):
+def validate_schema(schema, data, strict: bool = True) -> tuple:
+    html_tag_pattern = re.compile(r'<[^>]+>')
+
+    def contains_html(value) -> bool:
+        if value is None or isinstance(value, (int, float)):
+            return False
+        if isinstance(value, str):
+            return bool(html_tag_pattern.search(value))
+        return False
+
+    def strip_html(value):
+        if value is None or isinstance(value, (int, float)):
+            return value
+        if isinstance(value, str):
+            return re.sub(html_tag_pattern, '', value)
+        return value
+
+    def check_for_html(data) -> bool:
+        if data is None or isinstance(data, (int, float)):
+            return False
+        if isinstance(data, str):
+            return contains_html(data)
+        if isinstance(data, dict):
+            return any(check_for_html(v) for v in data.values())
+        if isinstance(data, list):
+            return any(check_for_html(item) for item in data)
+        return False
+
+    def process_data(data):
+        if data is None or isinstance(data, (int, float)):
+            return data
+        if isinstance(data, str):
+            return strip_html(data)
+        if isinstance(data, dict):
+            return {k: process_data(v) for k, v in data.items()}
+        if isinstance(data, list):
+            return [process_data(item) for item in data]
+        return data
+
+    # First check for HTML tags
+    if check_for_html(data):
+        if strict:
+            return False, {'_error': 'illegal character - HTML/XML tags detected'}
+        processed_data = process_data(data)
+        v = Validator(schema)
+        if not v.validate(processed_data):
+            return False, v.errors
+        return True, processed_data  # Return processed data in non-strict mode
+
     v = Validator(schema)
     if not v.validate(data):
         return False, v.errors
-    else:
-        return True, ""
+    return True, data if not strict else ""
 
 if mysql_use_ssl:
     ssl_config = {
