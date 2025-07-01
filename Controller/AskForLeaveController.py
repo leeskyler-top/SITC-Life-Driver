@@ -14,8 +14,9 @@ from Model import CheckInUser, Message
 from Model.AskForLeaveApplication import AskForLeaveApplication, StatusEnum, AskForLeaveEnum
 from Model.CheckInUser import CheckInStatusEnum
 from Model.User import PositionEnum
-from utils.utils import allowed_file, validate_image, detect_mime
+from utils.utils import allowed_file, detect_mime
 from .globals import json_response, Session, validate_schema
+from werkzeug.utils import secure_filename
 
 ask_for_leave_controller = Blueprint('ask_for_leave_controller', __name__)
 
@@ -55,30 +56,59 @@ def cleanup_old_images():
         session.close()
 
 
-def save_uploaded_images(files, check_in_user_id):
-    """保存上传的图片并返回路径列表"""
-    saved_paths = []
+def validate_and_save_images(files, check_in_user_id):
+    """
+    遍历上传文件，验证格式、大小，并保存图片。返回保存路径列表或 None（失败）。
+    """
+    image_urls = []
+    total_size = 0
 
     for file in files:
-        if file and allowed_file(file.filename) and validate_image(file.stream):
-            # 生成安全的随机文件名
-            ext = file.filename.rsplit('.', 1)[1].lower()
-            new_filename = f"{uuid.uuid4()}_(check_in_user_{check_in_user_id})_{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.{ext}"
-            filepath = os.path.join(upload_folder, new_filename)
+        if not file or file.filename == '':
+            continue
 
-            # 保存文件
-            file.save(filepath)
+        filename = secure_filename(file.filename)
 
-            # 验证图片完整性
-            try:
-                img = Image.open(filepath)
+        # 扩展名检查
+        if not allowed_file(filename):
+            continue
+
+        # 检查文件大小（通过 seek/tell）
+        file.seek(0, os.SEEK_END)
+        size = file.tell()
+        total_size += size
+        if total_size > MAX_IMAGE_SIZE:
+            return None  # 超出总大小限制
+        file.seek(0)
+
+        # 使用 PIL 验证图片有效性
+        try:
+            with Image.open(file) as img:
                 img.verify()
-                saved_paths.append(new_filename)
-            except:
-                os.remove(filepath)
-                continue
+                if img.format.lower() not in ALLOWED_EXTENSIONS:
+                    continue
+        except Exception:
+            continue
 
-    return saved_paths
+        # 重置指针准备保存
+        file.seek(0)
+
+        # 构造安全文件名
+        suffix = filename.rsplit('.', 1)[1].lower()
+        unique_name = f"{check_in_user_id}_{uuid.uuid4().hex}.{suffix}"
+        save_path = os.path.join(upload_folder, unique_name)
+
+        try:
+            file.save(save_path)
+            image_urls.append(save_path)
+        except Exception as e:
+            print(f"[ERROR] 文件保存失败: {e}")
+            continue
+
+        if len(image_urls) >= MAX_IMAGES:
+            break
+
+    return image_urls
 
 
 @ask_for_leave_controller.route('/my', methods=['GET'], endpoint='get_my_leave_applications')
@@ -180,7 +210,7 @@ def create_my_leave_application(check_in_user_id):
     image_urls = []
     if files and any(files):
         # 实际保存图片
-        image_urls = save_uploaded_images(files, check_in_user_id)
+        image_urls = validate_and_save_images(files, check_in_user_id)
         print(image_urls)
         # 非事假类型必须确保图片上传成功
         if not image_urls:
@@ -209,12 +239,12 @@ def create_my_leave_application(check_in_user_id):
         user_id=None,
         msg_title=f"有一条请假申请待审批-{asl['created_at']}",
         msg_text=f""
-                  f"<h3>请假ID:{asl['id']}</h3>"
-                  f"<p>请假者:{asl['check_in_user']['user']['studentId']}-{asl['check_in_user']['user']['name']}</p>"
-                  f"<p>值班：{asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{asl['check_in_user']['schedule']['schedule_start_time']}</p>"
-                  f"<p>签到：{asl['check_in_user']['check_in']['name']}</p>"
-                  f"<p>申请时间：{asl['created_at']}</p>"
-                  f"<p>详情请前往审批页面。</p>",
+                 f"<h3>请假ID:{asl['id']}</h3>"
+                 f"<p>请假者:{asl['check_in_user']['user']['studentId']}-{asl['check_in_user']['user']['name']}</p>"
+                 f"<p>值班：{asl['check_in_user']['schedule']['schedule_name']}-{asl['check_in_user']['schedule']['schedule_type']}-{asl['check_in_user']['schedule']['schedule_start_time']}</p>"
+                 f"<p>签到：{asl['check_in_user']['check_in']['name']}</p>"
+                 f"<p>申请时间：{asl['created_at']}</p>"
+                 f"<p>详情请前往审批页面。</p>",
         msg_type="ADMIN"
     )
     return json_response('success', '请假申请创建成功', data={'id': asl['id']})
@@ -496,7 +526,7 @@ def create_leave_application(check_in_user_id):
     image_urls = []
     if files and any(files):
         # 实际保存图片
-        image_urls = save_uploaded_images(files, check_in_user_id)
+        image_urls = validate_and_save_images(files, check_in_user_id)
 
         # 非事假类型必须确保图片上传成功
         if not image_urls:
