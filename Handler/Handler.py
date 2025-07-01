@@ -136,13 +136,12 @@ def is_internal_request():
     if not received_signature:
         return False
 
-    client_ip = request.remote_addr
+    client_ip = request.headers.get('X-Real-IP') or request.remote_addr
     expected_signature = hmac.new(
         hmac_secret_key.encode(),
         client_ip.encode(),
         hashlib.sha256
     ).hexdigest()
-    print()
     return hmac.compare_digest(received_signature, expected_signature)
 
 
