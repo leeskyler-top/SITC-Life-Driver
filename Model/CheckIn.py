@@ -16,6 +16,7 @@ class CheckIn(Base):
     check_in_end_time = Column(DateTime, nullable=False)
     need_check_schedule_time = Column(Boolean, nullable=False, default=False)
     is_main_check_in = Column(Boolean, nullable=False, default=False)
+    check_internal = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, server_default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
 
@@ -48,6 +49,7 @@ class CheckIn(Base):
             "check_in_end_time": format_datetime(self.check_in_end_time),
             "need_check_schedule_time": self.need_check_schedule_time,
             "is_main_check_in": self.is_main_check_in,
+            "check_internal": self.check_internal,
             "created_at": format_datetime(self.created_at),
             "updated_at": format_datetime(self.updated_at)
         }
@@ -80,7 +82,7 @@ class CheckIn(Base):
 
     @classmethod
     def create_check_in_in_db(cls, schedule_id: int, name: str, check_in_start_time: str, check_in_end_time: str,
-                              is_main_check_in: bool, need_check_schedule_time: bool = True, check_in_users: list = []):
+                              is_main_check_in: bool, need_check_schedule_time: bool = True, check_internal: bool = True, check_in_users: list = []):
         session = Session()
 
         try:
@@ -115,6 +117,7 @@ class CheckIn(Base):
                 check_in_start_time=check_in_start_time,
                 check_in_end_time=check_in_end_time,
                 need_check_schedule_time=need_check_schedule_time,
+                check_internal=check_internal,
                 is_main_check_in=is_main_check_in
             )
             session.add(check_in)

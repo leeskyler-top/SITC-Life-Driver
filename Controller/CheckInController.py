@@ -5,7 +5,7 @@ from dateutil.relativedelta import relativedelta
 from flask import Blueprint, request, send_file
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from Handler.Handler import position_required, record_history
+from Handler.Handler import position_required, record_history, internal_required
 from Model import CheckIn, CheckInUser, AskForLeaveApplication
 from Model.AskForLeaveApplication import StatusEnum
 from Model.CheckInUser import CheckInStatusEnum
@@ -65,6 +65,10 @@ def create_checkin(schedule_id):
                 'type': 'boolean',
                 'required': True,
             },
+            'check_internal': {
+                'type': 'boolean',
+                'required': True,
+            },
             'name': {
                 'type': 'string',
                 'required': True,
@@ -101,6 +105,7 @@ def create_checkin(schedule_id):
             check_in_end_time=data['check_in_end_time'],
             need_check_schedule_time=data['need_check_schedule_time'],
             check_in_users=data['check_in_users'],
+            check_internal=data['check_internal'],
             is_main_check_in=False
         )
         if status:
@@ -271,7 +276,8 @@ def assign_users_by_check_in_id(check_in_id):
 @checkin_controller.route('/checkin/<int:check_in_id>', methods=['GET'], endpoint='checkin')
 @jwt_required()
 @record_history
-def checkin(check_in_id):
+@internal_required
+def checkin(check_in_id, is_internal):
     session = Session()
     try:
         user_id = get_jwt_identity()
@@ -289,6 +295,9 @@ def checkin(check_in_id):
 
         if now > checkin.check_in_end_time:
             return json_response('fail', '签到已结束，无法签到', code=422)
+
+        if checkin.check_internal and not is_internal:
+            return json_response('fail', '管理员要求此签到必须在内网进行', code=403)
 
         checkin_user.check_in_time = now
         session.commit()
@@ -522,6 +531,7 @@ def update_checkin(check_in_id):
             'check_in_end_time': {'type': 'string', 'required': False,
                                   'regex': r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$'},
             'need_check_schedule_time': {'type': 'boolean', 'required': False, 'allowed': [True, False]},
+            'check_internal': {'type': 'boolean', 'required': False, 'allowed': [True, False]},
             # 0 为普通用户，1 为管理员
         }
         result, reason = validate_schema(schema, data)
@@ -555,6 +565,9 @@ def update_checkin(check_in_id):
 
         if 'need_check_schedule_time' in data:
             checkin.need_check_schedule_time = data['need_check_schedule_time']
+
+        if 'check_internal' in data:
+            checkin.check_internal = data['check_internal']
 
         session.commit()
         return json_response('success', '签到信息修改成功', checkin.to_dict(), code=200)

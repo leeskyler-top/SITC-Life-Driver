@@ -4,9 +4,12 @@ from sqlalchemy.exc import IntegrityError
 from functools import wraps
 from flask import jsonify, request
 
+from LoadEnviroment.LoadEnv import hmac_secret_key
 from Model.History import History, MethodEnum
 from Model.User import User, PositionEnum
 from Controller.globals import json_response  # 导入统一的 JSON 响应函数
+import hmac
+import hashlib
 
 
 def handle_global_exceptions(app):
@@ -103,9 +106,9 @@ def record_history(f):
         response = f(*args, **kwargs)
         # 只在响应成功时记录历史(2xx/3xx状态码)
         if (
-            (isinstance(response, tuple) and 200 <= response[1] < 400)
+                (isinstance(response, tuple) and 200 <= response[1] < 400)
                 or
-            (isinstance(response, flask.wrappers.Response) and response.status == "200 OK")
+                (isinstance(response, flask.wrappers.Response) and response.status == "200 OK")
         ):
             try:
                 # 检查请求是否携带有效JWT(不抛出异常)
@@ -125,3 +128,43 @@ def record_history(f):
         return response
 
     return decorated_function
+
+
+def is_internal_request():
+    """验证请求是否来自内网（基于HMAC签名）"""
+    received_signature = request.headers.get("X-Network-Signature")
+    if not received_signature:
+        return False
+
+    client_ip = request.remote_addr
+    expected_signature = hmac.new(
+        hmac_secret_key.encode(),
+        client_ip.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    print()
+    return hmac.compare_digest(received_signature, expected_signature)
+
+
+def internal_required(func):
+    """装饰器：将内网验证结果作为参数传递给路由函数"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        is_internal = is_internal_request()
+        return func(is_internal=is_internal, *args, **kwargs)
+
+    return wrapper
+
+
+# 可选：严格模式装饰器（非内网直接返回403）
+def internal_strict(func):
+    """装饰器：非内网请求直接返回403"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not is_internal_request():
+            return jsonify({"status": "fail", "message": "内网访问要求"}), 403
+        return func(*args, **kwargs)
+
+    return wrapper
