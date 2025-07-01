@@ -19,20 +19,15 @@ def allowed_file(filename):
 
 
 def validate_image(file_stream):
-    """使用Pillow严格验证图片完整性和格式"""
     try:
-        # 将文件流转换为字节（确保指针重置）
         file_stream.seek(0)
-        img_bytes = file_stream.read()
-
-        # 通过内存中的字节验证
-        with Image.open(io.BytesIO(img_bytes)) as img:
-            img.verify()  # 验证完整性
+        with Image.open(file_stream) as img:
+            img.verify()
+            file_stream.seek(0)
             return img.format.lower() in ALLOWED_EXTENSIONS
     except Exception:
+        file_stream.seek(0)
         return False
-    finally:
-        file_stream.seek(0)  # 无论如何都重置指针
 
 
 def detect_mime(file_path):
