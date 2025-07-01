@@ -87,6 +87,7 @@ class CheckInUser(Base):
                 "name": self.check_in.name,
                 "need_check_schedule_time": self.check_in.need_check_schedule_time,
                 "is_main_check_in": self.check_in.is_main_check_in,
+                "check_internal": self.check_in.check_internal,
                 "check_in_start_time": format_datetime(self.check_in.check_in_start_time),
                 "check_in_end_time": format_datetime(self.check_in.check_in_end_time)
             }

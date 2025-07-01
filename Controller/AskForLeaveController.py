@@ -132,12 +132,15 @@ def create_my_leave_application(check_in_user_id):
         if len(files) > MAX_IMAGES:
             return json_response('fail', f'最多上传{MAX_IMAGES}张图片', code=422)
 
-        total_size = sum(len(file.read()) for file in files)
-        for file in files:  # 重置文件指针
+        total_size = 0
+        for file in files:
+            chunk = file.stream.read(1024 * 1024)
+            while chunk:
+                total_size += len(chunk)
+                if total_size > MAX_IMAGE_SIZE:
+                    return json_response('fail', '图片总大小不能超过35MB', code=422)
+                chunk = file.stream.read(1024 * 1024)
             file.seek(0)
-
-        if total_size > MAX_IMAGE_SIZE:
-            return json_response('fail', '图片总大小不能超过35MB', code=422)
     else:
         # 事假类型可选上传图片，如果有则检查基本属性
         if files and any(files):
@@ -464,11 +467,15 @@ def create_leave_application(check_in_user_id):
     if files and any(files):
         if len(files) > MAX_IMAGES:
             return json_response('fail', f'最多上传{MAX_IMAGES}张图片', code=422)
-        total_size = sum(len(file.read()) for file in files)
+        total_size = 0
         for file in files:
+            chunk = file.stream.read(1024 * 1024)
+            while chunk:
+                total_size += len(chunk)
+                if total_size > MAX_IMAGE_SIZE:
+                    return json_response('fail', '图片总大小不能超过35MB', code=422)
+                chunk = file.stream.read(1024 * 1024)
             file.seek(0)
-        if total_size > MAX_IMAGE_SIZE:
-            return json_response('fail', '图片总大小不能超过35MB', code=422)
 
     # 检查签到记录
     check_in_user = CheckInUser.get_by_id(check_in_user_id)
