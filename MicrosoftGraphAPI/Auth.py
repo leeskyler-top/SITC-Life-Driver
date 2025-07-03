@@ -6,7 +6,6 @@ import jwt  # PyJWT
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
 import requests
-from pyreadline3.release import download_url
 
 from LoadEnviroment.LoadEnv import ms_client_id, ms_tenant_id, ms_client_secret, ms_client_secret_type, upload_folder
 
