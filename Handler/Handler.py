@@ -1,5 +1,6 @@
 import flask.wrappers
 from flask_jwt_extended import get_jwt_identity, jwt_required, verify_jwt_in_request
+from flask_limiter import RateLimitExceeded
 from sqlalchemy.exc import IntegrityError
 from functools import wraps
 from flask import jsonify, request
@@ -28,6 +29,16 @@ def handle_global_exceptions(app):
             data={"details": error_message},
             code=422
         )
+
+    @app.errorhandler(RateLimitExceeded)
+    def handle_rate_limit_exceeded(e):
+        return jsonify({
+            "status": "error",
+            "msg": "请求过快",
+            "data": {
+                "details": str(e)  # 可选替换为自定义提示
+            }
+        }), 429
 
     @app.errorhandler(Exception)
     def handle_general_exception(error):

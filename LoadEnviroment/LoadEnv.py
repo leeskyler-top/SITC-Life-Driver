@@ -31,7 +31,11 @@ save_histories_count = None
 rar_path = ""
 upload_folder = ""
 hmac_secret_key = ""
-
+ms_tenant_id = ""
+ms_client_id = ""
+ms_client_secret = ""
+ms_client_secret_type = "secret"
+storage = "local"
 
 # 读取 .env.json 文件
 def load_env_json(filepath):
@@ -43,7 +47,7 @@ def load_env_json(filepath):
         chromedriver_path, cas_login_method, des_trans_mode, \
         refresh_token_exp_sec, access_token_exp_sec, rar_path, \
         save_histories, save_histories_days, save_histories_count, upload_folder, \
-        hmac_secret_key
+        hmac_secret_key, ms_tenant_id ,ms_client_id, ms_client_secret, ms_client_secret_type, storage
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -77,6 +81,11 @@ def load_env_json(filepath):
         rar_path = data['rar_path']
         upload_folder = data['upload_folder']
         hmac_secret_key = data['hmac_secret_key']
+        ms_tenant_id = data['ms_tenant_id']
+        ms_client_id = data['ms_client_id']
+        ms_client_secret_type = data['ms_client_secret_type']
+        ms_client_secret = data['ms_client_secret']
+        storage = data['storage']
         if not os.path.exists(upload_folder):
             os.makedirs(upload_folder)
 

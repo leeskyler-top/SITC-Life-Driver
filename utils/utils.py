@@ -4,10 +4,13 @@ import os
 import io
 import base64
 import shutil
+
+from flask_limiter import Limiter
 from werkzeug.utils import secure_filename
 import utils.imghdr as imghdr
 from PIL import Image
 from LoadEnviroment.LoadEnv import rar_path
+from flask import request
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
@@ -185,3 +188,11 @@ def embed_zip_into_jpg(jpg_path, zip_data, output_path):
         print("可通过修改文件扩展名为 .zip 或 .rar 后解压获取嵌入的内容。")
     except Exception as e:
         print(f"发生错误：{e}")
+
+
+def get_ip_from_forwarded_for():
+    forwarded_for = request.headers.get("X-Forwarded-For", "")
+    # 多个IP，取第一个（真实客户端IP）
+    ip = forwarded_for.split(",")[0].strip() if forwarded_for else request.remote_addr
+    return ip
+

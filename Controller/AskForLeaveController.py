@@ -9,7 +9,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 
 from Handler.Handler import position_required, record_history, admin_required
-from LoadEnviroment.LoadEnv import upload_folder
+from LoadEnviroment.LoadEnv import upload_folder, storage
+from MicrosoftGraphAPI.FileOperation import permanentDelete
 from Model import CheckInUser, Message
 from Model.AskForLeaveApplication import AskForLeaveApplication, StatusEnum, AskForLeaveEnum
 from Model.CheckInUser import CheckInStatusEnum
@@ -42,10 +43,16 @@ def cleanup_old_images():
         for record in records:
             try:
                 image_urls = json.loads(record.image_url) if record.image_url is not None else []
-                for path in image_urls:
-                    if os.path.exists(os.path.join(upload_folder, path)):
-                        os.remove(os.path.join(upload_folder, path))
-                record.image_url = None
+                if storage == 'local':
+                    for path in image_urls:
+                        if os.path.exists(os.path.join(upload_folder, path)):
+                            os.remove(os.path.join(upload_folder, path))
+                else:
+                    for url in image_urls:
+                        if url.startswith("https://"):
+                            permanentDelete(url)
+                        else:
+                            continue
             except:
                 continue
 
@@ -111,6 +118,24 @@ def validate_and_save_images(files, check_in_user_id):
     return image_urls
 
 
+def size_check(files):
+    # 只检查基本文件属性，不实际保存
+    if len(files) > MAX_IMAGES:
+        return False, f'最多上传{MAX_IMAGES}张图片'
+
+    total_size = 0
+    for file in files:
+        chunk = file.stream.read(1024 * 1024)
+        while chunk:
+            total_size += len(chunk)
+            if total_size > MAX_IMAGE_SIZE:
+                return False, '图片总大小不能超过35MB'
+            chunk = file.stream.read(1024 * 1024)
+        file.seek(0)
+
+    return True, None
+
+
 @ask_for_leave_controller.route('/my', methods=['GET'], endpoint='get_my_leave_applications')
 @jwt_required()
 @record_history
@@ -151,38 +176,54 @@ def create_my_leave_application(check_in_user_id):
         return json_response('fail', '请填写合法请假原因', code=422)
 
     # 获取上传的文件（但不立即处理）
-    files = request.files.getlist('image_url')
+    if storage == 'local':
+        files = request.files.getlist('image_url')
+        image_urls = files
+    else:
+        files = request.form.getlist('image_url')
+        image_urls = files
 
     # 非事假类型必须上传图片
-    if request.form['asl_type'] != AskForLeaveEnum.ASL.value:
+    if request.form['asl_type'] != AskForLeaveEnum.ASL.value and storage == 'local':
         if not files or not any(files):
             return json_response('fail', '请上传证明图片（该请假类型必须提供证明）', code=422)
 
         # 只检查基本文件属性，不实际保存
-        if len(files) > MAX_IMAGES:
-            return json_response('fail', f'最多上传{MAX_IMAGES}张图片', code=422)
+        result, reason = size_check(files)
+        if not result:
+            return json_response('fail', reason, code=422)
+        # 实际保存图片
+        image_urls = validate_and_save_images(files, check_in_user_id)
 
-        total_size = 0
-        for file in files:
-            chunk = file.stream.read(1024 * 1024)
-            while chunk:
-                total_size += len(chunk)
-                if total_size > MAX_IMAGE_SIZE:
-                    return json_response('fail', '图片总大小不能超过35MB', code=422)
-                chunk = file.stream.read(1024 * 1024)
-            file.seek(0)
-    else:
-        # 事假类型可选上传图片，如果有则检查基本属性
-        if files and any(files):
-            if len(files) > MAX_IMAGES:
-                return json_response('fail', f'最多上传{MAX_IMAGES}张图片', code=422)
+        # 非事假类型必须确保图片上传成功
+        if not image_urls:
+            return json_response('fail', '图片上传失败，请重新上传有效的证明图片-001', code=422)
 
-            total_size = sum(len(file.read()) for file in files)
-            for file in files:
-                file.seek(0)
+    elif request.form['asl_type'] != AskForLeaveEnum.ASL.value and storage == 'microsoft':
+        if not files or not any(files):
+            return json_response('fail', '请上传证明图片（该请假类型必须提供证明）', code=422)
+        if not isinstance(image_urls, list) or not all(
+                isinstance(url, str) and url.startswith('https') for url in image_urls):
+            return json_response('fail', '图片上传失败，请重新上传有效的证明图片-002', code=422)
 
-            if total_size > MAX_IMAGE_SIZE:
-                return json_response('fail', '图片总大小不能超过35MB', code=422)
+    elif storage == 'local' and files and any(files):
+
+        result, reason = size_check(files)
+
+        if not result:
+            return json_response('fail', reason, code=422)
+
+        image_urls = validate_and_save_images(files, check_in_user_id)
+
+        if not image_urls:
+            return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)
+
+    elif storage == 'microsoft' and files and any(files):
+
+        if not isinstance(files, list) or not all(
+
+                isinstance(url, str) and url.startswith('https') for url in files):
+            return json_response("fail", "图片 URL 格式非法", code=422)
 
     # 验证其他字段
     if 'asl_reason' not in request.form or not request.form['asl_reason'].strip():
@@ -205,16 +246,6 @@ def create_my_leave_application(check_in_user_id):
     if existing_asl:
         return json_response('fail', '该签到已存在待审核或已批准的请假申请', code=400)
     session.close()
-
-    # 所有验证通过后，再处理图片上传
-    image_urls = []
-    if files and any(files):
-        # 实际保存图片
-        image_urls = validate_and_save_images(files, check_in_user_id)
-        print(image_urls)
-        # 非事假类型必须确保图片上传成功
-        if not image_urls:
-            return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)
 
     # 创建请假申请
     status, asl, code = AskForLeaveApplication.create_asl(
@@ -492,20 +523,25 @@ def create_leave_application(check_in_user_id):
         return json_response('fail', '请填写合法请假原因', code=422)
 
     # 获取上传的文件（但不立即处理）
-    files = request.files.getlist('image_url')
+    if storage == 'local':
+        files = request.files.getlist('image_url')
+        image_urls = files
+    else:
+        files = request.form.getlist('image_url')
+        image_urls = files
 
-    if files and any(files):
-        if len(files) > MAX_IMAGES:
-            return json_response('fail', f'最多上传{MAX_IMAGES}张图片', code=422)
-        total_size = 0
-        for file in files:
-            chunk = file.stream.read(1024 * 1024)
-            while chunk:
-                total_size += len(chunk)
-                if total_size > MAX_IMAGE_SIZE:
-                    return json_response('fail', '图片总大小不能超过35MB', code=422)
-                chunk = file.stream.read(1024 * 1024)
-            file.seek(0)
+    if storage == 'local' and files and any(files):
+        result, reason = size_check(files)
+        if not result:
+            return json_response('fail', reason, code=422)
+        # 实际保存图片
+        image_urls = validate_and_save_images(files, check_in_user_id)
+        if not image_urls:
+            return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)
+    elif storage == 'microsoft' and files and any(files):
+        if not isinstance(files, list) or not all(
+                isinstance(url, str) and url.startswith('https') for url in files):
+            return json_response("fail", "图片 URL 格式非法", code=422)
 
     # 检查签到记录
     check_in_user = CheckInUser.get_by_id(check_in_user_id)
@@ -521,16 +557,6 @@ def create_leave_application(check_in_user_id):
     if existing_asl:
         return json_response('fail', '该签到已存在待审核或已批准的请假申请', code=400)
     session.close()
-
-    # 所有验证通过后，再处理图片上传
-    image_urls = []
-    if files and any(files):
-        # 实际保存图片
-        image_urls = validate_and_save_images(files, check_in_user_id)
-
-        # 非事假类型必须确保图片上传成功
-        if not image_urls:
-            return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)
 
     # 创建请假申请
     status, asl, code = AskForLeaveApplication.create_asl(
@@ -630,9 +656,16 @@ def cleanup_images():
         for record in records:
             try:
                 image_urls = json.loads(record.image_url) if record.image_url else []
-                for path in image_urls:
-                    if os.path.exists(os.path.join(upload_folder, path)):
-                        os.remove(os.path.join(upload_folder, path))
+                if storage == 'local':
+                    for path in image_urls:
+                        if os.path.exists(os.path.join(upload_folder, path)):
+                            os.remove(os.path.join(upload_folder, path))
+                else:
+                    for url in image_urls:
+                        if url.startswith("https://"):
+                            permanentDelete(url.split("/")[-1])
+                        else:
+                            continue
                 record.image_url = None
                 deleted_count += 1
             except Exception as e:

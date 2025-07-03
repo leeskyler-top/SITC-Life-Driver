@@ -1,11 +1,14 @@
 from flask import Blueprint
+from flask_jwt_extended import jwt_required
+
 from Controller.globals import json_response
 from Handler.Handler import record_history, admin_required
-from LoadEnviroment.LoadEnv import save_histories_days, save_histories_count
+from LoadEnviroment.LoadEnv import save_histories_days, save_histories_count, storage
 from Model import History
 import socket
 
 history_controller = Blueprint('history_controller', __name__)
+
 
 @history_controller.route('', methods=['GET'], endpoint='get_messages')
 @admin_required
@@ -14,6 +17,7 @@ def get_histories():
     histories = History.get_all_histories()
     History.cleanup_old_records(save_histories_days=save_histories_days, max_records=save_histories_count)
     return json_response("success", "所有值班计划已列出", data=histories, code=200)
+
 
 @history_controller.route('/internal-ip', methods=['GET'])
 def get_internal_ip():
@@ -30,3 +34,10 @@ def get_internal_ip():
     finally:
         s.close()
     return json_response("success", "OK", data={'internal_ip': ip}, code=200)
+
+
+@history_controller.route('/storage-type', methods=['GET'])
+@jwt_required()
+@record_history
+def get_storage_type():
+    return json_response("success", "查询完成", data={'type': storage}, code=200)

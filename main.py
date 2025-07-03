@@ -5,6 +5,7 @@ from Controller.AskForLeaveController import ask_for_leave_controller
 from Controller.CheckInController import checkin_controller
 from Controller.HistoryController import history_controller
 from Controller.MessageController import message_controller
+from Controller.MicrosoftAuthController import microsoft_auth_controller
 from Controller.ScheduleController import schedule_controller
 from Controller.UserController import user_controller
 from Controller.DriverController import driver_controller
@@ -12,6 +13,7 @@ from Controller.AuthController import auth_controller
 from Controller.TemplateController import template_controller
 from Controller.SemesterController import semester_controller
 from Handler.Handler import handle_global_exceptions
+from utils.limiter import limiter
 
 from flask_jwt_extended import (
     JWTManager,
@@ -26,6 +28,7 @@ warnings.simplefilter('ignore', InsecureRequestWarning)
 
 # 初始化 Flask 应用
 app = Flask(__name__)
+limiter.init_app(app)
 CORS(app)
 
 # 注册 Controller
@@ -39,6 +42,7 @@ app.register_blueprint(schedule_controller, url_prefix='/api/v1/schedule')
 app.register_blueprint(checkin_controller, url_prefix='/api/v1/checkin')
 app.register_blueprint(ask_for_leave_controller, url_prefix='/api/v1/asl')
 app.register_blueprint(history_controller, url_prefix='/api/v1/security-history')
+app.register_blueprint(microsoft_auth_controller, url_prefix='/api/v1/microsoft-graph')
 
 handle_global_exceptions(app)
 
