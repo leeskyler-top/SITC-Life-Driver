@@ -659,6 +659,7 @@ def attendance_stats():
             'total_ordinary_leaves': 0,
             'total_attendance': 0,
             'total_absenteeism': 0,
+            'total_absenteeism_status': 0,  # 专门统计状态为ABSENTEEISM的旷班次数
             'total_late': 0,
             'total_schedule': 0,
         }
@@ -680,10 +681,12 @@ def attendance_stats():
                 'approved_ordinary_leaves': 0,
                 'attendance_count': 0,
                 'absence_count': 0,
+                'absenteeism_status_count': 0,
                 'late_count': 0,
                 'schedule_count': 0,
                 'attendance_rate': 0,
                 'absence_rate': 0,
+                'absenteeism_status_rate': 0,
             }
 
             # 获取该用户的所有 CheckInUser 记录
@@ -707,6 +710,11 @@ def attendance_stats():
                     if ciu.check_in_time > ciu.check_in.check_in_start_time:
                         user_data['late_count'] += 1  # 迟到
 
+                # 专门统计状态为ABSENTEEISM的旷班
+                if ciu.get_status() == CheckInStatusEnum.ABSENTEEISM.value:
+                    user_data['absenteeism_status_count'] += 1
+                    department_stats['total_absenteeism_status'] += 1
+
             # 统计请假情况
             leave_applications = session.query(AskForLeaveApplication).filter(
                 AskForLeaveApplication.check_in_user_id.in_([ciu.id for ciu in check_in_users]),  # 根据 CheckInUser 的 ID
@@ -724,10 +732,13 @@ def attendance_stats():
             user_data['absence_count'] = user_data['schedule_count'] - user_data['attendance_count']  # 缺勤次数
             department_stats['total_absenteeism'] += user_data['absence_count']
 
+
             # 计算出勤率
             if user_data['schedule_count'] > 0:
                 user_data['attendance_rate'] = round(user_data['attendance_count'] / user_data['schedule_count'], 2)
                 user_data['absence_rate'] = round(user_data['absence_count'] / user_data['schedule_count'], 2)
+                user_data['absenteeism_status_rate'] = user_data['absenteeism_status_count'] / user_data['schedule_count']
+
             else:
                 user_data['attendance_rate'] = user_data['absence_rate'] = 0
 
@@ -782,10 +793,14 @@ def attendance_stats():
             department_stats['late_rate'] = (
                 round(department_stats['total_late'] / department_stats['total_schedule'], 2)) if \
                 department_stats['total_schedule'] > 0 else 0
+            department_stats['absenteeism_status_rate'] = round(
+                round(department_stats['total_absenteeism_status'] / department_stats['total_schedule'], 2)) if \
+                department_stats['total_schedule'] > 0 else 0
         else:
             department_stats['attendance_rate'] = 0
             department_stats['absenteeism_rate'] = 0
             department_stats['late_rate'] = 0
+            department_stats['absenteeism_status_rate'] = 0
         attendance_stats_dict['department_data'] = department_stats
 
         monthly_leave_stats = []
@@ -802,17 +817,25 @@ def attendance_stats():
 
             sick_leaves = 0
             ordinary_leaves = 0
+            official_leaves = 0
+            competition_leaves = 0
 
             for application in leave_applications:
                 if application.asl_type.value == '病假':
                     sick_leaves += 1
                 elif application.asl_type.value == '事假':
                     ordinary_leaves += 1
+                elif application.asl_type.value == '公务假':
+                    official_leaves += 1
+                elif application.asl_type.value == '符合要求的赛事或集训':
+                    competition_leaves += 1
 
             monthly_leave_stats.append({
                 'month': current_month.strftime('%Y-%m'),
                 'sick_leaves': sick_leaves,
-                'ordinary_leaves': ordinary_leaves
+                'ordinary_leaves': ordinary_leaves,
+                'official_leaves': official_leaves,
+                'competition_leaves': competition_leaves
             })
 
             current_month = next_month
