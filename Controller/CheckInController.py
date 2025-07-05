@@ -687,6 +687,7 @@ def attendance_stats():
                 'attendance_rate': 0,
                 'absence_rate': 0,
                 'absenteeism_status_rate': 0,
+                'late_rate': 0,
             }
 
             # 获取该用户的所有 CheckInUser 记录
@@ -707,8 +708,9 @@ def attendance_stats():
                 if ciu.check_in_time:
                     user_data['attendance_count'] += 1  # 实际出勤次数
                     # 判断是否迟到
-                    if ciu.check_in_time > ciu.check_in.check_in_start_time:
-                        user_data['late_count'] += 1  # 迟到
+
+                if ciu.get_status(ciu.check_in.schedule.schedule_start_time) == CheckInStatusEnum.LATE.value:
+                    user_data['late_count'] += 1  # 迟到
 
                 # 专门统计状态为ABSENTEEISM的旷班
                 if ciu.get_status() == CheckInStatusEnum.ABSENTEEISM.value:
@@ -732,12 +734,13 @@ def attendance_stats():
             user_data['absence_count'] = user_data['schedule_count'] - user_data['attendance_count']  # 缺勤次数
             department_stats['total_absenteeism'] += user_data['absence_count']
 
-
             # 计算出勤率
             if user_data['schedule_count'] > 0:
                 user_data['attendance_rate'] = round(user_data['attendance_count'] / user_data['schedule_count'], 2)
                 user_data['absence_rate'] = round(user_data['absence_count'] / user_data['schedule_count'], 2)
-                user_data['absenteeism_status_rate'] = user_data['absenteeism_status_count'] / user_data['schedule_count']
+                user_data['absenteeism_status_rate'] = round(
+                    user_data['absenteeism_status_count'] / user_data['schedule_count'], 2)
+                user_data['late_rate'] = round(user_data['late_count'] / user_data['schedule_count'], 2)
 
             else:
                 user_data['attendance_rate'] = user_data['absence_rate'] = 0
@@ -763,9 +766,10 @@ def attendance_stats():
 
                 if ciu.check_in_time:
                     department_stats['total_attendance'] += 1  # 实际出勤次数
-                    # 判断是否迟到
-                    if ciu.check_in_time > ciu.check_in.check_in_start_time:
-                        department_stats['total_late'] += 1  # 迟到
+
+                # 判断是否迟到
+                if ciu.get_status(ciu.check_in.schedule.schedule_start_time) == CheckInStatusEnum.LATE.value:
+                    department_stats['total_late'] += 1  # 迟到
 
             # 统计请假情况
             leave_applications = session.query(AskForLeaveApplication).filter(
@@ -784,8 +788,10 @@ def attendance_stats():
 
         # 计算出勤率、缺勤率和迟到率
         if department_stats['total_schedule'] > 0:
-            department_stats['attendance_rate'] = round(
-                department_stats['total_attendance'] / department_stats['total_schedule'], 2)
+            department_stats['attendance_rate'] = (
+                round(department_stats['total_attendance'] / department_stats['total_schedule'], 2)) if \
+                department_stats[
+                    'total_schedule'] > 0 else 0
             department_stats['absenteeism_rate'] = (
                 round(department_stats['total_absenteeism'] / department_stats['total_schedule'], 2)) if \
                 department_stats[
@@ -794,7 +800,7 @@ def attendance_stats():
                 round(department_stats['total_late'] / department_stats['total_schedule'], 2)) if \
                 department_stats['total_schedule'] > 0 else 0
             department_stats['absenteeism_status_rate'] = round(
-                round(department_stats['total_absenteeism_status'] / department_stats['total_schedule'], 2)) if \
+                department_stats['total_absenteeism_status'] / department_stats['total_schedule'], 2) if \
                 department_stats['total_schedule'] > 0 else 0
         else:
             department_stats['attendance_rate'] = 0
