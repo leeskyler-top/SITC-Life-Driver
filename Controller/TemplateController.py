@@ -104,21 +104,25 @@ def add_template():
         data = request.get_json()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
+        forbidden_regex = r'^[^/\\|<>?!@#$%^&"\.]+$'  # 只允许不包含这些字符的字符串
         result, reason = validate_schema(
             {
                 'building': {
                     'type': 'string',
                     'required': True,
+                    'regex': forbidden_regex,
                     'check_with': non_empty_string
                 },
                 'room': {
                     'type': 'string',
                     'required': True,
+                    'regex': forbidden_regex,
                     'check_with': non_empty_string
                 },
                 'classname': {
                     'type': 'string',
                     'required': True,
+                    'regex': forbidden_regex,
                     'check_with': non_empty_string
                 },
             }
@@ -174,7 +178,7 @@ def upload_template():
         df['classname'] = df['classname'].astype('str')
 
         df = df.replace(r'^\s*$', None, regex=True)
-        injection_patterns = re.compile(r'^[=+\-@]|--|\/\/|\/\*|\*\/|\\|[<>]')
+        injection_patterns = re.compile(r'[\s"\'?/\\!@#$%^&*+=<>\.-]|--|\/\/|\/\*|\*\/|\\[rn]?')
         # 检查DataFrame中每个单元格
         for col in df.columns:
             # 找出非空且包含危险模式的单元格
