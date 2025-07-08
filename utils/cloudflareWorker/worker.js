@@ -18,10 +18,15 @@ export default {
       }
 
       const authHeader = request.headers.get("Authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      const userJwt = extractToken(authHeader);
+      if (!userJwt) {
         return jsonResponse({ status: "fail", msg: "Unauthorized: missing JWT" }, 401);
       }
-      const userJwt = authHeader.replace("Bearer ", "");
+
+      const valid = await verifyAccessToken(userJwt, env);
+      if (!valid) {
+        return jsonResponse({ status: "fail", msg: "Invalid Access Token" }, 401);
+      }
 
       const tokenData = await getTokenFromFlask(env, userJwt);
       if (!tokenData) {
@@ -53,7 +58,6 @@ export default {
           filteredHeaders.set(key, value);
         }
       }
-      // 加上 CORS headers
       addCorsHeaders(filteredHeaders);
 
       return new Response(fileRes.body, {
@@ -62,14 +66,129 @@ export default {
       });
     }
 
-    // 处理上传：POST /upload
-    if (request.method === 'POST') {
+    // 处理分片上传开启会话：POST /upload-session
+    if (request.method === 'POST' && url.pathname === '/upload-session') {
       const authHeader = request.headers.get("Authorization");
-      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      const userJwt = extractToken(authHeader);
+      if (!userJwt) {
         return jsonResponse({ status: "fail", msg: "Unauthorized: missing JWT" }, 401);
       }
 
-      const userJwt = authHeader.replace("Bearer ", "");
+      const valid = await verifyAccessToken(userJwt, env);
+      if (!valid) {
+        return jsonResponse({ status: "fail", msg: "Invalid Access Token"}, 401);
+      }
+
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return jsonResponse({ status: "fail", msg: "Invalid JSON" }, 400);
+      }
+
+      const { file_name, file_size } = body;
+      if (!file_name || !file_size) {
+        return jsonResponse({ status: "fail", msg: "Missing file_name or file_size" }, 400);
+      }
+
+      const tokenData = await getTokenFromFlask(env, userJwt);
+      if (!tokenData) {
+        return jsonResponse({ status: "fail", msg: "Failed to get Microsoft Graph token" }, 500);
+      }
+
+      const fullName = `${Date.now()}_${file_name}`;
+      const sessionUrl = `${tokenData.upload_baseurl}${encodeURIComponent(fullName)}:/createUploadSession`;
+
+      const sessionRes = await fetch(sessionUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${tokenData.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          item: {
+            '@microsoft.graph.conflictBehavior': 'rename',
+            name: fullName
+          }
+        })
+      });
+
+      if (!sessionRes.ok) {
+        const error = await sessionRes.text();
+        return jsonResponse({ status: "fail", msg: "Failed to create upload session", detail: error }, 500);
+      }
+
+      const sessionData = await sessionRes.json();
+
+      return jsonResponse({
+        status: "success",
+        msg: "Upload session created",
+        data: {
+          uploadUrl: sessionData.uploadUrl,
+          expirationDateTime: sessionData.expirationDateTime,
+          fileId: sessionData.id || null
+        }
+      });
+    }
+
+    // 处理分片上传：POST /upload-chunk
+    if (request.method === 'POST' && url.pathname === '/upload-chunk') {
+      const authHeader = request.headers.get("Authorization");
+      const userJwt = extractToken(authHeader);
+      if (!userJwt) {
+        return jsonResponse({ status: "fail", msg: "Unauthorized" }, 401);
+      }
+
+      const valid = await verifyAccessToken(userJwt, env);
+      if (!valid) {
+        return jsonResponse({ status: "fail", msg: "Invalid Access Token" }, 401);
+      }
+
+      // 获取 Range、uploadUrl 等信息
+      const contentRange = request.headers.get('X-Content-Range');
+      const uploadUrl = request.headers.get('X-Upload-Url');
+      const contentLength = request.headers.get('Content-Length');
+
+      if (!uploadUrl || !contentRange || !contentLength) {
+        return jsonResponse({ status: "fail", msg: "Missing headers" }, 400);
+      }
+
+      const chunk = await request.arrayBuffer(); // 小于 1MB 安全
+
+      const res = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Length': contentLength,
+          'Content-Range': contentRange
+        },
+        body: chunk
+      });
+
+      const status = res.status;
+      if (status !== 200 && status !== 201 && status !== 202) {
+        let error;
+        try {
+          error = await res.text();
+        } catch { error = "Upload failed"; }
+
+        return jsonResponse({ status: "fail", msg: "Upload chunk failed", detail: error }, status);
+      }
+
+      return jsonResponse({ status: "success", msg: "Chunk uploaded", graph_status: status });
+    }
+
+    // 处理上传：POST /upload
+    if (request.method === 'POST' && url.pathname === '/upload') {
+      const authHeader = request.headers.get("Authorization");
+      const userJwt = extractToken(authHeader);
+      if (!userJwt) {
+        return jsonResponse({ status: "fail", msg: "Unauthorized: missing JWT" }, 401);
+      }
+
+      const valid = await verifyAccessToken(userJwt, env);
+      if (!valid) {
+        return jsonResponse({ status: "fail", msg: "Invalid Access Token" }, 401);
+      }
 
       let formData;
       try {
@@ -130,7 +249,6 @@ export default {
 
       const uploadedData = await putRes.json();
 
-      // 使用 PUBLIC_BASE_URL（env中设置） 或 当前请求URL自动推断 host
       const requestUrl = new URL(request.url);
       const baseUrl = env.PUBLIC_BASE_URL || `${requestUrl.protocol}//${requestUrl.host}`;
       const publicUrl = `${baseUrl}/download/${uploadedData.id}`;
@@ -146,6 +264,20 @@ export default {
     return jsonResponse({ status: "fail", msg: "Method Not Allowed" }, 405);
   }
 };
+
+// 提取 Bearer Token
+function extractToken(authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) return null;
+  return authHeader.replace("Bearer ", "");
+}
+
+// ✅ 验证 Access Token 是否有效
+async function verifyAccessToken(userJwt, env) {
+  const checkRes = await fetch(`${env.FLASK_BACKEND_BASE}/user/my`, {
+    headers: { Authorization: `Bearer ${userJwt}` }
+  });
+  return checkRes.status === 200;
+}
 
 // 🔐 获取 access_token（含缓存）
 async function getTokenFromFlask(env, userJwt) {
@@ -182,7 +314,7 @@ function corsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Upload-Url, X-Content-Range'
   };
 }
 
