@@ -4,7 +4,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from utils.limiter import limiter
 
-from Handler.Handler import record_history
+from Handler.Handler import record_history, cloudflare_worker_required
 from MicrosoftGraphAPI.Auth import getAppAccessToken, return_url, get_drive_id, get_site_id
 from .globals import json_response
 
@@ -13,6 +13,7 @@ microsoft_auth_controller = Blueprint('microsoft_auth_controller', __name__)
 
 @microsoft_auth_controller.route("/auth/callback")
 @jwt_required()
+@cloudflare_worker_required
 @record_history
 @limiter.limit("1 per minute", key_func=lambda: get_jwt_identity())
 def auth_callback():

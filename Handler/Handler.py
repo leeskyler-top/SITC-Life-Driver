@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from functools import wraps
 from flask import jsonify, request
 
-from LoadEnviroment.LoadEnv import hmac_secret_key
+from LoadEnviroment.LoadEnv import hmac_secret_key, cloudflare_worker_secret
 from Model.History import History, MethodEnum
 from Model.User import User, PositionEnum
 from Controller.globals import json_response  # 导入统一的 JSON 响应函数
@@ -139,6 +139,34 @@ def record_history(f):
         return response
 
     return decorated_function
+
+
+def is_cloudflare_worker_request():
+    """验证请求是否来自 Cloudflare Worker（HMAC + IP）"""
+    signature = request.headers.get("X-Cloudflare-Signature")
+    if not signature:
+        return False
+
+    client_ip = (
+        request.headers.get("X-Original-IP") or
+        request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or
+        request.remote_addr
+    )
+    expected_signature = hmac.new(
+        cloudflare_worker_secret.encode('utf-8'),
+        client_ip.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(signature, expected_signature)
+
+def cloudflare_worker_required(func):
+    """装饰器：限制仅 Cloudflare Worker 访问"""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if not is_cloudflare_worker_request():
+            return {"status": "fail", "msg": "Unauthorized Worker Request"}, 403
+        return func(*args, **kwargs)
+    return wrapper
 
 
 def is_internal_request():
