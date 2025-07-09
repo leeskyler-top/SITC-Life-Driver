@@ -31,6 +31,7 @@ save_histories_count = None
 rar_path = ""
 upload_folder = ""
 hmac_secret_key = ""
+cloudflare_worker_baseurl = ""
 cloudflare_worker_secret = ""
 ms_tenant_id = ""
 ms_client_id = ""
@@ -49,7 +50,7 @@ def load_env_json(filepath):
         refresh_token_exp_sec, access_token_exp_sec, rar_path, \
         save_histories, save_histories_days, save_histories_count, upload_folder, \
         hmac_secret_key, ms_tenant_id ,ms_client_id, ms_client_secret, ms_client_secret_type, storage, \
-        cloudflare_worker_secret
+        cloudflare_worker_baseurl, cloudflare_worker_secret
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -84,6 +85,7 @@ def load_env_json(filepath):
         upload_folder = data['upload_folder']
         hmac_secret_key = data['hmac_secret_key']
         cloudflare_worker_secret = data['cloudflare_worker_secret']
+        cloudflare_worker_baseurl = data['cloudflare_worker_baseurl']
         ms_tenant_id = data['ms_tenant_id']
         ms_client_id = data['ms_client_id']
         ms_client_secret_type = data['ms_client_secret_type']

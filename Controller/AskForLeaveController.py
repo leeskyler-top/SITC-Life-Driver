@@ -9,7 +9,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from sqlalchemy import func
 
 from Handler.Handler import position_required, record_history, admin_required
-from LoadEnviroment.LoadEnv import upload_folder, storage
+from LoadEnviroment.LoadEnv import upload_folder, storage, cloudflare_worker_baseurl
 from MicrosoftGraphAPI.FileOperation import permanentDelete
 from Model import CheckInUser, Message
 from Model.AskForLeaveApplication import AskForLeaveApplication, StatusEnum, AskForLeaveEnum
@@ -49,7 +49,7 @@ def cleanup_old_images():
                             os.remove(os.path.join(upload_folder, path))
                 else:
                     for url in image_urls:
-                        if url.startswith("https://"):
+                        if url.startswith(cloudflare_worker_baseurl):
                             permanentDelete(url)
                         else:
                             continue
@@ -203,7 +203,7 @@ def create_my_leave_application(check_in_user_id):
         if not files or not any(files):
             return json_response('fail', '请上传证明图片（该请假类型必须提供证明）', code=422)
         if not isinstance(image_urls, list) or not all(
-                isinstance(url, str) and url.startswith('https') for url in image_urls):
+                isinstance(url, str) and url.startswith(cloudflare_worker_baseurl) for url in image_urls):
             return json_response('fail', '图片上传失败，请重新上传有效的证明图片-002', code=422)
 
     elif storage == 'local' and files and any(files):
@@ -222,7 +222,7 @@ def create_my_leave_application(check_in_user_id):
 
         if not isinstance(files, list) or not all(
 
-                isinstance(url, str) and url.startswith('https') for url in files):
+                isinstance(url, str) and url.startswith(cloudflare_worker_baseurl) for url in files):
             return json_response("fail", "图片 URL 格式非法", code=422)
 
     # 验证其他字段
@@ -540,7 +540,7 @@ def create_leave_application(check_in_user_id):
             return json_response('fail', '图片上传失败，请重新上传有效的证明图片', code=422)
     elif storage == 'microsoft' and files and any(files):
         if not isinstance(files, list) or not all(
-                isinstance(url, str) and url.startswith('https') for url in files):
+                isinstance(url, str) and url.startswith(cloudflare_worker_baseurl) for url in files):
             return json_response("fail", "图片 URL 格式非法", code=422)
 
     # 检查签到记录
