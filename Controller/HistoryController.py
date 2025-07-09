@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required
 
 from Controller.globals import json_response
 from Handler.Handler import record_history, admin_required
-from LoadEnviroment.LoadEnv import save_histories_days, save_histories_count, storage
+from LoadEnviroment.LoadEnv import save_histories_days, save_histories_count, storage, cloudflare_worker_baseurl
 from Model import History
 import socket
 
@@ -40,4 +40,4 @@ def get_internal_ip():
 @jwt_required()
 @record_history
 def get_storage_type():
-    return json_response("success", "查询完成", data={'type': storage}, code=200)
+    return json_response("success", "查询完成", data={'type': storage, 'upload_baseurl': cloudflare_worker_baseurl}, code=200)
