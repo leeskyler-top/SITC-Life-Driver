@@ -35,6 +35,9 @@
     },
     {
       "name": "消息通知"
+    },
+    {
+      "name": "Microsoft Auth"
     }
   ],
   "paths": {
@@ -62,15 +65,10 @@
                     "title": "密码"
                   }
                 },
-                "x-apifox-orders": [
-                  "studentId",
-                  "password"
-                ],
                 "required": [
                   "studentId",
                   "password"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               },
               "example": {
                 "studentId": "22100484",
@@ -86,24 +84,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "认证",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310675673-run"
+        ]
       }
     },
     "/auth/refresh": {
@@ -122,24 +114,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "认证",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310676041-run"
+        ]
       }
     },
     "/auth/logout": {
@@ -158,24 +144,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "认证",
-        "x-apifox-status": "deprecated",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310676187-run"
+        ]
       }
     },
     "/user": {
@@ -224,48 +204,6 @@
                       "部长",
                       "其他人员"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "实习部员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "普通部员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "实习汇总负责人",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "汇总负责人",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "部门负责人",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "副部长",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "部长",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其他人员",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "其他人员",
                       "部长",
@@ -285,23 +223,6 @@
                       "女",
                       "不方便透露"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "男",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "女",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "不方便透露",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "男",
                       "女",
@@ -319,43 +240,6 @@
                       "公共基础部",
                       "校团委",
                       "其它"
-                    ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "信息技术系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "商务管理系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "智能制造系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "材料与检测系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "公共基础部",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "校团委",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其它",
-                        "name": "",
-                        "description": ""
-                      }
                     ],
                     "examples": [
                       "信息技术系",
@@ -389,33 +273,6 @@
                       "中国共产党预备党员",
                       "其它"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "群众",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "中国共产主义青年团团员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "中国共产党正式党员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "中国共产党预备党员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其它",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "群众",
                       "中国共产主义青年团团员",
@@ -437,21 +294,6 @@
                     ]
                   }
                 },
-                "x-apifox-orders": [
-                  "studentId",
-                  "name",
-                  "classname",
-                  "phone",
-                  "position",
-                  "gender",
-                  "department",
-                  "is_admin",
-                  "qq",
-                  "note",
-                  "politicalLandscape",
-                  "resident",
-                  "join_at"
-                ],
                 "required": [
                   "studentId",
                   "name",
@@ -464,8 +306,7 @@
                   "politicalLandscape",
                   "resident",
                   "join_at"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -477,24 +318,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311860236-run"
+        ]
       },
       "get": {
         "summary": "获取所有用户",
@@ -511,24 +346,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310678713-run"
+        ]
       }
     },
     "/user/my": {
@@ -547,24 +376,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311859994-run"
+        ]
       }
     },
     "/user/pwd/update": {
@@ -583,24 +406,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311863630-run"
+        ]
       }
     },
     "/user/{user_id}": {
@@ -653,48 +470,6 @@
                       "部长",
                       "其他人员"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "实习部员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "普通部员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "实习汇总负责人",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "汇总负责人",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "部门负责人",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "副部长",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "部长",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其他人员",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "其他人员",
                       "部长",
@@ -714,23 +489,6 @@
                       "女",
                       "不方便透露"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "男",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "女",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "不方便透露",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "男",
                       "女",
@@ -748,43 +506,6 @@
                       "公共基础部",
                       "校团委",
                       "其它"
-                    ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "信息技术系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "商务管理系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "智能制造系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "材料与检测系",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "公共基础部",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "校团委",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其它",
-                        "name": "",
-                        "description": ""
-                      }
                     ],
                     "examples": [
                       "信息技术系",
@@ -818,33 +539,6 @@
                       "中国共产党预备党员",
                       "其它"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "群众",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "中国共产主义青年团团员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "中国共产党正式党员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "中国共产党预备党员",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其它",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "群众",
                       "中国共产主义青年团团员",
@@ -865,22 +559,7 @@
                       "2025-01-01"
                     ]
                   }
-                },
-                "x-apifox-orders": [
-                  "name",
-                  "classname",
-                  "phone",
-                  "position",
-                  "gender",
-                  "department",
-                  "is_admin",
-                  "qq",
-                  "note",
-                  "politicalLandscape",
-                  "resident",
-                  "join_at"
-                ],
-                "x-apifox-ignore-properties": []
+                }
               }
             }
           }
@@ -892,24 +571,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311862860-run"
+        ]
       },
       "get": {
         "summary": "获取用户详情",
@@ -936,24 +609,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311860128-run"
+        ]
       },
       "delete": {
         "summary": "软删除用户",
@@ -980,24 +647,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311860103-run"
+        ]
       }
     },
     "/user/count": {
@@ -1016,24 +677,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311856346-run"
+        ]
       }
     },
     "/user/export": {
@@ -1052,24 +707,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311856898-run"
+        ]
       }
     },
     "/user/deleted": {
@@ -1088,24 +737,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311857234-run"
+        ]
       }
     },
     "/user/restore/{user_id}": {
@@ -1134,24 +777,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311858357-run"
+        ]
       }
     },
     "/user/pwd/reset/{user_id}": {
@@ -1180,24 +817,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "用户",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311863624-run"
+        ]
       }
     },
     "/semester": {
@@ -1216,24 +847,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "学期",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801608-run"
+        ]
       },
       "post": {
         "summary": "更新当前学期",
@@ -1264,17 +889,11 @@
                     "pattern": "^\\d{4}-\\d{2}$"
                   }
                 },
-                "x-apifox-orders": [
-                  "semester_name",
-                  "start_month",
-                  "end_month"
-                ],
                 "required": [
                   "semester_name",
                   "start_month",
                   "end_month"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -1286,24 +905,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "学期",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801609-run"
+        ]
       }
     },
     "/template": {
@@ -1334,17 +947,11 @@
                     "title": "教室/班级行政全称"
                   }
                 },
-                "x-apifox-orders": [
-                  "building",
-                  "room",
-                  "classname"
-                ],
                 "required": [
                   "building",
                   "room",
                   "classname"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -1356,24 +963,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311855597-run"
+        ]
       },
       "patch": {
         "summary": "修改模板",
@@ -1401,13 +1002,7 @@
                     "type": "string",
                     "title": "教室/班级行政全称"
                   }
-                },
-                "x-apifox-orders": [
-                  "building",
-                  "room",
-                  "classname"
-                ],
-                "x-apifox-ignore-properties": []
+                }
               }
             }
           }
@@ -1419,24 +1014,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311856329-run"
+        ]
       },
       "get": {
         "summary": "获取所有模板",
@@ -1453,24 +1042,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311855471-run"
+        ]
       },
       "delete": {
         "summary": "清空所有模板",
@@ -1487,24 +1070,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311855493-run"
+        ]
       }
     },
     "/template/{template_id}": {
@@ -1533,24 +1110,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311855505-run"
+        ]
       }
     },
     "/template/upload": {
@@ -1588,24 +1159,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311856030-run"
+        ]
       }
     },
     "/template/download": {
@@ -1643,24 +1208,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "模板",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311856302-run"
+        ]
       }
     },
     "/driver/docid/groupid": {
@@ -1679,24 +1238,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "deprecated",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800423-run"
+        ]
       }
     },
     "/driver/docid/lifedir": {
@@ -1715,24 +1268,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "deprecated",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800597-run"
+        ]
       }
     },
     "/driver/docid/semesterdir": {
@@ -1751,24 +1298,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "deprecated",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801060-run"
+        ]
       }
     },
     "/driver/dir/all/create_by_semseter": {
@@ -1787,24 +1328,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801134-run"
+        ]
       }
     },
     "/driver/dir/month/create_by_semseter": {
@@ -1823,24 +1358,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801138-run"
+        ]
       }
     },
     "/driver/dir/month/create_current_month": {
@@ -1859,24 +1388,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801266-run"
+        ]
       }
     },
     "/driver/dir/list/life_dep": {
@@ -1895,24 +1418,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801289-run"
+        ]
       }
     },
     "/driver/dir/list/semester": {
@@ -1931,24 +1448,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801296-run"
+        ]
       }
     },
     "/driver/dir/list/month": {
@@ -1967,24 +1478,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801308-run"
+        ]
       }
     },
     "/driver/dir/list/other": {
@@ -2003,24 +1508,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801345-run"
+        ]
       }
     },
     "/driver/dir/del": {
@@ -2051,33 +1550,6 @@
                       5,
                       7
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": 1,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 3,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 4,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 5,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 7,
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       1,
                       3,
@@ -2097,19 +1569,12 @@
                     "description": "需要整点时间戳"
                   }
                 },
-                "x-apifox-orders": [
-                  "docid",
-                  "perm",
-                  "usePassword",
-                  "endtime"
-                ],
                 "required": [
                   "docid",
                   "perm",
                   "usePassword",
                   "endtime"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -2121,24 +1586,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801427-run"
+        ]
       }
     },
     "/driver/download": {
@@ -2169,33 +1628,6 @@
                       5,
                       7
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": 1,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 3,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 4,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 5,
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": 7,
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       1,
                       3,
@@ -2210,17 +1642,11 @@
                     "title": "文件名"
                   }
                 },
-                "x-apifox-orders": [
-                  "docid",
-                  "session_id",
-                  "name"
-                ],
                 "required": [
                   "docid",
                   "session_id",
                   "name"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -2232,24 +1658,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "网盘",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311801544-run"
+        ]
       }
     },
     "/schedule/{schedule_id}": {
@@ -2278,24 +1698,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "值班计划",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800130-run"
+        ]
       },
       "patch": {
         "summary": "修改值班计划",
@@ -2334,33 +1748,6 @@
                       "早间",
                       "其它"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "放学",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "午间",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "晚间",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "早间",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其它",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "其它",
                       "早间",
@@ -2378,13 +1765,7 @@
                     ],
                     "title": "值班计划开始时间"
                   }
-                },
-                "x-apifox-orders": [
-                  "schedule_name",
-                  "schedule_type",
-                  "schedule_start_time"
-                ],
-                "x-apifox-ignore-properties": []
+                }
               }
             }
           }
@@ -2396,24 +1777,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "值班计划",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311798689-run"
+        ]
       },
       "delete": {
         "summary": "删除值班计划",
@@ -2440,24 +1815,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "值班计划",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800141-run"
+        ]
       }
     },
     "/schedule": {
@@ -2488,33 +1857,6 @@
                       "早间",
                       "其它"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "放学",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "午间",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "晚间",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "早间",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "其它",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "其它",
                       "早间",
@@ -2533,17 +1875,11 @@
                     "title": "值班计划开始时间"
                   }
                 },
-                "x-apifox-orders": [
-                  "schedule_name",
-                  "schedule_type",
-                  "schedule_start_time"
-                ],
                 "required": [
                   "schedule_name",
                   "schedule_type",
                   "schedule_start_time"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -2555,24 +1891,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "值班计划",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311798833-run"
+        ]
       },
       "get": {
         "summary": "获取所有值班计划",
@@ -2589,24 +1919,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "值班计划",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800150-run"
+        ]
       }
     },
     "/schedule/upload": {
@@ -2644,24 +1968,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "值班计划",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800115-run"
+        ]
       }
     },
     "/checkin/my": {
@@ -2680,27 +1998,21 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310742234-run"
+        ]
       }
     },
-    "/checkin/checkin/{check_in_user_id}": {
+    "/checkin/checkin/{check_in_id}": {
       "get": {
         "summary": "用户签到",
         "deprecated": false,
@@ -2710,10 +2022,20 @@
         ],
         "parameters": [
           {
-            "name": "check_in_user_id",
+            "name": "check_in_id",
             "in": "path",
             "description": "",
             "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Network-Signature",
+            "in": "header",
+            "description": "",
+            "required": false,
+            "example": "",
             "schema": {
               "type": "string"
             }
@@ -2726,24 +2048,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311791297-run"
+        ]
       }
     },
     "/checkin/attendance/stats": {
@@ -2776,15 +2092,10 @@
                     ]
                   }
                 },
-                "x-apifox-orders": [
-                  "start_time",
-                  "end_time"
-                ],
                 "required": [
                   "start_time",
                   "end_time"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -2796,24 +2107,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311783480-run"
+        ]
       }
     },
     "/checkin/change_record/{check_in_user_id}": {
@@ -2842,24 +2147,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311788039-run"
+        ]
       }
     },
     "/checkin/cancel/{check_in_user_id}": {
@@ -2888,24 +2187,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311789878-run"
+        ]
       }
     },
     "/checkin/{check_in_id}": {
@@ -2953,14 +2246,7 @@
                   "need_check_schedule_time": {
                     "type": "boolean"
                   }
-                },
-                "x-apifox-orders": [
-                  "name",
-                  "check_in_start_time",
-                  "check_in_end_time",
-                  "need_check_schedule_time"
-                ],
-                "x-apifox-ignore-properties": []
+                }
               }
             }
           }
@@ -2972,24 +2258,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311787565-run"
+        ]
       },
       "delete": {
         "summary": "管理员删除子签到",
@@ -3016,24 +2296,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311787396-run"
+        ]
       }
     },
     "/checkin": {
@@ -3052,24 +2326,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311787827-run"
+        ]
       }
     },
     "/checkin/export/{check_in_id}": {
@@ -3118,18 +2386,6 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "schedule_time",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "checkin_time",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "schedule_time",
                       "checkin_time"
@@ -3139,18 +2395,11 @@
                     "type": "boolean"
                   }
                 },
-                "x-apifox-orders": [
-                  "start_time",
-                  "end_time",
-                  "type",
-                  "export"
-                ],
                 "required": [
                   "start_time",
                   "end_time",
                   "type"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3162,24 +2411,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-315035395-run"
+        ]
       }
     },
     "/checkin/checkinuser": {
@@ -3217,18 +2460,6 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "schedule_time",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "checkin_time",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "schedule_time",
                       "checkin_time"
@@ -3238,18 +2469,11 @@
                     "type": "boolean"
                   }
                 },
-                "x-apifox-orders": [
-                  "start_time",
-                  "end_time",
-                  "type",
-                  "export"
-                ],
                 "required": [
                   "start_time",
                   "end_time",
                   "type"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3261,24 +2485,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-314232818-run"
+        ]
       }
     },
     "/checkin/checkinuser/user/{user_id}": {
@@ -3326,18 +2544,6 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "schedule_time",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "checkin_time",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "schedule_time",
                       "checkin_time"
@@ -3347,18 +2553,11 @@
                     "type": "boolean"
                   }
                 },
-                "x-apifox-orders": [
-                  "start_time",
-                  "end_time",
-                  "type",
-                  "export"
-                ],
                 "required": [
                   "start_time",
                   "end_time",
                   "type"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3370,24 +2569,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-315043513-run"
+        ]
       }
     },
     "/checkin/checkinuser/schedule/{schedule_id}": {
@@ -3435,18 +2628,6 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "x-apifox-enum": [
-                      {
-                        "value": "schedule_time",
-                        "name": "",
-                        "description": ""
-                      },
-                      {
-                        "value": "checkin_time",
-                        "name": "",
-                        "description": ""
-                      }
-                    ],
                     "examples": [
                       "schedule_time",
                       "checkin_time"
@@ -3456,18 +2637,11 @@
                     "type": "boolean"
                   }
                 },
-                "x-apifox-orders": [
-                  "start_time",
-                  "end_time",
-                  "type",
-                  "export"
-                ],
                 "required": [
                   "start_time",
                   "end_time",
                   "type"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3479,24 +2653,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-315075466-run"
+        ]
       }
     },
     "/checkin/assign/{check_in_id}": {
@@ -3531,13 +2699,9 @@
                     }
                   }
                 },
-                "x-apifox-orders": [
-                  "user_ids"
-                ],
                 "required": [
                   "user_ids"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3549,24 +2713,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311794402-run"
+        ]
       }
     },
     "/create/{schedule_id}": {
@@ -3615,17 +2773,11 @@
                     ]
                   }
                 },
-                "x-apifox-orders": [
-                  "name",
-                  "check_in_start_time",
-                  "check_in_end_time"
-                ],
                 "required": [
                   "name",
                   "check_in_start_time",
                   "check_in_end_time"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3637,24 +2789,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311795794-run"
+        ]
       }
     },
     "/checkin/assign": {
@@ -3685,15 +2831,10 @@
                     }
                   }
                 },
-                "x-apifox-orders": [
-                  "user_ids",
-                  "checkin_ids"
-                ],
                 "required": [
                   "user_ids",
                   "checkin_ids"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -3705,24 +2846,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "签到",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311794599-run"
+        ]
       }
     },
     "/asl/my/{check_in_user_id}": {
@@ -3787,24 +2922,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310679470-run"
+        ]
       }
     },
     "/asl/my": {
@@ -3823,24 +2952,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310999917-run"
+        ]
       }
     },
     "/asl/my/{application_id}": {
@@ -3870,24 +2993,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311000741-run"
+        ]
       }
     },
     "/asl/my/photo/{application_id}/{photo_name}": {
@@ -3925,24 +3042,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311765152-run"
+        ]
       }
     },
     "/asl/my/cancel/{application_id}": {
@@ -3972,24 +3083,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310973984-run"
+        ]
       }
     },
     "/asl": {
@@ -4008,24 +3113,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310990651-run"
+        ]
       }
     },
     "/asl/{application_id}": {
@@ -4077,16 +3176,10 @@
                     "title": "拒绝理由"
                   }
                 },
-                "x-apifox-orders": [
-                  "status",
-                  "asl_type",
-                  "reject_reason"
-                ],
                 "required": [
                   "status",
                   "reject_reason"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -4098,24 +3191,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-310985300-run"
+        ]
       },
       "get": {
         "summary": "管理员获取请假详情",
@@ -4143,24 +3230,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311003520-run"
+        ]
       }
     },
     "/asl/photo/{application_id}/{photo_name}": {
@@ -4198,24 +3279,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311768772-run"
+        ]
       }
     },
     "/asl/{check_in_user_id}": {
@@ -4268,24 +3343,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311665428-run"
+        ]
       }
     },
     "/asl/cleanup-images": {
@@ -4311,13 +3380,9 @@
                     ]
                   }
                 },
-                "x-apifox-orders": [
-                  "target_date"
-                ],
                 "required": [
                   "target_date"
-                ],
-                "x-apifox-ignore-properties": []
+                ]
               }
             }
           }
@@ -4329,24 +3394,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "请假",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311772925-run"
+        ]
       }
     },
     "/security-history": {
@@ -4365,24 +3424,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "安全记录",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800285-run"
+        ]
       }
     },
     "/message": {
@@ -4401,24 +3454,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "消息通知",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800329-run"
+        ]
       }
     },
     "/message/read": {
@@ -4437,24 +3484,18 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
-        ],
-        "x-apifox-folder": "消息通知",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800375-run"
+        ]
       }
     },
     "/message/read/{message_id}": {
@@ -4483,24 +3524,335 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "properties": {},
-                  "x-apifox-ignore-properties": [],
-                  "x-apifox-orders": []
+                  "properties": {}
                 }
               }
             },
-            "headers": {},
-            "x-apifox-name": "成功"
+            "headers": {}
           }
         },
         "security": [
           {
             "bearer": []
           }
+        ]
+      }
+    },
+    "/ cloudflare_worker /upload": {
+      "post": {
+        "summary": "上传文件",
+        "deprecated": false,
+        "description": "Referer防盗！",
+        "tags": [
+          "Microsoft Auth"
         ],
-        "x-apifox-folder": "消息通知",
-        "x-apifox-status": "released",
-        "x-run-in-apifox": "https://app.apifox.com/web/project/6606930/apis/api-311800380-run"
+        "parameters": [
+          {
+            "name": "Referer",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "https://twlife.leeskyler.top",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_url": {
+                    "type": "string",
+                    "format": "binary",
+                    "example": ""
+                  }
+                },
+                "required": [
+                  "image_url"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/ cloudflare_worker /upload-session": {
+      "post": {
+        "summary": "开启分片上传大文件会话",
+        "deprecated": false,
+        "description": "Referer防盗！",
+        "tags": [
+          "Microsoft Auth"
+        ],
+        "parameters": [
+          {
+            "name": "Referer",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "https://twlife.leeskyler.top",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file_name": {
+                    "type": "string",
+                    "title": "文件名"
+                  },
+                  "file_size": {
+                    "type": "integer",
+                    "title": "文件大小"
+                  }
+                },
+                "required": [
+                  "file_name",
+                  "file_size"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/ cloudflare_worker /upload-chunk": {
+      "post": {
+        "summary": "分片上传文件",
+        "deprecated": false,
+        "description": "Referer防盗！\n需要填写Header，事先通过“开启分片上传大文件会话”API获取UploadId和guid数据！",
+        "tags": [
+          "Microsoft Auth"
+        ],
+        "parameters": [
+          {
+            "name": "Referer",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "https://twlife.leeskyler.top",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Upload-Id",
+            "in": "header",
+            "description": "upload-session API返回的UploadId,属于是Sharepoint上传会话ID。",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-Upload-Guid",
+            "in": "header",
+            "description": "upload-session API返回的Sharepoint guid，请注意需要单引号包裹！",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-Content-Range",
+            "in": "header",
+            "description": "当前分片范围 例如：bytes 0-83886079/136066794",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Content-Length",
+            "in": "header",
+            "description": "当前分片长度",
+            "required": true,
+            "example": "",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/ cloudflare_worker /download/{item-id}": {
+      "get": {
+        "summary": "下载",
+        "deprecated": false,
+        "description": "Referer防盗！",
+        "tags": [
+          "Microsoft Auth"
+        ],
+        "parameters": [
+          {
+            "name": "item-id",
+            "in": "path",
+            "description": "",
+            "required": true,
+            "example": "01PT5NINNQP75L6G6MTJFKHDVIKVOSLLC5",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Referer",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "https://twlife.leeskyler.top",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
+      }
+    },
+    "/microsoft-graph/auth/callback": {
+      "get": {
+        "summary": "Microsoft Graph API Auth Callback",
+        "deprecated": false,
+        "description": "该API为了防止Microsoft Sharepoint网盘遭到滥用或者发生滥用其他接口的情况，要求Cloudflare Worker签名认证。\nX-Cloudflare-Signature类似于签到功能中的内网验证，在服务端有一个Cloudflare专属的签名密钥，在其env中自定义设置且不应泄露，类似于签到内网验证HMAC，X-Cloudflare-Signature+CF-Connecting-IP计算后的结果。\nCF-Connecting-IP 用于检查X-Cloudflare-Signature是否属于持有人，是签名认证的一部分，一定要传递，这个IP不一定需要属于Cloudflare CDN 网络的IP-CIDR或是ASN自治域，所以请牢记不要泄露。",
+        "tags": [
+          "Microsoft Auth"
+        ],
+        "parameters": [
+          {
+            "name": "X-Cloudflare-Signature",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "{{cloudflare_worker_token}}",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "CF-Connecting-IP",
+            "in": "header",
+            "description": "",
+            "required": true,
+            "example": "2a06:98c0:3600::103",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ]
       }
     }
   },
