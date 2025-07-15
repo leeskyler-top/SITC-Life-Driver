@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required
 from Handler.Handler import position_required, record_history
 from Model.User import PositionEnum
 from SQLService.Operation import read_semester_config_from_sql, update_current_semester_info
-from .globals import json_response, validate_schema
+from .globals import json_response, validate_schema, get_data, auto_decrypt_if_present
 
 semester_controller = Blueprint('semester_controller', __name__)
 
@@ -34,9 +34,10 @@ def get_semester():
 @semester_controller.route('', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 @record_history
+@auto_decrypt_if_present
 def update_semester():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(

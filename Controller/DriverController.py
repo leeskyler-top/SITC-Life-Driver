@@ -5,7 +5,7 @@ from datetime import date
 from AnyshareService.AnyShareBaseService import listDir
 from Handler.Handler import admin_required, position_required, record_history
 from Model.User import PositionEnum, User
-from .globals import json_response, validate_schema
+from .globals import json_response, validate_schema, get_data, auto_decrypt_if_present
 from SQLService.Operation import read_template_from_sql, read_semester_config_from_sql
 from AnyshareService.AnyShareOperation import \
     findCYLCGroup, findLifeDepDir, findCurrentSemseter, genMonthDirBySemester, \
@@ -84,9 +84,10 @@ def create_semester_all_dir():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
      PositionEnum.INTERN_SUMMARY_LEADER])
 @record_history
+@auto_decrypt_if_present
 def create_semester_month_dir():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -140,9 +141,10 @@ def create_current_month_dir():
 @driver_controller.route('/dir/daily/create_by_semseter', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 @record_history
+@auto_decrypt_if_present
 def create_semester_other_daily_dir():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -212,9 +214,10 @@ def list_semester_dir():
 @driver_controller.route('/dir/list/month', methods=['POST'])
 @jwt_required()
 @record_history
+@auto_decrypt_if_present
 def list_month_dir():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -257,9 +260,10 @@ def check_valid_access(user, docid):
 @driver_controller.route('/dir/list/other', methods=['POST'])
 @jwt_required()
 @record_history
+@auto_decrypt_if_present
 def list_other_dir():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -290,9 +294,10 @@ def list_other_dir():
 @driver_controller.route('/dir/del', methods=['POST'])
 @position_required([PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER])
 @record_history
+@auto_decrypt_if_present
 def delete_dir():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -322,9 +327,10 @@ def delete_dir():
 @driver_controller.route('/file/del', methods=['POST'])
 @jwt_required()
 @record_history
+@auto_decrypt_if_present
 def delete_file():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -363,9 +369,10 @@ def delete_file():
 @driver_controller.route('/dir/link', methods=['POST'])
 @jwt_required()
 @record_history
+@auto_decrypt_if_present
 def get_link():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -413,9 +420,10 @@ def get_link():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER, PositionEnum.SUMMARY_LEADER,
      PositionEnum.INTERN_SUMMARY_LEADER])
 @record_history
+@auto_decrypt_if_present
 def download_a_zip():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(

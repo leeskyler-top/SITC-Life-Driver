@@ -30,6 +30,7 @@ save_histories_days = 7
 save_histories_count = None
 rar_path = ""
 upload_folder = ""
+backend_aes_key = ""
 hmac_secret_key = ""
 cloudflare_worker_baseurl = ""
 cloudflare_worker_secret = ""
@@ -38,6 +39,7 @@ ms_client_id = ""
 ms_client_secret = ""
 ms_client_secret_type = "secret"
 storage = "local"
+server_aes_rsa_private_key = ""
 
 # 读取 .env.json 文件
 def load_env_json(filepath):
@@ -50,7 +52,8 @@ def load_env_json(filepath):
         refresh_token_exp_sec, access_token_exp_sec, rar_path, \
         save_histories, save_histories_days, save_histories_count, upload_folder, \
         hmac_secret_key, ms_tenant_id ,ms_client_id, ms_client_secret, ms_client_secret_type, storage, \
-        cloudflare_worker_baseurl, cloudflare_worker_secret
+        cloudflare_worker_baseurl, cloudflare_worker_secret, backend_aes_key, \
+        server_aes_rsa_private_key
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -84,6 +87,8 @@ def load_env_json(filepath):
         rar_path = data['rar_path']
         upload_folder = data['upload_folder']
         hmac_secret_key = data['hmac_secret_key']
+        backend_aes_key = bytes.fromhex(data['backend_aes_key'])
+        assert len(backend_aes_key) == 32, "密钥必须是32字节"
         cloudflare_worker_secret = data['cloudflare_worker_secret']
         cloudflare_worker_baseurl = data['cloudflare_worker_baseurl']
         ms_tenant_id = data['ms_tenant_id']
@@ -91,6 +96,7 @@ def load_env_json(filepath):
         ms_client_secret_type = data['ms_client_secret_type']
         ms_client_secret = data['ms_client_secret']
         storage = data['storage']
+        server_aes_rsa_private_key = data['server_aes_rsa_private_key']
         if not os.path.exists(upload_folder):
             os.makedirs(upload_folder)
 
@@ -101,35 +107,3 @@ print(_default_env_path)
 if os.path.exists(_default_env_path):
     print("Successfully loaded .env.json")
     load_env_json(_default_env_path)
-
-# 向外暴露的内容
-__all__ = [
-    "cas_baseurl",
-    "pan_baseurl",
-    "pan_sso_service",
-    'des_trans_mode',
-    'username',
-    'password',
-    "jwt_secret_key",
-    'cas_cookie_path',
-    'server_env',
-    'mysql_host',
-    'mysql_port',
-    'mysql_username',
-    'mysql_password',
-    'mysql_use_ssl',
-    'mysql_ssl_ca',
-    'mysql_ssl_cert',
-    'mysql_ssl_key',
-    'mysql_ssl_verify_cert',
-    'pan_host',
-    'wechat_webhook_service',
-    'chromedriver_path',
-    'refresh_token_exp_sec',
-    'save_histories',
-    'save_histories_days',
-    'save_histories_count',
-    'access_token_exp_sec',
-    'rar_path',
-    'upload_folder'
-]

@@ -5,7 +5,7 @@ from AnyshareService.AnyShareBaseService import entrydoc, listDir, createDir, ge
     setShareLink, getBatchDownloadLink, delDir
 from SQLService.Operation import *
 
-from WeChatBotService.WeChatBaseService import msgV1
+from BotService.WeChatBaseService import msgV1
 from utils.utils import download_file, rm_results, rar_file_in_parts
 
 

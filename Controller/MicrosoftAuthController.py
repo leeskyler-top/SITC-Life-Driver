@@ -11,7 +11,7 @@ from .globals import json_response
 
 microsoft_auth_controller = Blueprint('microsoft_auth_controller', __name__)
 
-@microsoft_auth_controller.route("/auth/callback")
+@microsoft_auth_controller.route("/auth/callback", methods=['GET'])
 @jwt_required()
 @cloudflare_worker_required
 @record_history

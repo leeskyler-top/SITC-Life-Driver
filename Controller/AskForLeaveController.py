@@ -16,7 +16,7 @@ from Model.AskForLeaveApplication import AskForLeaveApplication, StatusEnum, Ask
 from Model.CheckInUser import CheckInStatusEnum
 from Model.User import PositionEnum
 from utils.utils import allowed_file, detect_mime
-from .globals import json_response, Session, validate_schema
+from .globals import json_response, Session, validate_schema, auto_decrypt_if_present, get_data
 from werkzeug.utils import secure_filename
 
 ask_for_leave_controller = Blueprint('ask_for_leave_controller', __name__)
@@ -395,7 +395,7 @@ def update_leave_application(application_id):
     """
     更新请假申请（含审批、撤回批准）
     """
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', '未提供请求数据', code=422)
 
@@ -631,11 +631,12 @@ def get_photo(application_id, photo_name):
 @ask_for_leave_controller.route('/cleanup-images', methods=['POST'], endpoint='cleanup_images')
 @admin_required
 @record_history
+@auto_decrypt_if_present
 def cleanup_images():
     """
     清理指定日期的图片并更新数据库记录
     """
-    data = request.get_json()
+    data = get_data()
     if not data or 'target_date' not in data:
         return json_response('fail', '请提供目标日期', code=422)
 

@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required
 
 from Handler.Handler import position_required, record_history, admin_required
 from Model.User import PositionEnum
-from .globals import json_response, validate_schema, non_empty_string
+from .globals import json_response, validate_schema, non_empty_string, auto_decrypt_if_present, get_data
 from SQLService.Operation import truncate_template, insert_template, delete_template, \
     update_template, read_template_from_sql
 import io
@@ -17,9 +17,10 @@ template_controller = Blueprint('template_controller', __name__)
 @position_required(
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER])
 @record_history
+@auto_decrypt_if_present
 def update_template_by_id(template_id):
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         result, reason = validate_schema(
@@ -99,9 +100,10 @@ def delete_template_by_id(template_id):
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.SUMMARY_LEADER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def add_template():
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         forbidden_regex = r'^[^/\\|<>?!@#$%^&"\.]+$'  # 只允许不包含这些字符的字符串

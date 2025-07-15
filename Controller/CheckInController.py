@@ -12,7 +12,7 @@ from Model.CheckInUser import CheckInStatusEnum
 from Model.Message import Message
 from Model.Schedule import Schedule
 from Model.User import PositionEnum, User
-from .globals import json_response, Session, validate_schema, non_empty_string
+from .globals import json_response, Session, validate_schema, non_empty_string, get_data, auto_decrypt_if_present
 from datetime import datetime
 
 checkin_controller = Blueprint('checkin_controller', __name__)
@@ -21,6 +21,7 @@ checkin_controller = Blueprint('checkin_controller', __name__)
 @checkin_controller.route('/my', methods=['GET'], endpoint='list_my_checkins')
 @jwt_required()
 @record_history
+@auto_decrypt_if_present
 def list_my_checkins():
     session = Session()
     try:
@@ -39,6 +40,7 @@ def list_my_checkins():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def create_checkin(schedule_id):
     session = Session()
     try:
@@ -46,7 +48,7 @@ def create_checkin(schedule_id):
         if not schedule:
             return json_response('fail', '指定的排班不存在', code=404)
 
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', '未提供请求数据', code=422)
 
@@ -123,10 +125,11 @@ def create_checkin(schedule_id):
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def assign_users_and_checkins():
     session = Session()
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', '未提供请求数据', code=422)
 
@@ -205,10 +208,11 @@ def assign_users_and_checkins():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def assign_users_by_check_in_id(check_in_id):
     session = Session()
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', '未提供请求数据', code=422)
 
@@ -352,10 +356,11 @@ def cancel(check_in_user_id):
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def change_record(check_in_user_id):
     session = Session()
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', '未提供请求数据', code=422)
 
@@ -428,8 +433,9 @@ def list_checkins():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def list_checkin_users():
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
     schema = {
@@ -521,7 +527,7 @@ def list_checkin_users():
 def update_checkin(check_in_id):
     session = Session()
     try:
-        data = request.get_json()
+        data = get_data()
         if not data:
             return json_response('fail', "未传递任何参数", code=422)
         schema = {
@@ -610,8 +616,9 @@ def delete_checkin(check_in_id):
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def attendance_stats():
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', '未提供请求数据', code=422)
 
@@ -860,9 +867,10 @@ def attendance_stats():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def export_check_in_by_id(check_in_id):
     """根据签到ID导出签到信息（POST带export参数返回Excel）"""
-    data = request.get_json() or {}
+    data = get_data() or {}
     export = data.get('export', False)
 
     check_in = CheckIn.get_check_in_by_id(check_in_id)
@@ -960,8 +968,9 @@ def export_check_in_by_id(check_in_id):
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def list_checkin_users_by_user_id(user_id):
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
     schema = {
@@ -1051,8 +1060,9 @@ def list_checkin_users_by_user_id(user_id):
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def list_checkin_users_by_schedule_id(schedule_id):
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
     schema = {

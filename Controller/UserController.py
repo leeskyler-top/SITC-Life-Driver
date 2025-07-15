@@ -1,10 +1,12 @@
 import string
 import random
 import re
+import uuid
 
+import pyzipper
 from flask import Blueprint, request, Response
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from .globals import json_response, validate_schema, Session
+from .globals import json_response, validate_schema, Session, auto_decrypt_if_present, get_data
 from Model.User import User, PositionEnum, GenderEnum, DepartmentEnum, PoliticalLandscapeEnum
 from Handler.Handler import admin_required, position_required, record_history
 from sqlalchemy.exc import IntegrityError
@@ -18,6 +20,7 @@ user_controller = Blueprint('user_controller', __name__)
 @user_controller.route('', methods=['POST'], endpoint='create_user')
 @admin_required
 @record_history
+@auto_decrypt_if_present
 def create_user():
     """
     创建用户，默认密码为账户名
@@ -26,7 +29,7 @@ def create_user():
     gender_enum_values = [item.value for item in GenderEnum]
     department_enum_values = [item.value for item in DepartmentEnum]
     political_landscape_enum_values = [item.value for item in PoliticalLandscapeEnum]
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
     schema = {
@@ -294,6 +297,7 @@ def generate_random_password(length=8):
 @user_controller.route('/pwd/update', methods=['PATCH'], endpoint='update_own_password')
 @jwt_required()  # 确保用户已登录
 @record_history
+@auto_decrypt_if_present
 def update_own_password():
     current_user_id = get_jwt_identity()  # 获取当前用户的 ID
 
@@ -304,7 +308,7 @@ def update_own_password():
         'confirm_password': {'type': 'string', 'required': True}
     }
 
-    data = request.get_json()
+    data = get_data()
 
     # 验证请求数据
     is_valid, errors = validate_schema(schema, data)
@@ -347,11 +351,12 @@ def update_own_password():
 @user_controller.route('/<int:user_id>', methods=['PATCH'], endpoint='patch_user')
 @admin_required
 @record_history
+@auto_decrypt_if_present
 def patch_user(user_id):
     """
     更新用户信息，除了密码和学生ID字段
     """
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
 
@@ -371,8 +376,8 @@ def patch_user(user_id):
         'politicalLandscape': {'type': 'string', 'required': True, 'allowed': political_landscape_enum_values},
         'is_admin': {'type': 'integer', 'required': True, 'allowed': [0, 1]},  # 0 为普通用户，1 为管理员
         'resident': {'type': 'integer', 'required': True, 'allowed': [0, 1]},
-        'qq': {'type': 'string', 'maxlength': 50},
-        'note': {'type': 'string', 'maxlength': 255},
+        'qq': {'type': 'string', 'maxlength': 50, 'nullable': True},
+        'note': {'type': 'string', 'maxlength': 255, 'nullable': True},
         'join_at': {'type': 'string', 'regex': r'^\d{4}-\d{2}-\d{2}$'}  # YYYY-MM-DD 格式
     }
 
@@ -388,7 +393,7 @@ def patch_user(user_id):
     # 防止用户修改自己的 is_admin 字段，确保只有管理员能够更改
     if int(current_user_id) == user_id:
         # 如果修改的是当前用户的权限，禁止更改 is_admin
-        data = request.get_json()
+        data = get_data()
         if 'is_admin' in data and data['is_admin'] != current_user['is_admin']:
             return json_response("fail", "不可修改自己的管理员字段", code=403)
 
@@ -440,7 +445,7 @@ def delete_user(user_id):
 
     user = User.get_user_by_id(user_id)
     if not user:
-        return json_response("fail", "值班计划未找到", code=404)
+        return json_response("fail", "用户未找到", code=404)
 
     # 删除用户
     User.delete_user_by_id(user_id)
@@ -581,17 +586,32 @@ def export_all_users():
     df = pd.DataFrame(user_data_list)
 
     # 转换为 CSV 格式
-    output = io.StringIO()
-    df.to_csv(output, index=False)
-    output.seek(0)
+    csv_buffer = io.StringIO()
+    df.to_csv(csv_buffer, index=False)
+    csv_bytes = csv_buffer.getvalue().encode("utf-8")
 
-    # 返回 CSV 文件
+    # 2. 生成 UUID，用作文件名和密码
+    export_uuid = str(uuid.uuid4())
+
+    # 3. 构造加密 ZIP
+    zip_stream = io.BytesIO()
+    with pyzipper.AESZipFile(zip_stream, 'w', compression=pyzipper.ZIP_DEFLATED,
+                             encryption=pyzipper.WZ_AES) as zip_file:
+        zip_file.setpassword(export_uuid.encode())
+        zip_file.writestr("user_export.csv", csv_bytes)
+    zip_stream.seek(0)
+
+    # 4. 返回为 attachment，同时通过 header 返回密码
     return Response(
-        output,
-        mimetype="text/csv",
-        headers={"Content-Disposition": "attachment;filename=all_users_info.csv"}
+        zip_stream.read(),
+        status=200,
+        content_type="application/zip",
+        headers={
+            "Access-Control-Expose-Headers": "Content-Disposition",
+            "Content-Disposition": f"attachment; filename={export_uuid}.zip",
+            "X-Zip-Password": export_uuid  # ⚠️ 前端从这个 header 取密码
+        }
     )
-
 
 @user_controller.route('/deleted', methods=['GET'], endpoint='show_deleted_user')
 @admin_required  # 确保用户已登录

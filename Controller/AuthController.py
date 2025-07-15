@@ -1,4 +1,7 @@
+import os
+
 from Handler.Handler import record_history
+from utils.encrypter import PUBLIC_KEY_PEM
 from .globals import access_token_exp_sec, refresh_token_exp_sec
 from flask import Blueprint, request
 from flask_jwt_extended import (
@@ -45,7 +48,8 @@ def login():
     return json_response('success', '登录成功', data={
         'access_token': access_token,
         'refresh_token': refresh_token,
-        'user': user.to_dict()
+        'user': user.to_dict(),
+        'public_key': PUBLIC_KEY_PEM
     })
 
 

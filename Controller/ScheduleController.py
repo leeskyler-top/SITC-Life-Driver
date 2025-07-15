@@ -8,7 +8,7 @@ from flask_jwt_extended import jwt_required
 from Handler.Handler import position_required, record_history, admin_required
 from Model.Schedule import TypeEnum, Schedule
 from Model.User import PositionEnum
-from .globals import json_response, Session, validate_schema
+from .globals import json_response, Session, validate_schema, auto_decrypt_if_present, get_data
 from sqlalchemy.exc import IntegrityError
 
 schedule_controller = Blueprint('schedule_controller', __name__)
@@ -19,12 +19,13 @@ schedule_controller = Blueprint('schedule_controller', __name__)
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def create_schedule():
     """
     创建值班计划
     """
     schedule_type_enum_values = [item.value for item in TypeEnum]
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
     schema = {
@@ -214,11 +215,12 @@ def get_all_schedules():
     [PositionEnum.MINISTER, PositionEnum.VICE_MINISTER, PositionEnum.DEPARTMENT_LEADER]
 )
 @record_history
+@auto_decrypt_if_present
 def update_schedule(schedule_id):
     """
     更新值班计划
     """
-    data = request.get_json()
+    data = get_data()
     if not data:
         return json_response('fail', "未传递任何参数", code=422)
 

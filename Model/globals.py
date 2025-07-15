@@ -48,7 +48,7 @@ Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
-def format_datetime(dt):
+def format_datetime(dt) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else None
 
 

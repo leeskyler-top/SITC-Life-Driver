@@ -107,7 +107,7 @@ class CheckInUser(Base):
                     "image_url": asl.image_url,
                     "reject_reason": asl.reject_reason,
                     "status": asl.status.value,
-                    "created_at": asl.created_at
+                    "created_at": format_datetime(asl.created_at)
                 } for asl in self.ask_for_leaves
             ]
         return checkInUsers

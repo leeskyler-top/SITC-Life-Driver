@@ -3,6 +3,8 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+
+from utils.encrypter import decrypt_with_backend_key, encrypt_with_backend_key
 from .globals import engine, Session, Base, SoftDeleteMixin
 from sqlalchemy import Column, Integer, String, Enum, Text, Boolean
 import enum
@@ -56,7 +58,7 @@ class User(SoftDeleteMixin, Base):
     classname = Column(String(50), nullable=False)
     department = Column(Enum(DepartmentEnum), nullable=False)
     gender = Column(Enum(GenderEnum), nullable=False)
-    phone = Column(String(50), nullable=False)
+    phone = Column(String(256), nullable=False)
     qq = Column(String(50), nullable=True)
     is_admin = Column(Boolean, nullable=False, default=False)
     position = Column(Enum(PositionEnum), nullable=False, default=PositionEnum.REGULAR_MEMBER)
@@ -77,8 +79,8 @@ class User(SoftDeleteMixin, Base):
             "name": self.name,
             "classname": self.classname,
             "department": self.department.value,
-            "phone": self.phone,
-            "qq": self.qq,
+            "phone": decrypt_with_backend_key(self.phone) if self.phone else None,
+            "qq": decrypt_with_backend_key(self.qq) if self.qq else None,
             "is_admin": self.is_admin,
             "position": self.position.value,  # Enum 类型转换为字符串
             "gender": self.gender.value,  # Enum 类型转换为字符串
@@ -157,9 +159,9 @@ class User(SoftDeleteMixin, Base):
                 if classname is not None:
                     user.classname = classname
                 if phone is not None:
-                    user.phone = phone
+                    user.phone = encrypt_with_backend_key(phone)
                 if qq is not None:
-                    user.qq = qq
+                    user.qq = encrypt_with_backend_key(qq)
                 if department is not None:
                     user.department = department
                 if gender is not None:
@@ -235,8 +237,8 @@ class User(SoftDeleteMixin, Base):
             classname=classname,
             department=department_enum,
             gender=gender_enum,
-            phone=phone,
-            qq=qq,
+            phone=encrypt_with_backend_key(phone),
+            qq=encrypt_with_backend_key(qq),
             is_admin=is_admin,
             position=position_enum,
             note=note,
