@@ -1,5 +1,5 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.1",
   "info": {
     "title": "SITC-Life-Driver",
     "description": "",
@@ -204,16 +204,7 @@
                       "部长",
                       "其他人员"
                     ],
-                    "examples": [
-                      "其他人员",
-                      "部长",
-                      "副部长",
-                      "部门负责人",
-                      "汇总负责人",
-                      "实习汇总负责人",
-                      "普通部员",
-                      "实习部员"
-                    ]
+                    "example": "其他人员"
                   },
                   "gender": {
                     "type": "string",
@@ -223,11 +214,7 @@
                       "女",
                       "不方便透露"
                     ],
-                    "examples": [
-                      "男",
-                      "女",
-                      "不方便透露"
-                    ]
+                    "example": "男"
                   },
                   "department": {
                     "type": "string",
@@ -241,15 +228,7 @@
                       "校团委",
                       "其它"
                     ],
-                    "examples": [
-                      "信息技术系",
-                      "商务管理系",
-                      "智能制造系",
-                      "材料与检测系",
-                      "公共基础部",
-                      "校团委",
-                      "其它"
-                    ]
+                    "example": "信息技术系"
                   },
                   "is_admin": {
                     "type": "boolean",
@@ -273,13 +252,7 @@
                       "中国共产党预备党员",
                       "其它"
                     ],
-                    "examples": [
-                      "群众",
-                      "中国共产主义青年团团员",
-                      "中国共产党正式党员",
-                      "中国共产党预备党员",
-                      "其它"
-                    ]
+                    "example": "群众"
                   },
                   "resident": {
                     "type": "boolean",
@@ -289,9 +262,7 @@
                     "type": "string",
                     "title": "入部时间",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                    "examples": [
-                      "2025-01-01"
-                    ]
+                    "example": "2025-01-01"
                   }
                 },
                 "required": [
@@ -391,7 +362,7 @@
       }
     },
     "/user/pwd/update": {
-      "get": {
+      "patch": {
         "summary": "修改自己的密码",
         "deprecated": false,
         "description": "",
@@ -399,6 +370,34 @@
           "用户"
         ],
         "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "old_password": {
+                    "type": "string",
+                    "title": "旧密码"
+                  },
+                  "new_password": {
+                    "type": "string",
+                    "title": "新密码"
+                  },
+                  "confirm_password": {
+                    "type": "string",
+                    "title": "确认新密码"
+                  }
+                },
+                "required": [
+                  "old_password",
+                  "new_password",
+                  "confirm_password"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -470,16 +469,7 @@
                       "部长",
                       "其他人员"
                     ],
-                    "examples": [
-                      "其他人员",
-                      "部长",
-                      "副部长",
-                      "部门负责人",
-                      "汇总负责人",
-                      "实习汇总负责人",
-                      "普通部员",
-                      "实习部员"
-                    ]
+                    "example": "其他人员"
                   },
                   "gender": {
                     "type": "string",
@@ -489,11 +479,7 @@
                       "女",
                       "不方便透露"
                     ],
-                    "examples": [
-                      "男",
-                      "女",
-                      "不方便透露"
-                    ]
+                    "example": "男"
                   },
                   "department": {
                     "type": "string",
@@ -507,15 +493,7 @@
                       "校团委",
                       "其它"
                     ],
-                    "examples": [
-                      "信息技术系",
-                      "商务管理系",
-                      "智能制造系",
-                      "材料与检测系",
-                      "公共基础部",
-                      "校团委",
-                      "其它"
-                    ]
+                    "example": "信息技术系"
                   },
                   "is_admin": {
                     "type": "boolean",
@@ -539,13 +517,7 @@
                       "中国共产党预备党员",
                       "其它"
                     ],
-                    "examples": [
-                      "群众",
-                      "中国共产主义青年团团员",
-                      "中国共产党正式党员",
-                      "中国共产党预备党员",
-                      "其它"
-                    ]
+                    "example": "群众"
                   },
                   "resident": {
                     "type": "boolean",
@@ -555,9 +527,7 @@
                     "type": "string",
                     "title": "入部时间",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
-                    "examples": [
-                      "2025-01-01"
-                    ]
+                    "example": "2025-01-01"
                   }
                 }
               }
@@ -1550,14 +1520,8 @@
                       5,
                       7
                     ],
-                    "examples": [
-                      1,
-                      3,
-                      4,
-                      5,
-                      7
-                    ],
-                    "title": "权限"
+                    "title": "权限",
+                    "example": 1
                   },
                   "usePassword": {
                     "type": "boolean",
@@ -1628,14 +1592,8 @@
                       5,
                       7
                     ],
-                    "examples": [
-                      1,
-                      3,
-                      4,
-                      5,
-                      7
-                    ],
-                    "description": "他妈的我也不知道这个啥session"
+                    "description": "他妈的我也不知道这个啥session",
+                    "example": 1
                   },
                   "name": {
                     "type": "boolean",
@@ -1748,22 +1706,14 @@
                       "早间",
                       "其它"
                     ],
-                    "examples": [
-                      "其它",
-                      "早间",
-                      "晚间",
-                      "午间",
-                      "放学"
-                    ],
-                    "title": "值班计划类型"
+                    "title": "值班计划类型",
+                    "example": "其它"
                   },
                   "schedule_start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ],
-                    "title": "值班计划开始时间"
+                    "title": "值班计划开始时间",
+                    "example": "2025-01-01 00:00:00"
                   }
                 }
               }
@@ -1857,22 +1807,14 @@
                       "早间",
                       "其它"
                     ],
-                    "examples": [
-                      "其它",
-                      "早间",
-                      "晚间",
-                      "午间",
-                      "放学"
-                    ],
-                    "title": "值班计划类型"
+                    "title": "值班计划类型",
+                    "example": "其它"
                   },
                   "schedule_start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ],
-                    "title": "值班计划开始时间"
+                    "title": "值班计划开始时间",
+                    "example": "2025-01-01 00:00:00"
                   }
                 },
                 "required": [
@@ -2080,16 +2022,12 @@
                   "start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ]
+                    "example": "2025-01-01 00:00:00"
                   },
                   "end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-12-31 00:00:00"
-                    ]
+                    "example": "2025-12-31 00:00:00"
                   }
                 },
                 "required": [
@@ -2232,16 +2170,12 @@
                   "check_in_start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ]
+                    "example": "2025-01-01 00:00:00"
                   },
                   "check_in_end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:10:00"
-                    ]
+                    "example": "2025-01-01 00:10:00"
                   },
                   "need_check_schedule_time": {
                     "type": "boolean"
@@ -2369,16 +2303,12 @@
                   "start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ]
+                    "example": "2025-01-01 00:00:00"
                   },
                   "end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-12-31 00:00:00"
-                    ]
+                    "example": "2025-12-31 00:00:00"
                   },
                   "type": {
                     "type": "string",
@@ -2386,10 +2316,7 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "examples": [
-                      "schedule_time",
-                      "checkin_time"
-                    ]
+                    "example": "schedule_time"
                   },
                   "export": {
                     "type": "boolean"
@@ -2443,16 +2370,12 @@
                   "start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ]
+                    "example": "2025-01-01 00:00:00"
                   },
                   "end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-12-31 00:00:00"
-                    ]
+                    "example": "2025-12-31 00:00:00"
                   },
                   "type": {
                     "type": "string",
@@ -2460,10 +2383,7 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "examples": [
-                      "schedule_time",
-                      "checkin_time"
-                    ]
+                    "example": "schedule_time"
                   },
                   "export": {
                     "type": "boolean"
@@ -2527,16 +2447,12 @@
                   "start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ]
+                    "example": "2025-01-01 00:00:00"
                   },
                   "end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-12-31 00:00:00"
-                    ]
+                    "example": "2025-12-31 00:00:00"
                   },
                   "type": {
                     "type": "string",
@@ -2544,10 +2460,7 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "examples": [
-                      "schedule_time",
-                      "checkin_time"
-                    ]
+                    "example": "schedule_time"
                   },
                   "export": {
                     "type": "boolean"
@@ -2611,16 +2524,12 @@
                   "start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ]
+                    "example": "2025-01-01 00:00:00"
                   },
                   "end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-12-31 00:00:00"
-                    ]
+                    "example": "2025-12-31 00:00:00"
                   },
                   "type": {
                     "type": "string",
@@ -2628,10 +2537,7 @@
                       "schedule_time",
                       "checkin_time"
                     ],
-                    "examples": [
-                      "schedule_time",
-                      "checkin_time"
-                    ]
+                    "example": "schedule_time"
                   },
                   "export": {
                     "type": "boolean"
@@ -2760,17 +2666,13 @@
                   "check_in_start_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:00:00"
-                    ],
-                    "title": "签到开始时间"
+                    "title": "签到开始时间",
+                    "example": "2025-01-01 00:00:00"
                   },
                   "check_in_end_time": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}$",
-                    "examples": [
-                      "2025-01-01 00:10:00"
-                    ]
+                    "example": "2025-01-01 00:10:00"
                   }
                 },
                 "required": [
@@ -2898,12 +2800,6 @@
                   },
                   "asl_type": {
                     "type": "string",
-                    "examples": [
-                      "病假",
-                      "符合要求的赛事或集训",
-                      "事假",
-                      "公务假"
-                    ],
                     "example": "病假"
                   },
                   "asl_reason": {
@@ -3156,20 +3052,12 @@
                     "type": "string",
                     "title": "请假状态",
                     "description": "驳回或批准",
-                    "examples": [
-                      "已批准",
-                      "已拒绝"
-                    ]
+                    "example": "已批准"
                   },
                   "asl_type": {
                     "type": "string",
                     "title": "请假类型",
-                    "examples": [
-                      "病假",
-                      "事假",
-                      "符合要求的赛事或集训",
-                      "公务假"
-                    ]
+                    "example": "病假"
                   },
                   "reject_reason": {
                     "type": "string",
@@ -3375,9 +3263,7 @@
                   "target_date": {
                     "type": "string",
                     "pattern": "^\\d{4}-\\d{2}-\\d{2}",
-                    "examples": [
-                      "2025-06-30"
-                    ]
+                    "example": "2025-06-30"
                   }
                 },
                 "required": [
