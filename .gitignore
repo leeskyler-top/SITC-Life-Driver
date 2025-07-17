@@ -10,3 +10,4 @@ test.py
 /config/sitc-life-driver.conf
 *cookie.json
 *.key
+*.pem

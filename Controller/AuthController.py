@@ -1,7 +1,7 @@
-import os
-
 from Handler.Handler import record_history
-from utils.encrypter import PUBLIC_KEY_PEM
+from SQLService.RedisUtils import get_redis
+from utils.captchaUtils import generate_captcha
+from utils.encrypter import PUBLIC_KEY_PEM, encrypt_with_backend_key, decrypt_with_backend_key
 from .globals import access_token_exp_sec, refresh_token_exp_sec
 from flask import Blueprint, request
 from flask_jwt_extended import (
@@ -21,6 +21,18 @@ auth_controller = Blueprint('auth_controller', __name__)
 ACCESS_EXPIRES = timedelta(seconds=access_token_exp_sec)  # 设置为 3 分钟的有效期
 REFRESH_EXPIRES = timedelta(seconds=refresh_token_exp_sec)  # 设置为 30 分钟的有效期
 
+redis_client = get_redis()
+
+@auth_controller.route('/captcha', methods=['GET'])
+def get_captcha():
+    uuid, image_data, answer = generate_captcha(True, True, 6)
+    answer = encrypt_with_backend_key(answer.strip().lower())
+    redis_client.setex(f'captcha:{uuid}', 180, answer)
+    return json_response('success', '获取成功', data={
+        'uuid': uuid,
+        'image_data': f'data:image/png;base64,{image_data}'
+    })
+
 
 # 登录逻辑
 @auth_controller.route('/login', methods=['POST'])
@@ -31,6 +43,18 @@ def login():
 
     student_id = data.get('studentId')
     password = data.get('password')
+    captcha_uuid = data.get('captcha_uuid')
+    captcha_answer = data.get('captcha_answer')
+
+    if not captcha_uuid or not captcha_answer:
+        return json_response('fail', '验证码缺失', code=400)
+
+    redis_key = f'captcha:{captcha_uuid}'
+    correct_answer = redis_client.get(redis_key)
+    redis_client.delete(redis_key)  # 阅后即焚
+
+    if not correct_answer or captcha_answer.strip().lower() != decrypt_with_backend_key(correct_answer):
+        return json_response('fail', '验证码错误', code=400)
 
     # 验证用户身份
     session = Session()

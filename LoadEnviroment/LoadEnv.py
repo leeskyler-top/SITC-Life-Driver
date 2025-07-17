@@ -9,14 +9,23 @@ password = ""
 cas_cookie_path = ""
 pan_baseurl = ""
 mysql_host = "127.0.0.1"
-mysql_port = "3306"
+mysql_port = 3306
 mysql_username = "root"
 mysql_password = ""
-mysql_use_ssl = ""
+mysql_use_ssl = False
 mysql_ssl_ca = ""
 mysql_ssl_cert = ""
 mysql_ssl_key = ""
 mysql_ssl_verify_cert = ""
+redis_host = "127.0.0.1"
+redis_port = 6379
+redis_username = "default"
+redis_password = ""
+redis_use_ssl = False
+redis_ssl_ca = ""
+redis_ssl_cert = ""
+redis_ssl_key = ""
+redis_db = 0
 jwt_secret_key = ""
 server_env = "development",
 pan_host = "",
@@ -41,19 +50,22 @@ ms_client_secret_type = "secret"
 storage = "local"
 server_aes_rsa_private_key = ""
 
+
 # 读取 .env.json 文件
 def load_env_json(filepath):
     global cas_baseurl, pan_host, pan_sso_service, username, password, cas_cookie_path, pan_baseurl, \
         mysql_host, mysql_port, mysql_username, mysql_password, \
         mysql_use_ssl, mysql_ssl_ca, mysql_ssl_cert, mysql_ssl_key, mysql_ssl_verify_cert, \
+        redis_host, redis_port, redis_username, redis_password, redis_use_ssl, redis_ssl_ca, redis_ssl_cert, redis_ssl_key, redis_db, \
         jwt_secret_key, server_env, \
         wechat_webhook_service, \
         chromedriver_path, cas_login_method, des_trans_mode, \
         refresh_token_exp_sec, access_token_exp_sec, rar_path, \
         save_histories, save_histories_days, save_histories_count, upload_folder, \
-        hmac_secret_key, ms_tenant_id ,ms_client_id, ms_client_secret, ms_client_secret_type, storage, \
+        hmac_secret_key, ms_tenant_id, ms_client_id, ms_client_secret, ms_client_secret_type, storage, \
         cloudflare_worker_baseurl, cloudflare_worker_secret, backend_aes_key, \
         server_aes_rsa_private_key
+
     with open(filepath, 'r', encoding='utf-8') as f:
         data = json.load(f)
         # 将内容加载到环境变量中
@@ -74,11 +86,21 @@ def load_env_json(filepath):
         mysql_ssl_cert = data['mysql_ssl_cert']
         mysql_ssl_key = data['mysql_ssl_key']
         mysql_ssl_verify_cert = data['mysql_ssl_verify_cert']
+        redis_host = data['redis_host']
+        redis_port = data['redis_port']
+        redis_username = data['redis_username']
+        redis_password = data['redis_password']
+        redis_use_ssl = data['redis_use_ssl']
+        redis_ssl_ca = data['redis_ssl_ca']
+        redis_ssl_cert = data['redis_ssl_cert']
+        redis_ssl_key = data['redis_ssl_key']
+        redis_db = data['redis_db']
         jwt_secret_key = data['jwt_secret_key']
         server_env = data['server_env']
         pan_host = data['pan_host']
         wechat_webhook_service = data['wechat_webhook_service']
-        chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True and data['cas_login_method'] == "selenium" else None
+        chromedriver_path = data['chromedriver_path'] if data['use_customize_chromedriver'] is True and data[
+            'cas_login_method'] == "selenium" else None
         refresh_token_exp_sec = data['refresh_token_exp_sec']
         access_token_exp_sec = data['access_token_exp_sec']
         save_histories = data['save_histories']
