@@ -25,12 +25,13 @@ redis_client = get_redis()
 
 @auth_controller.route('/captcha', methods=['GET'])
 def get_captcha():
-    uuid, image_data, answer = generate_captcha(True, True, 6)
+    captcha_type = request.args.to_dict().get('type', 'image')
+    uuid, data, answer = generate_captcha(True, True, 5, type=captcha_type)
     answer = encrypt_with_backend_key(answer.strip().lower())
     redis_client.setex(f'captcha:{uuid}', 180, answer)
     return json_response('success', '获取成功', data={
         'uuid': uuid,
-        'image_data': f'data:image/png;base64,{image_data}'
+        'image_data': f'data:image/png;base64,{data}' if captcha_type == 'image' else f'data:audio/mpeg;base64,{data}'
     })
 
 
