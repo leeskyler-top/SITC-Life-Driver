@@ -35,16 +35,21 @@ def generate_captcha_voice(answer: str):
 
 
 def generate_captcha(include_letters: bool = True, include_numbers: bool = True, length: int = 4, width: int = 120,
-                     height: int = 35, font_size: int = 24, type: str = 'image') -> ImageCaptcha:
+                     height: int = 35, font_size: int = 24, type: str = 'image'):
     # 防止全关时启用默认
     if not include_letters and not include_numbers:
         include_letters = include_numbers = True
 
+
+    # 定义安全字符集（剔除易混字符）
+    letter_set = ''.join(c for c in string.ascii_letters if c not in 'IlOo')
+    number_set = ''.join(c for c in string.digits if c != '0')
+
     chars = ''
     if include_letters:
-        chars += string.ascii_letters
+        chars += letter_set
     if include_numbers:
-        chars += string.digits
+        chars += number_set
 
     answer = ''.join(random.choices(chars, k=length))
     if type == 'image':

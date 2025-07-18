@@ -6,6 +6,7 @@ Flask==3.1.1
 Flask_Cors==6.0.1
 Flask_JWT_Extended==4.7.1
 flask_limiter==3.12
+gtts==2.5.4
 numpy==2.3.1
 pandas==2.3.1
 Pillow==11.3.0

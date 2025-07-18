@@ -2,6 +2,7 @@ from Handler.Handler import record_history
 from SQLService.RedisUtils import get_redis
 from utils.captchaUtils import generate_captcha
 from utils.encrypter import PUBLIC_KEY_PEM, encrypt_with_backend_key, decrypt_with_backend_key
+from utils.limiter import limiter
 from .globals import access_token_exp_sec, refresh_token_exp_sec
 from flask import Blueprint, request
 from flask_jwt_extended import (
@@ -24,6 +25,7 @@ REFRESH_EXPIRES = timedelta(seconds=refresh_token_exp_sec)  # 设置为 30 分�
 redis_client = get_redis()
 
 @auth_controller.route('/captcha', methods=['GET'])
+@limiter.limit("30 per minute", key_func=lambda: request.headers.get('Cf-Connecting-Ip') or request.remote_addr)
 def get_captcha():
     captcha_type = request.args.to_dict().get('type', 'image')
     uuid, data, answer = generate_captcha(True, True, 5, type=captcha_type)
@@ -42,6 +44,8 @@ def login():
     if not data:
         return json_response('fail', '请提供账号和密码', code=400)
 
+
+
     student_id = data.get('studentId')
     password = data.get('password')
     captcha_uuid = data.get('captcha_uuid')
@@ -49,6 +53,24 @@ def login():
 
     if not captcha_uuid or not captcha_answer:
         return json_response('fail', '验证码缺失', code=400)
+
+    ip = request.headers.get('Cf-Connecting-Ip')
+    # 若Cf-Connecting-Ip存在，按IP限制频率
+    if ip:
+        key = f'login:ip:{ip}'
+        fail_key = f'login:ban:{ip}'
+    else:
+        # 否则按 studentId 限制（锁定学号）
+        key = f'login:id:{student_id}'
+        fail_key = f'login:ban:{student_id}'
+
+    if redis_client.exists(fail_key):
+        return json_response('fail', '登录频率过高，请稍后再试', code=429)
+
+        # 超过 20 次则封禁
+    if int(redis_client.get(key) or 0) > 20:
+        redis_client.setex(fail_key, 900, 1)  # 封禁15分钟
+        return json_response('fail', '登录频率过高，请15分钟后再试', code=429)
 
     redis_key = f'captcha:{captcha_uuid}'
     correct_answer = redis_client.get(redis_key)
@@ -62,6 +84,10 @@ def login():
     user = session.query(User).filter_by(studentId=student_id).first()
 
     if not user or not user.verify_password(password, user.password):  # 假设 User 模型有 verify_password 方法
+
+        redis_client.incr(key)
+        redis_client.expire(key, 600)  # 10分钟内计数
+
         return json_response('fail', '用户名或密码错误', code=401)
     if user.is_deleted == True:
         return json_response('fail', '账户已封禁，联系管理员', code=403)
