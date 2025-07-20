@@ -139,7 +139,7 @@ class User(SoftDeleteMixin, Base):
         except Exception as e:
             session.rollback()
             session.close()
-            return False, f"用户恢复失败: {str(e)}", 500
+            return False, f"用户永久删除失败: {str(e)}", 500
 
     @classmethod
     def patch_user_by_id(cls, user_id: int, name: str = None, classname: str = None, phone: str = None,

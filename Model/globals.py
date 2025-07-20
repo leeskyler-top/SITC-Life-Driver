@@ -50,11 +50,3 @@ Base = declarative_base()
 
 def format_datetime(dt) -> str:
     return dt.strftime("%Y-%m-%d %H:%M:%S") if dt else None
-
-
-__all__ = [
-    "engine",
-    "Session",
-    "Base",
-    "format_datetime"
-]
